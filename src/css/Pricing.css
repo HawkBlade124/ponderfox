@@ -1,0 +1,357 @@
+/* Ponder Fox — Pricing page */
+
+.pricingPageRoot {
+  background: #001233;
+  color: #e9eef5;
+  font-family: "Source Sans 3", sans-serif;
+}
+
+.pricingPageRoot a {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+/* ---------- Hero ---------- */
+.pricingPageHero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0466c8 0%, #023e7d 55%, #001233 100%);
+  padding: 180px 64px 90px;
+  text-align: center;
+}
+
+.pricingPageHeroBlob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.pricingPageHeroBlobTopRight {
+  top: -140px;
+  right: -100px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(151, 157, 172, 0.35), transparent 70%);
+  filter: blur(10px);
+}
+
+.pricingPageHeroBlobBottomLeft {
+  bottom: -160px;
+  left: -100px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(233, 238, 245, 0.15), transparent 70%);
+  filter: blur(20px);
+}
+
+.pricingPageHeroInner {
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.pricingPageKicker {
+  font-family: "Caveat", cursive;
+  font-size: 26px;
+  color: #e9eef5;
+  margin: 0 0 12px;
+  transform: rotate(-2deg);
+}
+
+.pricingPageHeroTitle {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #e9eef5;
+  margin: 0 0 20px;
+}
+
+.pricingPageHeroSubtitle {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #c7d3e0;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ---------- Grid ---------- */
+.pricingPageGridSection {
+  max-width: 1320px;
+  margin: -50px auto 0;
+  padding: 0 64px 100px;
+  position: relative;
+  z-index: 2;
+}
+
+.pricingPageGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.pricingPageCard {
+  border: 1px solid #33415c;
+  border-radius: 20px;
+  padding: 32px 26px;
+  background: #002855;
+}
+
+.pricingPageCardFeatured {
+  border: 1px solid #0466c8;
+  background: linear-gradient(180deg, #023e7d, #002855);
+  position: relative;
+  box-shadow: 0 0 50px rgba(4, 102, 200, 0.25);
+}
+
+.pricingPageFeaturedBadge {
+  position: absolute;
+  top: -13px;
+  right: 26px;
+  background: #0466c8;
+  color: #001d24;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 100px;
+  letter-spacing: 0.02em;
+}
+
+.pricingPageCardTitle {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: #979dac;
+}
+
+.pricingPagePrice {
+  font-family: "Fraunces", serif;
+  font-size: 36px;
+  margin: 4px 0 12px;
+}
+
+.pricingPagePriceUnit {
+  font-size: 15px;
+  color: #979dac;
+  font-family: "Source Sans 3", sans-serif;
+}
+
+.pricingPageBlurb {
+  font-size: 14px;
+  color: #979dac;
+  margin: 0 0 24px;
+}
+
+.pricingPageCta {
+  display: block;
+  text-align: center;
+  background: transparent;
+  color: #0466c8;
+  border: 1px solid #0466c8;
+  padding: 11px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 28px;
+  transition: background 0.2s ease;
+}
+
+.pricingPageCta:hover {
+  background: #023e7d;
+  color: #0466c8;
+}
+
+.pricingPageCtaFilled {
+  background: linear-gradient(135deg, #0466c8, #0353a4);
+  color: #eaf1f7;
+  border: none;
+  transition: filter 0.2s ease;
+}
+
+.pricingPageCtaFilled:hover {
+  filter: brightness(1.12);
+  background: linear-gradient(135deg, #0466c8, #0353a4);
+  color: #eaf1f7;
+}
+
+.pricingPageFeatureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pricingPageFeatureItem {
+  font-size: 14.5px;
+  color: #c7d3e0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.pricingPageCheckDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #33415c;
+  color: #6fc6ff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ---------- FAQ ---------- */
+.pricingPageFaqSection {
+  background: linear-gradient(180deg, #002855, #001233);
+  border-top: 1px solid #33415c;
+  border-bottom: 1px solid #33415c;
+}
+
+.pricingPageFaqInner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 100px 64px;
+}
+
+.pricingPageSectionTitle {
+  font-family: "Fraunces", serif;
+  font-weight: 400;
+  font-size: 40px;
+  letter-spacing: -0.01em;
+  margin: 0 0 56px;
+  text-align: center;
+}
+
+.pricingPageFaqList {
+  display: flex;
+  flex-direction: column;
+}
+
+.pricingPageFaqItem {
+  border-top: 1px solid #33415c;
+}
+
+.pricingPageFaqButton {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 28px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+  color: #e9eef5;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: "Source Sans 3", sans-serif;
+  transition: color 0.2s ease;
+}
+
+.pricingPageFaqButton:hover {
+  color: #c7d3e0;
+}
+
+.pricingPageFaqPlus {
+  color: #0466c8;
+  font-size: 22px;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+  display: inline-block;
+}
+
+.pricingPageFaqAnswer {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: #b7c1cf;
+  margin: 0 0 28px;
+}
+
+/* ---------- Closing CTA ---------- */
+.pricingPageCtaSection {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #002855, #001233 70%);
+}
+
+.pricingPageCtaGlow {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(4, 102, 200, 0.3), transparent 70%);
+  filter: blur(15px);
+  pointer-events: none;
+}
+
+.pricingPageCtaInner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 100px 64px;
+  text-align: center;
+  position: relative;
+}
+
+.pricingPageCtaTitle {
+  font-family: "Fraunces", serif;
+  font-weight: 400;
+  font-size: 42px;
+  letter-spacing: -0.01em;
+  margin: 0 0 32px;
+}
+
+.pricingPageCtaBtn {
+  display: inline-block;
+  background: linear-gradient(135deg, #0466c8, #0353a4);
+  color: #eaf1f7;
+  padding: 17px 38px;
+  border-radius: 100px;
+  font-size: 16px;
+  font-weight: 700;
+  transition: filter 0.2s ease;
+}
+
+.pricingPageCtaBtn:hover {
+  filter: brightness(1.12);
+  color: #eaf1f7;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .pricingPageHero {
+    padding: 140px 28px 70px;
+  }
+
+  .pricingPageGridSection,
+  .pricingPageFaqInner,
+  .pricingPageCtaInner {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .pricingPageGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .pricingPageSectionTitle,
+  .pricingPageCtaTitle {
+    font-size: 30px;
+  }
+
+  .pricingPageGrid {
+    grid-template-columns: 1fr;
+  }
+}

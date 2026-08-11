@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import heroImg from "../../assets/hero.jpg";
+import { PRICING_TIERS } from "../../data/pricing";
 import "../../css/Home.css";
 
 const FOLDERS = [
@@ -86,45 +87,6 @@ const HOW_STEPS = [
     numClass: "howStepNum3",
     title: "Talk & file it",
     text: "Respond to yourself, work through it, then file it into a folder so you can find it again.",
-  },
-];
-
-const PRICING_TIERS = [
-  {
-    title: "Free",
-    price: "$0",
-    unit: "/mo",
-    blurb: "Get started thinking out loud.",
-    features: ["Unlimited thoughts", "3 folders", "30-day history"],
-    filled: false,
-    featured: false,
-  },
-  {
-    title: "Plus",
-    price: "$6",
-    unit: "/mo",
-    blurb: "For regular reflection.",
-    features: ["Unlimited folders", "Unlimited history", "Thought search"],
-    filled: true,
-    featured: true,
-  },
-  {
-    title: "Pro",
-    price: "$12",
-    unit: "/mo",
-    blurb: "For power journalers.",
-    features: ["Everything in Plus", "Export your thoughts", "Priority support"],
-    filled: false,
-    featured: false,
-  },
-  {
-    title: "Lifetime",
-    price: "$149",
-    unit: " once",
-    blurb: "Pay once, think forever.",
-    features: ["Everything in Pro", "Lifetime updates", "Early access to new features"],
-    filled: false,
-    featured: false,
   },
 ];
 
@@ -215,7 +177,7 @@ function Home() {
               PonderFox is an app that helps you talk things out with yourself. Create a thought and chat with it as if you were thinking.
             </p>
             <div className="heroActions">
-              <Link to="/signup" className="heroCtaBtn">
+              <Link to="/register" className="heroCtaBtn">
                 Get Started
                 <span className="heroCtaArrow"><i className="fa-solid fa-arrow-right"></i></span>
               </Link>
@@ -305,7 +267,7 @@ function Home() {
             <h3 className="midCtaTitle">Ready to think it through?</h3>
             <p className="midCtaSubtitle">Your first thought is free — no card required.</p>
           </div>
-          <Link to="/signup" className="midCtaBtn">Start a Thought</Link>
+          <Link to="/register" className="midCtaBtn">Start a Thought</Link>
         </div>
       </section>
 
@@ -344,7 +306,7 @@ function Home() {
               </div>
             ))}
           </div>
-          <Link to="/signup" className="howStepCta">
+          <Link to="/register" className="howStepCta">
             Get Started
             <i className="fa-solid fa-arrow-right"></i>
           </Link>
@@ -381,7 +343,7 @@ function Home() {
                 </p>
                 <p className="pricingBlurb">{tier.blurb}</p>
                 <Link
-                  to="/signup"
+                  to="/register"
                   className={tier.filled ? "pricingCta pricingCtaFilled" : "pricingCta"}
                 >
                   Choose {tier.title}
@@ -428,7 +390,7 @@ function Home() {
         <div className="finalCtaInner">
           <p className="sectionKicker finalCtaKicker">no ai, ever</p>
           <h2 className="finalCtaTitle">Your thoughts deserve somewhere to go.</h2>
-          <Link to="/signup" className="finalCtaBtn">Get Started Free</Link>
+          <Link to="/register" className="finalCtaBtn">Get Started Free</Link>
         </div>
       </section>
 

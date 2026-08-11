@@ -1,0 +1,191 @@
+/* Ponder Fox — Contact page */
+
+.contactRoot {
+  background: #001233;
+  color: #e9eef5;
+  font-family: "Source Sans 3", sans-serif;
+  min-height: 100vh;
+}
+
+.contactHero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0466c8 0%, #023e7d 55%, #001233 100%);
+  padding: 180px 64px 90px;
+  text-align: center;
+}
+
+.contactHeroBlob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.contactHeroBlobTopRight {
+  top: -140px;
+  right: -100px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(151, 157, 172, 0.35), transparent 70%);
+  filter: blur(10px);
+}
+
+.contactHeroBlobBottomLeft {
+  bottom: -160px;
+  left: -100px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(233, 238, 245, 0.15), transparent 70%);
+  filter: blur(20px);
+}
+
+.contactHeroInner {
+  max-width: 640px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.contactKicker {
+  font-family: "Caveat", cursive;
+  font-size: 26px;
+  color: #e9eef5;
+  margin: 0 0 12px;
+  transform: rotate(-2deg);
+}
+
+.contactHeroTitle {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #e9eef5;
+  margin: 0 0 20px;
+}
+
+.contactHeroSubtitle {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #c7d3e0;
+  margin: 0;
+  font-weight: 500;
+}
+
+.contactFormSection {
+  max-width: 600px;
+  margin: -50px auto 0;
+  padding: 0 64px 120px;
+  position: relative;
+  z-index: 2;
+}
+
+.contactFormCard {
+  background: #002855;
+  border: 1px solid #33415c;
+  border-radius: 24px;
+  padding: 40px;
+}
+
+.contactFieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.contactFieldGroup:last-of-type {
+  margin-bottom: 0;
+}
+
+.contactLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #c7d3e0;
+}
+
+.contactInput,
+.contactTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #001233;
+  border: 1px solid #33415c;
+  border-radius: 14px;
+  padding: 13px 16px;
+  color: #e9eef5;
+  font-family: "Source Sans 3", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.contactInput:focus,
+.contactTextarea:focus {
+  border-color: #0466c8;
+}
+
+.contactTextarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.contactHoneypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.contactSubmitBtn {
+  width: 100%;
+  margin-top: 28px;
+  background: linear-gradient(135deg, #0466c8, #0353a4);
+  color: #eaf1f7;
+  border: none;
+  padding: 15px;
+  border-radius: 100px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.contactSubmitBtn:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.contactSubmitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.contactStatus {
+  margin: 18px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.contactStatusSuccess {
+  color: #6fc6ff;
+}
+
+.contactStatusError {
+  color: #ff8a7a;
+}
+
+@media (max-width: 860px) {
+  .contactHero {
+    padding: 140px 28px 70px;
+  }
+
+  .contactFormSection {
+    padding: 0 28px 100px;
+  }
+
+  .contactFormCard {
+    padding: 28px;
+  }
+}

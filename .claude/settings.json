@@ -6,7 +6,19 @@
       "Read(//f//**)",
       "Bash(npm ls *)",
       "Bash(node -e \"console.log\\(require.resolve\\('playwright-core'\\)\\)\")",
-      "Bash(curl -sf http://localhost:5183/)"
+      "Bash(curl -sf http://localhost:5183/)",
+      "Bash(git check-ignore *)",
+      "Bash(curl -s -X POST http://localhost:5000/api/contact -H \"Content-Type: application/json\" -d '{\"name\":\"\",\"email\":\"not-an-email\",\"message\":\"\"}')",
+      "Bash(curl -s -X POST http://localhost:5000/api/contact -H \"Content-Type: application/json\" -d '{\"name\":\"Bot\",\"email\":\"bot@example.com\",\"message\":\"spam\",\"website\":\"http://spam.com\"}')",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" -X POST http://localhost:5000/api/contact -H \"Content-Type: application/json\" -d '{\"name\":\"Test User\",\"email\":\"test@example.com\",\"message\":\"Hello, just testing the contact form.\"}')",
+      "Bash(curl -s http://localhost:5000/api/me -H \"Authorization: Bearer x\")",
+      "Bash(ps -efW)",
+      "Read(//proc/1586/**)",
+      "Bash(ps -W)",
+      "Bash(awk 'NR==1 || $5==17096')",
+      "Bash(cmd.exe /c \"tasklist /FI \\\\\"IMAGENAME eq node.exe\\\\\" /FO TABLE\")",
+      "Bash(cmd.exe /c \"tasklist\")",
+      "Bash(awk '$4==17096 || NR==1')"
     ]
   }
 }

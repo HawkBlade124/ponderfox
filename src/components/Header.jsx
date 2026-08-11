@@ -30,8 +30,8 @@ function Header() {
         <div id="middleNav">
           <div className="userSpace max-w-3xl flex items-center gap-8">
             <Link to="/" className="text-white/80 hover:text-white text-sm font-medium transition">Home</Link>
+            <Link to="/about" className="text-white/80 hover:text-white text-sm font-medium transition">About</Link>
             <Link to="/pricing" className="text-white/80 hover:text-white text-sm font-medium transition">Pricing</Link>
-            <Link to="/FAQ" className="text-white/80 hover:text-white text-sm font-medium transition">FAQ</Link>
             <Link to="/contact" className="text-white/80 hover:text-white text-sm font-medium transition">Contact</Link>
           </div>
           <div className="hamburger cursor-pointer">
@@ -67,33 +67,41 @@ function Header() {
             <div className="bars middle-bar"></div>
             <div className="bars bottom-bar"></div>
           </div>
-          {mobileMenu && 
-          <div id="flyoutMenu" className="flex">
-            <div className="bodyOverlay w-full h-full absolute right-0 top-0" onClick={closeMobileMenu}></div>
-            <div className="userSpace max-w-3xl flex items-center">
-              <div className="flyoutNavHead text-xl"><i className="fa-regular fa-xmark" onClick={closeMobileMenu}></i></div>
-              <div className="w-full">
-              <Link to="/">Home</Link>
-              <Link to="/pricing">Pricing</Link>
-              <Link to="/contact">Contact</Link>
-
-              {user ? (
-                <>
-                  <Link to="/dashboard">{user.Username}</Link>
-                  <span onClick={logout}>Logout</span>
-                </>
-              ) : (
-                <>
-                  <Link to="/login">Login</Link>
-                  <Link to="/register">Register</Link>
-                </>
-              )}
-              </div>
-            </div>
-            </div>
-            }
-        </div>      
+        </div>
       </div>
+      {mobileMenu &&
+      // Rendered as a sibling of .mobileHeader (not nested inside it) because
+      // .mobileHeader's backdrop-blur establishes a containing block for
+      // position:fixed descendants in Chromium, which traps the overlay
+      // inside that small pill instead of the viewport.
+      <div id="flyoutMenu">
+        <div className="bodyOverlay" onClick={closeMobileMenu}></div>
+        <div className="userSpace">
+          <div className="flyoutNavHead">
+            <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
+              <img src={logo} alt="Ponderfox Logo" className="h-6 w-auto" />
+            </Link>
+            <i className="fa-regular fa-xmark cursor-pointer" onClick={closeMobileMenu}></i>
+          </div>
+          <Link to="/">Home</Link>
+          <Link to="/about">About</Link>
+          <Link to="/pricing">Pricing</Link>
+          <Link to="/contact">Contact</Link>
+
+          {user ? (
+            <>
+              <Link to="/dashboard">{user.Username}</Link>
+              <span onClick={logout} className="cursor-pointer">Logout</span>
+            </>
+          ) : (
+            <>
+              <Link to="/login">Login</Link>
+              <Link to="/register">Register</Link>
+            </>
+          )}
+        </div>
+      </div>
+      }
     </header>
   );
 }

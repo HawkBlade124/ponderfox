@@ -1,0 +1,279 @@
+/* Ponder Fox — About page */
+
+.aboutRoot {
+  background: #001233;
+  color: #e9eef5;
+  font-family: "Source Sans 3", sans-serif;
+}
+
+.aboutRoot a {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+/* ---------- Intro ---------- */
+.aboutHero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0466c8 0%, #023e7d 55%, #001233 100%);
+  padding: 180px 64px 100px;
+  text-align: center;
+}
+
+.aboutHeroBlob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.aboutHeroBlobTopRight {
+  top: -140px;
+  right: -100px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(151, 157, 172, 0.35), transparent 70%);
+  filter: blur(10px);
+}
+
+.aboutHeroBlobBottomLeft {
+  bottom: -160px;
+  left: -100px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(233, 238, 245, 0.15), transparent 70%);
+  filter: blur(20px);
+}
+
+.aboutHeroInner {
+  max-width: 780px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.aboutKicker {
+  font-family: "Caveat", cursive;
+  font-size: 26px;
+  color: #e9eef5;
+  margin: 0 0 12px;
+  transform: rotate(-2deg);
+}
+
+.aboutHeroTitle {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #e9eef5;
+  margin: 0 0 24px;
+}
+
+.aboutHeroSubtitle {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #c7d3e0;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ---------- Mission ---------- */
+.aboutMissionSection {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 100px 64px;
+}
+
+.aboutMissionText {
+  font-size: 19px;
+  line-height: 1.75;
+  color: #c7d3e0;
+  margin: 0 0 28px;
+}
+
+.aboutMissionText:last-child {
+  margin-bottom: 0;
+}
+
+.aboutMissionText strong {
+  color: #e9eef5;
+  font-weight: 600;
+}
+
+/* ---------- Principles ---------- */
+.aboutPrinciplesSection {
+  background: linear-gradient(180deg, #002855, #001233);
+  border-top: 1px solid #33415c;
+  border-bottom: 1px solid #33415c;
+}
+
+.aboutPrinciplesInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 100px 64px;
+}
+
+.aboutSectionKicker {
+  font-family: "Caveat", cursive;
+  font-size: 26px;
+  color: #0466c8;
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.aboutSectionTitle {
+  font-family: "Fraunces", serif;
+  font-weight: 400;
+  font-size: 40px;
+  letter-spacing: -0.01em;
+  margin: 0 0 56px;
+  text-align: center;
+}
+
+.aboutPrinciplesGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.aboutPrincipleCard {
+  background: #002855;
+  border: 1px solid #33415c;
+  border-radius: 20px;
+  padding: 30px 24px;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.aboutPrincipleCard:hover {
+  transform: translateY(-4px);
+  border-color: #0466c8;
+}
+
+.aboutPrincipleIcon {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+}
+
+.aboutPrincipleIconSquare {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0466c8, #023e7d);
+  box-shadow: 0 0 24px rgba(4, 102, 200, 0.5);
+}
+
+.aboutPrincipleIconCircle {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0353a4, #001233);
+  box-shadow: 0 0 24px rgba(3, 83, 164, 0.5);
+}
+
+.aboutPrincipleIconDiamond {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #7d8597, #33415c);
+  transform: rotate(45deg);
+  box-shadow: 0 0 20px rgba(125, 133, 151, 0.4);
+}
+
+.aboutPrincipleIconRounded {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #979dac, #5c677d);
+  box-shadow: 0 0 20px rgba(151, 157, 172, 0.35);
+}
+
+.aboutPrincipleTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.aboutPrincipleText {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #979dac;
+  margin: 0;
+}
+
+/* ---------- Closing CTA ---------- */
+.aboutCtaSection {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #002855, #001233 70%);
+}
+
+.aboutCtaGlow {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(4, 102, 200, 0.3), transparent 70%);
+  filter: blur(15px);
+  pointer-events: none;
+}
+
+.aboutCtaInner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 100px 64px;
+  text-align: center;
+  position: relative;
+}
+
+.aboutCtaTitle {
+  font-family: "Fraunces", serif;
+  font-weight: 400;
+  font-size: 42px;
+  letter-spacing: -0.01em;
+  margin: 0 0 32px;
+}
+
+.aboutCtaBtn {
+  display: inline-block;
+  background: linear-gradient(135deg, #0466c8, #0353a4);
+  color: #eaf1f7;
+  padding: 17px 38px;
+  border-radius: 100px;
+  font-size: 16px;
+  font-weight: 700;
+  transition: filter 0.2s ease;
+}
+
+.aboutCtaBtn:hover {
+  filter: brightness(1.12);
+  color: #eaf1f7;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .aboutHero {
+    padding: 140px 28px 80px;
+  }
+
+  .aboutMissionSection,
+  .aboutPrinciplesInner,
+  .aboutCtaInner {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .aboutPrinciplesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .aboutSectionTitle {
+    font-size: 30px;
+  }
+
+  .aboutCtaTitle {
+    font-size: 30px;
+  }
+
+  .aboutPrinciplesGrid {
+    grid-template-columns: 1fr;
+  }
+}

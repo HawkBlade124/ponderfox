@@ -19,7 +19,7 @@ function Footer(){
                         <Link to="/dashboard">Dashboard</Link>
                         <Link to="/login">Login</Link>
                         <Link to="/register">Register</Link>
-                        <Link to="/">Account</Link>
+                        <Link to="/settings">Account</Link>
                     </div>
                 </div>
             </footer>
