@@ -6,13 +6,6 @@ import heroImg from "../../assets/hero.jpg";
 import { PRICING_TIERS } from "../../data/pricing";
 import "../../css/Home.css";
 
-const FOLDERS = [
-  { name: "Career", count: 4 },
-  { name: "Relationships", count: 7 },
-  { name: "Late Night Spirals", count: 12 },
-  { name: "Big Decisions", count: 3 },
-];
-
 const WHO_CARDS = [
   {
     icon: "whoIconSquare",
@@ -69,49 +62,6 @@ const FEATURES = [
   },
 ];
 
-const HOW_STEPS = [
-  {
-    num: "1",
-    numClass: "howStepNum1",
-    title: "Create a free account",
-    text: "Sign up in under a minute. No credit card, no setup.",
-  },
-  {
-    num: "2",
-    numClass: "howStepNum2",
-    title: "Start a thought",
-    text: "Write down whatever's on your mind — a decision, a worry, a half-formed idea.",
-  },
-  {
-    num: "3",
-    numClass: "howStepNum3",
-    title: "Talk & file it",
-    text: "Respond to yourself, work through it, then file it into a folder so you can find it again.",
-  },
-];
-
-const FAQS = [
-  {
-    q: "Is there really no AI involved?",
-    a: "None. PonderFox doesn't generate responses, give advice, or analyze your thoughts. Every reply is written by you — the app just gives your own thinking a place to unfold.",
-  },
-  {
-    q: "Is my data private?",
-    a: "Your thoughts are yours. We don't sell data, and we don't feed your entries into any model, ours or anyone else's.",
-  },
-  {
-    q: "Can I export my thoughts?",
-    a: "Yes — Pro and Lifetime plans let you export any thought or folder whenever you want.",
-  },
-  {
-    q: "Is there a free plan?",
-    a: "Yes. The Free plan gives you unlimited thoughts, three folders, and 30 days of history — no credit card required.",
-  },
-  {
-    q: "Can I cancel anytime?",
-    a: "Anytime, no questions asked. Your existing thoughts stay yours to export even after you cancel.",
-  },
-];
 
 function PlaceholderPanel({ label }) {
   return (
@@ -123,9 +73,6 @@ function PlaceholderPanel({ label }) {
 
 function Home() {
   const rootRef = useRef(null);
-  const [thoughtText, setThoughtText] = useState("");
-  const [selectedFolder, setSelectedFolder] = useState(FOLDERS[0].name);
-  const [filed, setFiled] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   useEffect(() => {
@@ -145,13 +92,6 @@ function Home() {
     return () => observer.disconnect();
   }, []);
 
-  const handleFileThought = () => {
-    if (!thoughtText.trim()) return;
-    setFiled(true);
-    setThoughtText("");
-    setTimeout(() => setFiled(false), 3000);
-  };
-
   return (
     <div className="homeRoot" ref={rootRef}>
       <Header />
@@ -159,12 +99,7 @@ function Home() {
       <section className="heroSection">
         <div className="heroImageWrap">
           <img src={heroImg} alt="" className="heroImage" />
-          <div className="heroImageFade"></div>
         </div>
-        <div className="heroBlob heroBlobTopRight"></div>
-        <div className="heroBlob heroBlobBottomLeft"></div>
-        <div className="heroBlob heroBlobCenter"></div>
-
         <div className="heroInner">
           <div className="heroTextCol flex flex-col items-center justify-center gap-6 w-100">
             <p className="heroKicker">organize your thoughts, your way</p>
@@ -185,6 +120,7 @@ function Home() {
             </div>
           </div>
         </div>
+
       </section>
 
       {/* PRODUCT VISUAL / ABOUT */}
@@ -195,50 +131,15 @@ function Home() {
             A place to think out loud, on your own terms
           </h2>
         </div>
-        <div className="productVisualGlow"></div>
         <div className="productVisualCard">
           <PlaceholderPanel label="App Screenshot" />
         </div>
-      </section>
-
-      {/* TRY IT */}
-      <section className="tryItSection" data-reveal>
-        <p className="sectionKicker" style={{ textAlign: "center" }}>try it yourself</p>
-        <h2 className="sectionTitle" style={{ margin: "0 auto 40px", textAlign: "center", maxWidth: "100%" }}>
-          Write a thought, file it away
-        </h2>
-        <div className="tryItCard">
-          <textarea
-            className="tryItTextarea"
-            rows={4}
-            placeholder="What's on your mind?"
-            value={thoughtText}
-            onChange={(e) => setThoughtText(e.target.value)}
-          />
-          <div className="tryItFooter">
-            <div className="folderChips">
-              {FOLDERS.map((folder) => {
-                const isActive = selectedFolder === folder.name;
-                return (
-                  <div
-                    key={folder.name}
-                    className="folderChip"
-                    onClick={() => setSelectedFolder(folder.name)}
-                    style={{
-                      background: isActive ? "#0466c8" : "#001233",
-                      color: isActive ? "#001d24" : "#c7d3e0",
-                      border: isActive ? "1px solid #0466c8" : "1px solid #33415c",
-                    }}
-                  >
-                    {folder.name}
-                    <span className="folderChipCount">{folder.count}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <button className="fileBtn" onClick={handleFileThought}>File it</button>
-          </div>
-          {filed && <p className="filedNote">Filed under "{selectedFolder}" — this is just a preview, sign up to save it for real.</p>}
+                <div class="custom-shape-divider-bottom-1786486476">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
+                <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
+                <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
+            </svg>
         </div>
       </section>
 
@@ -261,20 +162,31 @@ function Home() {
 
       {/* MID CTA */}
       <section className="midCtaSection" data-reveal>
+        <div className="custom-shape-divider-top-1786485915">
+          <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M1200 120L0 16.48 0 0 1200 0 1200 120z" className="shape-fill"></path>
+          </svg>
+        </div>
         <div className="midCtaBox">
-          <div className="midCtaGlow"></div>
           <div>
             <h3 className="midCtaTitle">Ready to think it through?</h3>
             <p className="midCtaSubtitle">Your first thought is free — no card required.</p>
           </div>
           <Link to="/register" className="midCtaBtn">Start a Thought</Link>
         </div>
+        <div class="custom-shape-divider-bottom-1786486393">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M1200 120L0 16.48 0 0 1200 0 1200 120z" class="shape-fill"></path>
+            </svg>
+        </div>
       </section>
 
       {/* FEATURES */}
       <section className="featuresSection" data-reveal>
-        <p className="sectionKicker featuresKicker">how it works, in detail</p>
-        <h2 className="sectionTitle featuresTitle">Everything you need, nothing you don't</h2>
+        <div className="featureSectionHead">
+          <p className="sectionKicker featuresKicker">how it works, in detail</p>
+          <h2 className="sectionTitle featuresTitle">Everything you need, nothing you don't</h2>
+        </div>
         <div className="featureList">
           {FEATURES.map((feature) => (
             <div className="featureRow" key={feature.num}>
@@ -288,28 +200,6 @@ function Home() {
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* HOW IT WORKS TIMELINE */}
-      <section className="howSection" data-reveal>
-        <div className="howInner">
-          <h2 className="sectionTitle howTitle">Three steps, no learning curve</h2>
-          <div className="howTimeline">
-            {HOW_STEPS.map((step) => (
-              <div className="howStep" key={step.num}>
-                <div className={`howStepNum ${step.numClass}`}>{step.num}</div>
-                <div className="howStepBody">
-                  <h3 className="howStepTitle">{step.title}</h3>
-                  <p className="howStepText">{step.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <Link to="/register" className="howStepCta">
-            Get Started
-            <i className="fa-solid fa-arrow-right"></i>
-          </Link>
         </div>
       </section>
 
@@ -328,7 +218,6 @@ function Home() {
 
       {/* PRICING */}
       <section className="pricingSection" data-reveal>
-        <div className="pricingGlow"></div>
         <div className="pricingInner">
           <p className="sectionKicker pricingKicker">pricing</p>
           <h2 className="sectionTitle pricingTitle">Simple plans, no surprises</h2>
@@ -362,31 +251,8 @@ function Home() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="faqSection" data-reveal>
-        <h2 className="sectionTitle faqTitle">Questions, answered</h2>
-        <div className="faqList">
-          {FAQS.map((faq, index) => {
-            const isOpen = openFaqIndex === index;
-            return (
-              <div className="faqItem" key={faq.q}>
-                <button
-                  className="faqButton"
-                  onClick={() => setOpenFaqIndex(isOpen ? -1 : index)}
-                >
-                  {faq.q}
-                  <span className="faqPlus" style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
-                </button>
-                {isOpen && <p className="faqAnswer">{faq.a}</p>}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* FINAL CTA */}
       <section className="finalCtaSection" data-reveal>
-        <div className="finalCtaGlow"></div>
         <div className="finalCtaInner">
           <p className="sectionKicker finalCtaKicker">no ai, ever</p>
           <h2 className="finalCtaTitle">Your thoughts deserve somewhere to go.</h2>

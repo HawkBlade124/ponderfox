@@ -5,7 +5,7 @@ html {
 }
 
 .homeRoot {
-  background: #001233;
+  background: #002855;
   color: #e9eef5;
   font-family: "Source Sans 3", sans-serif;
 }
@@ -56,7 +56,6 @@ html {
   bottom: 0;
   width: 100%;
   overflow: hidden;
-  border-radius: 0 32px 32px 0;
   pointer-events: none;
 }
 
@@ -68,45 +67,6 @@ html {
   filter: saturate(0.7) brightness(0.8);
   opacity: 0.55;
   mix-blend-mode: luminosity;
-}
-
-.heroImageFade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(2, 62, 125, 0.1) 0%, rgba(0, 18, 51, 0.65) 60%, #001233 95%);
-}
-
-.heroBlob {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.heroBlobTopRight {
-  top: -120px;
-  right: -80px;
-  width: 420px;
-  height: 420px;
-  background: radial-gradient(circle, rgba(151, 157, 172, 0.35), transparent 70%);
-  filter: blur(10px);
-}
-
-.heroBlobBottomLeft {
-  bottom: -160px;
-  left: -100px;
-  width: 480px;
-  height: 480px;
-  background: radial-gradient(circle, rgba(233, 238, 245, 0.18), transparent 70%);
-  filter: blur(20px);
-}
-
-.heroBlobCenter {
-  top: 20%;
-  left: 45%;
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, rgba(4, 102, 200, 0.4), transparent 70%);
-  filter: blur(6px);
 }
 
 .heroInner {
@@ -219,6 +179,28 @@ html {
   font-weight: 600;
 }
 
+.custom-shape-divider-bottom-1786486476 {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
+}
+
+.custom-shape-divider-bottom-1786486476 svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 68px;
+    transform: rotateY(180deg);
+}
+
+.custom-shape-divider-bottom-1786486476 .shape-fill {
+    fill: #002855;
+}
+
 /* ---------- Floating notes ---------- */
 .notesSection {
   max-width: 1320px;
@@ -301,22 +283,11 @@ html {
 
 /* ---------- Product visual ---------- */
 .productVisualSection {
-  max-width: 1000px;
-  margin: 60px auto 0;
-  padding: 0 64px;
+  width: 100%;
+  padding: 60px 64px;
   position: relative;
-}
-
-.productVisualGlow {
-  position: absolute;
-  top: -60px;
-  right: 5%;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(4, 102, 200, 0.3), transparent 70%);
-  filter: blur(12px);
-  pointer-events: none;
+  background: linear-gradient(180deg, #002855, #001233);
+  height:1250px;
 }
 
 .productVisualCard {
@@ -325,6 +296,8 @@ html {
   padding: 20px;
   border: 1px solid #33415c;
   position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .placeholderPanel {
@@ -366,15 +339,18 @@ html {
 
 /* ---------- Gallery ---------- */
 .gallerySection {
-  max-width: 1100px;
+  width:100%;
   margin: 0 auto;
-  padding: 100px 64px 0;
+  padding: 100px 64px;
+background: linear-gradient(180deg, #001233, #000102);
 }
 
 .galleryGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .galleryItem {
@@ -403,104 +379,9 @@ html {
   transform: scale(1.04);
 }
 
-/* ---------- Try it ---------- */
-.tryItSection {
-  max-width: 1000px;
-  margin: 100px auto 0;
-  padding: 0 64px;
-}
-
-.tryItCard {
-  background: #002855;
-  border: 1px solid #33415c;
-  border-radius: 24px;
-  padding: 36px;
-}
-
-.tryItTextarea {
-  width: 100%;
-  box-sizing: border-box;
-  background: #001233;
-  border: 1px solid #33415c;
-  border-radius: 14px;
-  padding: 16px 18px;
-  color: #e9eef5;
-  font-family: "Source Sans 3", sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  resize: none;
-  outline: none;
-}
-
-.tryItTextarea:focus {
-  border-color: #0466c8;
-}
-
-.tryItFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 18px;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.folderChips {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.folderChip {
-  padding: 9px 16px;
-  border-radius: 100px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
-}
-
-.folderChip:hover {
-  transform: translateY(-1px);
-}
-
-.folderChipCount {
-  opacity: 0.7;
-  font-weight: 500;
-}
-
-.fileBtn {
-  background: #0466c8;
-  color: #001d24;
-  border: none;
-  padding: 12px 26px;
-  border-radius: 100px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.fileBtn:hover {
-  background: #0353a4;
-  color: #eaf1f7;
-}
-
-.filedNote {
-  font-size: 14px;
-  color: #bad4fb;
-  margin: 18px 0 0;
-}
-
 /* ---------- Who it's for ---------- */
 .whoSection {
-  background: linear-gradient(180deg, #002855, #001233);
-  border-top: 1px solid #33415c;
-  border-bottom: 1px solid #33415c;
+  background:#002855;
   margin-top: 100px;
 }
 
@@ -576,35 +457,45 @@ html {
 
 /* ---------- Mid CTA ---------- */
 .midCtaSection {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 64px 100px;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 100px 64px;
+  background: #023e7d;
+  overflow: hidden;
+}
+
+.custom-shape-divider-top-1786485915 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.custom-shape-divider-top-1786485915 svg {
+  position: relative;
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 150px;
+}
+
+.custom-shape-divider-top-1786485915 .shape-fill {
+  fill: #002855;
 }
 
 .midCtaBox {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, #002855, #023e7d);
-  border: 1px solid #33415c;
-  border-radius: 24px;
-  padding: 48px;
+
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 65px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  height:350px;
   flex-wrap: wrap;
-}
-
-.midCtaGlow {
-  position: absolute;
-  top: -100px;
-  right: 10%;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(4, 102, 200, 0.45), transparent 70%);
-  filter: blur(10px);
-  pointer-events: none;
 }
 
 .midCtaTitle {
@@ -613,18 +504,15 @@ html {
   font-size: 28px;
   margin: 0 0 8px;
   color: #e9eef5;
-  position: relative;
 }
 
 .midCtaSubtitle {
   font-size: 15px;
   color: #b7c1cf;
   margin: 0;
-  position: relative;
 }
 
 .midCtaBtn {
-  position: relative;
   background: linear-gradient(135deg, #0466c8, #0353a4);
   color: #eaf1f7;
   padding: 15px 30px;
@@ -640,11 +528,37 @@ html {
   color: #eaf1f7;
 }
 
+.custom-shape-divider-bottom-1786486393 {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
+}
+
+.custom-shape-divider-bottom-1786486393 svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 150px;
+    transform: rotateY(180deg);
+}
+
+.custom-shape-divider-bottom-1786486393 .shape-fill {
+    fill: #001233;
+}
 /* ---------- Features ---------- */
 .featuresSection {
-  max-width: 1100px;
+  background:#001233;
+  width:100%;
   margin: 0 auto;
-  padding: 100px 64px;
+  padding: 100px 64px;  
+}
+.featureSectionHead {
+  max-width: 1150px;
+  margin: 0 auto 72px;  
 }
 
 .featuresKicker {
@@ -667,16 +581,18 @@ html {
   grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: center;
+  max-width: 1150px;
+  margin:0 auto;
 }
 
 .featureVisual {
   border-radius: 20px;
   border: 1px solid #33415c;
-  overflow: hidden;
+  overflow: hidden;  
 }
 
 .featureVisual .placeholderPanel {
-  aspect-ratio: 4 / 3;
+  max-width:650px;
   border-radius: 0;
 }
 
@@ -717,97 +633,6 @@ html {
   margin: 0;
 }
 
-/* ---------- How it works ---------- */
-.howSection {
-  background: linear-gradient(180deg, #002855, #001233);
-  border-top: 1px solid #33415c;
-  border-bottom: 1px solid #33415c;
-}
-
-.howInner {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 100px 64px;
-  position: relative;
-}
-
-.howTitle {
-  font-size: 46px;
-  margin: 0 0 64px;
-}
-
-.howTimeline {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border-left: 2px dashed #33415c;
-  margin-left: 20px;
-}
-
-.howStep {
-  display: flex;
-  gap: 28px;
-  padding-bottom: 56px;
-  position: relative;
-  left: -21px;
-}
-
-.howStep:last-child {
-  padding-bottom: 0;
-}
-
-.howStepNum {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.howStepNum1 { background: #0466c8; color: #001d24; }
-.howStepNum2 { background: #0353a4; color: #eaf1f7; }
-.howStepNum3 { background: #5c677d; color: #e9eef5; }
-
-.howStepBody {
-  padding-top: 5px;
-}
-
-.howStepTitle {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0 0 8px;
-}
-
-.howStepText {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #b7c1cf;
-  margin: 0;
-  max-width: 480px;
-}
-
-.howStepCta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #0466c8, #0353a4);
-  color: #eaf1f7;
-  padding: 12px 24px;
-  border-radius: 100px;
-  font-size: 14px;
-  font-weight: 700;
-  transition: filter 0.2s ease;
-  margin-top: 24px;
-}
-
-.howStepCta:hover {
-  filter: brightness(1.12);
-  color: #eaf1f7;
-}
-
 /* ---------- Pricing ---------- */
 .pricingSection {
   position: relative;
@@ -819,18 +644,6 @@ html {
   background-size: auto, 28px 28px, auto;
   border-top: 1px solid #33415c;
   border-bottom: 1px solid #33415c;
-}
-
-.pricingGlow {
-  position: absolute;
-  top: -140px;
-  right: -100px;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(4, 102, 200, 0.25), transparent 70%);
-  filter: blur(15px);
-  pointer-events: none;
 }
 
 .pricingInner {
@@ -1043,22 +856,10 @@ html {
 .finalCtaSection {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(160deg, #002855, #001233 70%);
+  background: #000102;
   border-top: 1px solid #33415c;
 }
 
-.finalCtaGlow {
-  position: absolute;
-  top: -100px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 500px;
-  height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(4, 102, 200, 0.3), transparent 70%);
-  filter: blur(15px);
-  pointer-events: none;
-}
 
 .finalCtaInner {
   max-width: 900px;
@@ -1101,11 +902,9 @@ html {
   .heroInner,
   .notesSection,
   .gallerySection,
-  .tryItSection,
   .whoInner,
   .midCtaSection,
   .featuresSection,
-  .howInner,
   .pricingInner,
   .faqSection,
   .finalCtaInner {
@@ -1121,6 +920,8 @@ html {
 
   .featureRow {
     grid-template-columns: 1fr;
+    max-width:1150px;
+    margin: 0 auto;
   }
 
   .featureVisualReversed,
@@ -1154,7 +955,6 @@ html {
 @media (max-width: 560px) {
   .sectionTitle,
   .featuresTitle,
-  .howTitle,
   .pricingTitle,
   .faqTitle {
     font-size: 32px;
