@@ -1,0 +1,96 @@
+/*!
+ * Font Awesome Pro 7.2.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license (Commercial License)
+ * Copyright 2026 Fonticons, Inc.
+ */
+@use "sass:string";
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:root, :host {
+  --#{v.$css-prefix}-family-thumbprint: 'Font Awesome 7 Thumbprint';
+  --#{v.$css-prefix}-font-thumbprint-light: normal 300 1em/1 var(--#{v.$css-prefix}-family-thumbprint);
+
+  /* deprecated: this older custom property will be removed next major release */
+  --#{v.$css-prefix}-style-family-thumbprint: var(--#{v.$css-prefix}-family-thumbprint);
+}
+
+@font-face {
+  font-family: 'Font Awesome 7 Thumbprint';
+  font-style: normal;
+  font-weight: 300;
+  font-display: v.$font-display;
+  src: url('#{v.$font-path}/fa-thumbprint-light-300.woff2');
+}
+
+
+.fatl {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-thumbprint);
+  --#{v.$css-prefix}-style: 300;
+  position: relative;
+  letter-spacing: normal;
+}
+
+.#{v.$css-prefix}-thumbprint {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-thumbprint);
+  position: relative;
+  letter-spacing: normal;
+}
+
+.#{v.$css-prefix}-light {
+  --#{v.$css-prefix}-style: 300;
+}
+
+.fatl::before,
+.#{v.$css-prefix}-thumbprint::before {
+  position: absolute;
+  color: var(--#{v.$css-prefix}-primary-color, currentColor);
+  opacity: var(--#{v.$css-prefix}-primary-opacity, #{v.$primary-opacity});
+}
+
+.fatl::after,
+.#{v.$css-prefix}-thumbprint::after {
+  color: var(--#{v.$css-prefix}-secondary-color, currentColor);
+  opacity: var(--#{v.$css-prefix}-secondary-opacity, #{v.$secondary-opacity});
+}
+
+.#{v.$css-prefix}-swap-opacity .fatl::before,
+.#{v.$css-prefix}-swap-opacity .#{v.$css-prefix}-thumbprint::before,
+.#{v.$css-prefix}-swap-opacity.fatl::before,
+.#{v.$css-prefix}-swap-opacity.#{v.$css-prefix}-thumbprint::before {
+  opacity: var(--#{v.$css-prefix}-secondary-opacity, #{v.$secondary-opacity});
+}
+
+.#{v.$css-prefix}-swap-opacity .fatl::after,
+.#{v.$css-prefix}-swap-opacity .#{v.$css-prefix}-thumbprint::after,
+.#{v.$css-prefix}-swap-opacity.fatl::after,
+.#{v.$css-prefix}-swap-opacity.#{v.$css-prefix}-thumbprint::after {
+  opacity: var(--#{v.$css-prefix}-primary-opacity, #{v.$primary-opacity});
+}
+
+.#{v.$css-prefix}-li.fatl,
+.#{v.$css-prefix}-li.#{v.$css-prefix}-thumbprint,
+.#{v.$css-prefix}-stack-1x.fatl,
+.#{v.$css-prefix}-stack-1x.#{v.$css-prefix}-thumbprint,
+.#{v.$css-prefix}-stack-2x.fatl,
+.#{v.$css-prefix}-stack-2x.#{v.$css-prefix}-thumbprint {
+  position: absolute;
+}
+
+// convenience mixins for declaring pseudo-elements by CSS variable,
+// including all style-specific font properties, and both the ::before
+// and ::after elements in the duotone case.
+@mixin icon($var) {
+  @include m.fa-icon(Font Awesome 7 Thumbprint);
+  @extend .#{v.$css-prefix}-thumbprint;
+  @extend .#{v.$css-prefix}-light;
+
+  &::before {
+    content: string.unquote("\"#{ $var }\"");
+  }
+
+  &::after {
+    content: string.unquote("\"#{ $var }\"");
+    font-feature-settings: "ss01";
+  }
+}

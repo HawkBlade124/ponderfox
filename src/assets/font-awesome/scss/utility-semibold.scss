@@ -1,0 +1,51 @@
+/*!
+ * Font Awesome Pro 7.2.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license (Commercial License)
+ * Copyright 2026 Fonticons, Inc.
+ */
+@use "sass:string";
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:root, :host {
+  --#{v.$css-prefix}-family-utility: 'Font Awesome 7 Utility';
+  --#{v.$css-prefix}-font-utility-semibold: normal 600 1em/1 var(--#{v.$css-prefix}-family-utility);
+
+  /* deprecated: this older custom property will be removed next major release */
+  --#{v.$css-prefix}-style-family-utility: var(--#{v.$css-prefix}-family-utility);
+}
+
+
+@font-face {
+  font-family: 'Font Awesome 7 Utility';
+  font-style: normal;
+  font-weight: 600;
+  font-display: v.$font-display;
+  src: url('#{v.$font-path}/fa-utility-semibold-600.woff2');
+}
+
+
+.fausb {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-utility);
+  --#{v.$css-prefix}-style: 600;
+}
+
+.#{v.$css-prefix}-utility {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-utility);
+}
+
+.#{v.$css-prefix}-semibold {
+  --#{v.$css-prefix}-style: 600;
+}
+
+// convenience mixin for declaring pseudo-elements by CSS variable,
+// including all style-specific font properties and ::before elements.
+@mixin icon($var) {
+  @include m.fa-icon(Font Awesome 7 Utility);
+  @extend .#{v.$css-prefix}-semibold;
+  @extend .#{v.$css-prefix}-utility;
+
+  &::before {
+    content: string.unquote("\"#{ $var }\"");
+  }
+}

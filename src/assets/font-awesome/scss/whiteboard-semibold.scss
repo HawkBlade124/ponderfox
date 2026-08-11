@@ -1,0 +1,51 @@
+/*!
+ * Font Awesome Pro 7.2.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license (Commercial License)
+ * Copyright 2026 Fonticons, Inc.
+ */
+@use "sass:string";
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:root, :host {
+  --#{v.$css-prefix}-family-whiteboard: 'Font Awesome 7 Whiteboard';
+  --#{v.$css-prefix}-font-whiteboard-semibold: normal 600 1em/1 var(--#{v.$css-prefix}-family-whiteboard);
+
+  /* deprecated: this older custom property will be removed next major release */
+  --#{v.$css-prefix}-style-family-whiteboard: var(--#{v.$css-prefix}-family-whiteboard);
+}
+
+
+@font-face {
+  font-family: 'Font Awesome 7 Whiteboard';
+  font-style: normal;
+  font-weight: 600;
+  font-display: v.$font-display;
+  src: url('#{v.$font-path}/fa-whiteboard-semibold-600.woff2');
+}
+
+
+.fawsb {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-whiteboard);
+  --#{v.$css-prefix}-style: 600;
+}
+
+.#{v.$css-prefix}-whiteboard {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-whiteboard);
+}
+
+.#{v.$css-prefix}-semibold {
+  --#{v.$css-prefix}-style: 600;
+}
+
+// convenience mixin for declaring pseudo-elements by CSS variable,
+// including all style-specific font properties and ::before elements.
+@mixin icon($var) {
+  @include m.fa-icon(Font Awesome 7 Whiteboard);
+  @extend .#{v.$css-prefix}-semibold;
+  @extend .#{v.$css-prefix}-whiteboard;
+
+  &::before {
+    content: string.unquote("\"#{ $var }\"");
+  }
+}

@@ -1,0 +1,96 @@
+/*!
+ * Font Awesome Pro 7.2.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license (Commercial License)
+ * Copyright 2026 Fonticons, Inc.
+ */
+@use "sass:string";
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:root, :host {
+  --#{v.$css-prefix}-family-notdog-duo: 'Font Awesome 7 Notdog Duo';
+  --#{v.$css-prefix}-font-notdog-duo-solid: normal 900 1em/1 var(--#{v.$css-prefix}-family-notdog-duo);
+
+  /* deprecated: this older custom property will be removed next major release */
+  --#{v.$css-prefix}-style-family-notdog-duo: var(--#{v.$css-prefix}-family-notdog-duo);
+}
+
+@font-face {
+  font-family: 'Font Awesome 7 Notdog Duo';
+  font-style: normal;
+  font-weight: 900;
+  font-display: v.$font-display;
+  src: url('#{v.$font-path}/fa-notdog-duo-solid-900.woff2');
+}
+
+
+.fands {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-notdog-duo);
+  --#{v.$css-prefix}-style: 900;
+  position: relative;
+  letter-spacing: normal;
+}
+
+.#{v.$css-prefix}-notdog-duo {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-notdog-duo);
+  position: relative;
+  letter-spacing: normal;
+}
+
+.#{v.$css-prefix}-solid {
+  --#{v.$css-prefix}-style: 900;
+}
+
+.fands::before,
+.#{v.$css-prefix}-notdog-duo::before {
+  position: absolute;
+  color: var(--#{v.$css-prefix}-primary-color, currentColor);
+  opacity: var(--#{v.$css-prefix}-primary-opacity, #{v.$primary-opacity});
+}
+
+.fands::after,
+.#{v.$css-prefix}-notdog-duo::after {
+  color: var(--#{v.$css-prefix}-secondary-color, currentColor);
+  opacity: var(--#{v.$css-prefix}-secondary-opacity, #{v.$secondary-opacity});
+}
+
+.#{v.$css-prefix}-swap-opacity .fands::before,
+.#{v.$css-prefix}-swap-opacity .#{v.$css-prefix}-notdog-duo::before,
+.#{v.$css-prefix}-swap-opacity.fands::before,
+.#{v.$css-prefix}-swap-opacity.#{v.$css-prefix}-notdog-duo::before {
+  opacity: var(--#{v.$css-prefix}-secondary-opacity, #{v.$secondary-opacity});
+}
+
+.#{v.$css-prefix}-swap-opacity .fands::after,
+.#{v.$css-prefix}-swap-opacity .#{v.$css-prefix}-notdog-duo::after,
+.#{v.$css-prefix}-swap-opacity.fands::after,
+.#{v.$css-prefix}-swap-opacity.#{v.$css-prefix}-notdog-duo::after {
+  opacity: var(--#{v.$css-prefix}-primary-opacity, #{v.$primary-opacity});
+}
+
+.#{v.$css-prefix}-li.fands,
+.#{v.$css-prefix}-li.#{v.$css-prefix}-notdog-duo,
+.#{v.$css-prefix}-stack-1x.fands,
+.#{v.$css-prefix}-stack-1x.#{v.$css-prefix}-notdog-duo,
+.#{v.$css-prefix}-stack-2x.fands,
+.#{v.$css-prefix}-stack-2x.#{v.$css-prefix}-notdog-duo {
+  position: absolute;
+}
+
+// convenience mixins for declaring pseudo-elements by CSS variable,
+// including all style-specific font properties, and both the ::before
+// and ::after elements in the duotone case.
+@mixin icon($var) {
+  @include m.fa-icon(Font Awesome 7 Notdog Duo);
+  @extend .#{v.$css-prefix}-notdog-duo;
+  @extend .#{v.$css-prefix}-solid;
+
+  &::before {
+    content: string.unquote("\"#{ $var }\"");
+  }
+
+  &::after {
+    content: string.unquote("\"#{ $var }\"");
+    font-feature-settings: "ss01";
+  }
+}

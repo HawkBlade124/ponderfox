@@ -1,0 +1,96 @@
+/*!
+ * Font Awesome Pro 7.2.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license (Commercial License)
+ * Copyright 2026 Fonticons, Inc.
+ */
+@use "sass:string";
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:root, :host {
+  --#{v.$css-prefix}-family-utility-duo: 'Font Awesome 7 Utility Duo';
+  --#{v.$css-prefix}-font-utility-duo-semibold: normal 600 1em/1 var(--#{v.$css-prefix}-family-utility-duo);
+
+  /* deprecated: this older custom property will be removed next major release */
+  --#{v.$css-prefix}-style-family-utility-duo: var(--#{v.$css-prefix}-family-utility-duo);
+}
+
+@font-face {
+  font-family: 'Font Awesome 7 Utility Duo';
+  font-style: normal;
+  font-weight: 600;
+  font-display: v.$font-display;
+  src: url('#{v.$font-path}/fa-utility-duo-semibold-600.woff2');
+}
+
+
+.faudsb {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-utility-duo);
+  --#{v.$css-prefix}-style: 600;
+  position: relative;
+  letter-spacing: normal;
+}
+
+.#{v.$css-prefix}-utility-duo {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-utility-duo);
+  position: relative;
+  letter-spacing: normal;
+}
+
+.#{v.$css-prefix}-semibold {
+  --#{v.$css-prefix}-style: 600;
+}
+
+.faudsb::before,
+.#{v.$css-prefix}-utility-duo::before {
+  position: absolute;
+  color: var(--#{v.$css-prefix}-primary-color, currentColor);
+  opacity: var(--#{v.$css-prefix}-primary-opacity, #{v.$primary-opacity});
+}
+
+.faudsb::after,
+.#{v.$css-prefix}-utility-duo::after {
+  color: var(--#{v.$css-prefix}-secondary-color, currentColor);
+  opacity: var(--#{v.$css-prefix}-secondary-opacity, #{v.$secondary-opacity});
+}
+
+.#{v.$css-prefix}-swap-opacity .faudsb::before,
+.#{v.$css-prefix}-swap-opacity .#{v.$css-prefix}-utility-duo::before,
+.#{v.$css-prefix}-swap-opacity.faudsb::before,
+.#{v.$css-prefix}-swap-opacity.#{v.$css-prefix}-utility-duo::before {
+  opacity: var(--#{v.$css-prefix}-secondary-opacity, #{v.$secondary-opacity});
+}
+
+.#{v.$css-prefix}-swap-opacity .faudsb::after,
+.#{v.$css-prefix}-swap-opacity .#{v.$css-prefix}-utility-duo::after,
+.#{v.$css-prefix}-swap-opacity.faudsb::after,
+.#{v.$css-prefix}-swap-opacity.#{v.$css-prefix}-utility-duo::after {
+  opacity: var(--#{v.$css-prefix}-primary-opacity, #{v.$primary-opacity});
+}
+
+.#{v.$css-prefix}-li.faudsb,
+.#{v.$css-prefix}-li.#{v.$css-prefix}-utility-duo,
+.#{v.$css-prefix}-stack-1x.faudsb,
+.#{v.$css-prefix}-stack-1x.#{v.$css-prefix}-utility-duo,
+.#{v.$css-prefix}-stack-2x.faudsb,
+.#{v.$css-prefix}-stack-2x.#{v.$css-prefix}-utility-duo {
+  position: absolute;
+}
+
+// convenience mixins for declaring pseudo-elements by CSS variable,
+// including all style-specific font properties, and both the ::before
+// and ::after elements in the duotone case.
+@mixin icon($var) {
+  @include m.fa-icon(Font Awesome 7 Utility Duo);
+  @extend .#{v.$css-prefix}-utility-duo;
+  @extend .#{v.$css-prefix}-semibold;
+
+  &::before {
+    content: string.unquote("\"#{ $var }\"");
+  }
+
+  &::after {
+    content: string.unquote("\"#{ $var }\"");
+    font-feature-settings: "ss01";
+  }
+}

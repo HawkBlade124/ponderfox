@@ -1,0 +1,51 @@
+/*!
+ * Font Awesome Pro 7.2.0 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license (Commercial License)
+ * Copyright 2026 Fonticons, Inc.
+ */
+@use "sass:string";
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:root, :host {
+  --#{v.$css-prefix}-family-slab: 'Font Awesome 7 Slab';
+  --#{v.$css-prefix}-font-slab-regular: normal 400 1em/1 var(--#{v.$css-prefix}-family-slab);
+
+  /* deprecated: this older custom property will be removed next major release */
+  --#{v.$css-prefix}-style-family-slab: var(--#{v.$css-prefix}-family-slab);
+}
+
+
+@font-face {
+  font-family: 'Font Awesome 7 Slab';
+  font-style: normal;
+  font-weight: 400;
+  font-display: v.$font-display;
+  src: url('#{v.$font-path}/fa-slab-regular-400.woff2');
+}
+
+
+.faslr {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-slab);
+  --#{v.$css-prefix}-style: 400;
+}
+
+.#{v.$css-prefix}-slab {
+  --#{v.$css-prefix}-family: var(--#{v.$css-prefix}-family-slab);
+}
+
+.#{v.$css-prefix}-regular {
+  --#{v.$css-prefix}-style: 400;
+}
+
+// convenience mixin for declaring pseudo-elements by CSS variable,
+// including all style-specific font properties and ::before elements.
+@mixin icon($var) {
+  @include m.fa-icon(Font Awesome 7 Slab);
+  @extend .#{v.$css-prefix}-regular;
+  @extend .#{v.$css-prefix}-slab;
+
+  &::before {
+    content: string.unquote("\"#{ $var }\"");
+  }
+}
