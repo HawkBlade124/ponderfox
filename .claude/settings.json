@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(chromium-cli --help)",
+      "Read(//f//**)",
+      "Bash(npm ls *)",
+      "Bash(node -e \"console.log\\(require.resolve\\('playwright-core'\\)\\)\")",
+      "Bash(curl -sf http://localhost:5183/)"
+    ]
+  }
+}
