@@ -48,6 +48,13 @@ export function buildEmailFromType(type, context = {}) {
         templateName: "login_notification"
       };
 
+    case "account_deleted":
+      return {
+        subject: "Your Ponderfox Account Has Been Deleted",
+        body: `Hi ${context.username}, this confirms your Ponderfox account and all associated Thoughts have been permanently deleted. If you didn't request this, contact us right away.`,
+        templateName: "account_deleted"
+      };
+
     case "payment_failed":
       return {
         subject: "Your Payment Failed",

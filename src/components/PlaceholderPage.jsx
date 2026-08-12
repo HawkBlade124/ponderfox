@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import DashMenu from "./DashMenu.jsx";
 import PonderFoxMark from "./PonderFoxMark.jsx";
+import TopProfileTile from "./TopProfileTile.jsx";
+import SearchBox from "./SearchBox.jsx";
 
 function PlaceholderPage({ title, icon, description }) {
   const { user, loading } = useAuth();
+  const [search, setSearch] = useState("");
 
   if (loading) {
     return (
@@ -24,6 +28,10 @@ function PlaceholderPage({ title, icon, description }) {
             <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
               <i className={`${icon} text-[#438eef]`}></i> {title}
             </h1>
+            <div className="flex items-center gap-3">
+              <SearchBox value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`Search ${title.toLowerCase()}`} />
+              <TopProfileTile />
+            </div>
           </div>
           <div className="mt-5">
             <section className="dashBody w-full">

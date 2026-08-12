@@ -1,7 +1,10 @@
 import { useAuth } from "../context/AuthContext.jsx";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getTierColor } from "../utils/tier.js";
+import { buildApiUrl } from "../utils/api.js";
+import { getInitials } from "../utils/user.js";
+import logoMark from "../assets/ponder-fox-verticle.png";
 
 const menuItems = [
   { to: "/dashboard", label: "Home", icon: "fa-regular fa-home" },
@@ -19,19 +22,40 @@ const workspaceItems = [
   { to: "/goals", label: "Goals", icon: "fa-regular fa-bullseye-arrow" },
 ];
 
-function getInitials(name) {
-  if (!name) return "?";
-  return name.trim().slice(0, 2).toUpperCase();
+function formatBytes(bytes) {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const value = bytes / Math.pow(1024, i);
+  return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
 }
 
-function DashMenu({ hideFooter = false, showStatsToggle = false, onStatsClick }) {
-  const { user, logout } = useAuth();
+function DashMenu() {
+  const { user, token, logout } = useAuth();
   const location = useLocation();
 
   const [mobileMenu, setMobileMenu] = useState(false);
   const closeMobileMenu = () => {
     setMobileMenu((prev) => !prev);
   };
+
+  const [storageBytes, setStorageBytes] = useState(null);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+
+    fetch(`${buildApiUrl()}/me/storage`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.success) setStorageBytes(data.bytes);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const isActive = (to) => location.pathname.startsWith(to);
 
@@ -54,15 +78,6 @@ function DashMenu({ hideFooter = false, showStatsToggle = false, onStatsClick })
             )}
           </Link>
           <div className="flex items-center gap-2 shrink-0">
-            {showStatsToggle && (
-              <button
-                onClick={onStatsClick}
-                className="w-11 h-11 rounded-lg bg-slate-800/90 border border-slate-700 text-white flex items-center justify-center cursor-pointer"
-                aria-label="Show stats"
-              >
-                <i className="fa-regular fa-chart-simple"></i>
-              </button>
-            )}
             <button
               onClick={() => setMobileMenu(true)}
               className="w-11 h-11 rounded-lg bg-slate-800/90 border border-slate-700 text-white flex items-center justify-center cursor-pointer"
@@ -78,12 +93,11 @@ function DashMenu({ hideFooter = false, showStatsToggle = false, onStatsClick })
         <span className="sidebarGlow sidebarGlowCyan" aria-hidden="true"></span>
 
         <div className="sidebarContent">
-          <div className="sidebarBrandRow">
-            <span className="sidebarBrand">
-              <span className="sidebarBrandMark"><i className="fa-solid fa-brain"></i></span>
-              Ponderfox
+          <div className="sidebarBrandRow flex flex-col items-start justify-between">
+            <i className="fa-regular fa-xmark sidebarCollapseIcon" onClick={closeMobileMenu}></i>
+            <span className="sidebarBrand flex justify-center w-full">
+              <span className="sidebarBrandMark"><img src={logoMark} alt="" className="sidebarBrandMarkImg" /></span>
             </span>
-            <i className="fa-regular fa-xmark sidebarCollapseIcon lg:hidden" onClick={closeMobileMenu}></i>
           </div>
 
           <nav className="sidebarNav">
@@ -104,15 +118,14 @@ function DashMenu({ hideFooter = false, showStatsToggle = false, onStatsClick })
             ))}
           </nav>
 
-          {user && !hideFooter && (
+          {user && (
             <div className="sidebarFooter">
-              <Link to="/settings" className="flex items-center gap-[10px] flex-1 min-w-0" style={{ textDecoration: "none" }}>
-                <div className="sidebarAvatar">{getInitials(user.Username)}</div>
-                <div className="sidebarFooterInfo">
-                  <div className="sidebarFooterName">{user.Username}</div>
-                  <div className="sidebarFooterEmail">{user.Email}</div>
+              <div className="sidebarStorageInfo">
+                <div className="sidebarStorageLabel"><i className="fa-regular fa-hard-drive"></i> Storage used</div>
+                <div className="sidebarStorageValue">
+                  {storageBytes === null ? "…" : formatBytes(storageBytes)}
                 </div>
-              </Link>
+              </div>
               <i className="fa-regular fa-arrow-right-from-bracket sidebarLogoutIcon" title="Logout" onClick={logout}></i>
             </div>
           )}

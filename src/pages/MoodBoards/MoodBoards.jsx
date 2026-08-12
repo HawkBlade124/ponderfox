@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DashMenu from "../../components/DashMenu.jsx";
 import PonderFoxMark from "../../components/PonderFoxMark.jsx";
+import TopProfileTile from "../../components/TopProfileTile.jsx";
+import SearchBox from "../../components/SearchBox.jsx";
 import { buildApiUrl } from "../../utils/api.js";
 import AddMoodBoardModal from "../../components/modals/AddMoodBoard.jsx";
 
@@ -12,6 +14,7 @@ function MoodBoards() {
   const [boards, setBoards] = useState([]);
   const [error, setError] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (loading || !token) return;
@@ -64,6 +67,10 @@ function MoodBoards() {
 
   if (!user) return null;
 
+  const searchedBoards = boards.filter((b) =>
+    b.BoardName.toLowerCase().includes(search.trim().toLowerCase())
+  );
+
   return (
     <div id="dashboard" className="w-full">
       <div id="dashWrap" className="flex w-full">
@@ -76,12 +83,18 @@ function MoodBoards() {
                 <i className="fa-regular fa-game-board text-[#438eef]"></i> Mood Boards
               </h1>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-[#438eef] hover:bg-[#2f7ae0] transition text-white font-semibold h-11 px-5 rounded-lg cursor-pointer flex items-center gap-2"
-            >
-              <i className="fa-regular fa-plus"></i> New Mood Board
-            </button>
+            <div className="flex items-center gap-3">
+              {boards.length > 1 && (
+                <SearchBox value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search mood boards" />
+              )}
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-[#438eef] hover:bg-[#2f7ae0] transition text-white font-semibold h-11 px-5 rounded-lg cursor-pointer flex items-center gap-2"
+              >
+                <i className="fa-regular fa-plus"></i> New Mood Board
+              </button>
+              <TopProfileTile />
+            </div>
           </div>
 
           <div className="mt-5">
@@ -91,9 +104,15 @@ function MoodBoards() {
                   <PonderFoxMark size={120} className="emptyStateArt" />
                   <p>No mood boards yet — collect images and inspiration that capture how you&apos;re feeling.</p>
                 </div>
+              ) : searchedBoards.length === 0 ? (
+                <div className="emptyState">
+                  <PonderFoxMark size={120} className="emptyStateArt" />
+                  <p>Nothing matches &quot;{search}&quot;.</p>
+                  <button type="button" className="emptyStateAction" onClick={() => setSearch("")}>Clear search</button>
+                </div>
               ) : (
                 <div id="moodBoardList" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-5 mt-5 place-items-center">
-                  {boards.map((b) => (
+                  {searchedBoards.map((b) => (
                     <Link
                       key={b.MoodBoardID}
                       to={`/mood-boards/${b.MoodBoardID}`}

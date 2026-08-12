@@ -37,9 +37,14 @@ function Login() {
       );
 
       if (res.data?.success) {
-        const storage = rememberMe ? localStorage : sessionStorage;
-        storage.setItem("token", res.data.token);
-        storage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        if (rememberMe) {
+          localStorage.removeItem("tokenExpiry");
+        } else {
+          const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+          localStorage.setItem("tokenExpiry", String(Date.now() + ONE_WEEK_MS));
+        }
 
         setSuccess(true);
         navigate("/dashboard");
@@ -120,7 +125,7 @@ function Login() {
             onChange={(e) => setRememberMe(e.target.checked)}
             className="accent-[#438eef] w-4 h-4"
           />
-          Remember me for 30 days
+          Remember me
         </label>
 
         {error && <p className="text-red-400 text-sm">{error}</p>}

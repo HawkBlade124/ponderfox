@@ -13,14 +13,35 @@ export const AuthProvider = ({ children }) => {
 
   const apiBase = buildApiUrl();
 useEffect(() => {
-  const storedToken = localStorage.getItem("token") || sessionStorage.getItem("token");
-  const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
-  if (storedToken && storedUser) {
+  const storedToken = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("user");
+  const expiry = localStorage.getItem("tokenExpiry");
+  if (expiry && Date.now() > Number(expiry)) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("tokenExpiry");
+  } else if (storedToken && storedUser) {
     setUser(JSON.parse(storedUser));
     setToken(storedToken);
   }
   setLoading(false);
 }, []);
+
+useEffect(() => {
+  if (!token) return;
+
+  const expiry = localStorage.getItem("tokenExpiry");
+  if (!expiry) return;
+
+  const msRemaining = Number(expiry) - Date.now();
+  if (msRemaining <= 0) {
+    logout();
+    return;
+  }
+
+  const timeout = setTimeout(logout, msRemaining);
+  return () => clearTimeout(timeout);
+}, [token]);
 
 useEffect(() => {
   if (!token) return;
@@ -56,6 +77,7 @@ useEffect(() => {
         setToken(token);
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("token", token);
+        localStorage.removeItem("tokenExpiry");
       } else {
         return { success: false, message: "Invalid credentials" };
       }
@@ -69,10 +91,12 @@ useEffect(() => {
 const logout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("user");
+  localStorage.removeItem("tokenExpiry");
+  localStorage.removeItem("todaySessionDate");
+  localStorage.removeItem("todaySessionSeconds");
   setUser(null);
   setToken(null);
+  setTodayActiveSeconds(0);
   window.location.href = "/";
 };
 

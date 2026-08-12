@@ -66,7 +66,7 @@ function ThoughtsChart({ data }) {
           <stop offset="100%" stopColor="#438eef" />
         </linearGradient>
       </defs>
-      <line x1="0" y1={chartHeight} x2={width} y2={chartHeight} stroke="rgba(230,235,245,0.12)" strokeWidth="1" />
+      <line x1="0" y1={chartHeight} x2={width} y2={chartHeight} className="insightsChartAxis" strokeWidth="1" />
       {data.map((d, i) => {
         const barHeight = d.count === 0 ? 0 : Math.max(4, (d.count / max) * (chartHeight - 8));
         const x = i * (barWidth + gap);
@@ -76,7 +76,7 @@ function ThoughtsChart({ data }) {
             <path d={roundedTopBarPath(x, y, barWidth, barHeight, 4)} fill="url(#insightsPageBarGradient)">
               <title>{`${d.count} thought${d.count === 1 ? "" : "s"}`}</title>
             </path>
-            <text x={x + barWidth / 2} y={chartHeight + 15} textAnchor="middle" fontSize="10" fill="#5b6472">{d.label}</text>
+            <text x={x + barWidth / 2} y={chartHeight + 15} textAnchor="middle" fontSize="10" className="insightsChartLabel">{d.label}</text>
           </g>
         );
       })}
@@ -134,13 +134,20 @@ function Insights() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mt-6">
             <div className="statTile">
               <div>
                 <div className="statTileLabel">Thoughts added</div>
                 <div className="statTileValue">{thoughts.length}</div>
               </div>
               <div className="statTileIcon"><i className="fa-regular fa-brain"></i></div>
+            </div>
+            <div className="statTile">
+              <div>
+                <div className="statTileLabel">Favorites</div>
+                <div className="statTileValue">{thoughts.filter((t) => t.Favorite).length}</div>
+              </div>
+              <div className="statTileIcon"><i className="fa-solid fa-heart"></i></div>
             </div>
             <div className="statTile">
               <div>

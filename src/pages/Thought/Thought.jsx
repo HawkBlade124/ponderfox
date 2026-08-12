@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import SearchBox from "../../components/SearchBox.jsx";
 import axios from "axios";
 
 function buildApiUrl() {
@@ -20,6 +21,7 @@ function Thought() {
     () => localStorage.getItem(REMINDER_DISMISSED_KEY) === "true"
   );
   const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const [ThoughtDescription, setThoughtDescription] = useState("");
 
   const [addCat, setCat] = useState("");
@@ -36,6 +38,7 @@ function Thought() {
   const [pendingAttachments, setPendingAttachments] = useState([]); // [{ url, name, type }]
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const sentMessagesRef = useRef(null);
   const MAX_ATTACHMENTS = 5;
 
   const { token, loading } = useAuth();
@@ -80,6 +83,14 @@ function Thought() {
       fetchMessages();
     }
   }, [token, ThoughtName]);
+
+  // Always land on the newest entry — on first load and after every new message.
+  useEffect(() => {
+    const el = sentMessagesRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [messages]);
 
   // ---------- Attachments ----------
   const triggerFileSelect = () => {
@@ -192,12 +203,15 @@ function Thought() {
   };
 
   // ---------- Search ----------
+  // Uses its own `searchResults` state (kept separate from `messages`) so
+  // searching in the sidebar doesn't overwrite the main chat, which is
+  // visible at the same time as the sidebar on wide screens.
   const handleSearch = async (e) => {
     const term = e.target.value;
     setSearch(term);
 
     if (!term.trim()) {
-      fetchMessages();
+      setSearchResults([]);
       return;
     }
 
@@ -206,7 +220,7 @@ function Thought() {
         `${apiBase}/search?q=${encodeURIComponent(term)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (res.data.success) setMessages(res.data.messages || []);
+      if (res.data.success) setSearchResults(res.data.messages || []);
     } catch (err) {
       console.error("Search error:", err);
     }
@@ -407,7 +421,7 @@ function Thought() {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-screen overflow-hidden">
       <div id="headBar" className="lg:hidden flex items-center justify-between p-4">
         <Link to="/dashboard" className="mobileBackBtn flex items-center justify-center">
           <i className="fa-solid fa-arrow-left"></i>
@@ -425,46 +439,62 @@ function Thought() {
         </div>
       </div>
 
-      <div id="thoughtBody" className="flex flex-col lg:flex-row m-auto h-full gap-5 p-5">
+      <div id="thoughtBody" className="flex flex-col lg:flex-row w-full flex-1 min-h-0 gap-5 p-5">
 
         {/* LEFT SIDEBAR */}
         <div id="leftSide" className={`sidebar dashBody ${activeTab === "search" ? "block" : "hidden"} lg:block`}>
           <div id="searchThoughts">
-            <div id="searchSideBarHead" className="thoughtFormField">
-              <i className="fa-regular fa-magnifying-glass"></i>
-              <input type="text" className="modalFieldInput" value={search} onChange={handleSearch} placeholder="Search your thoughts" />
-            </div>
+            <SearchBox
+              value={search}
+              onChange={handleSearch}
+              placeholder="Search your thoughts"
+              className="dashSearchInputFull"
+            />
 
             {search.trim() ? (
               <div className="searchResults mt-4">
-                {messages.length === 0 ? (
-                  <p className="modalEmptyNote">No matches found.</p>
+                {searchResults.length === 0 ? (
+                  <p className="modalEmptyNote">
+                    No matches for &quot;{search}&quot;. Try a different word or phrase.
+                  </p>
                 ) : (
-                  <ul className="flex flex-col gap-2">
-                    {messages.map((msg) => (
-                      <li
-                        key={msg.MessageID}
-                        className="searchResultItem"
-                        onClick={() => {
-                          const targetThought = msg.ThoughtName || ThoughtName || "";
-                          navigate(`/thought/${encodeURIComponent(targetThought)}`);
-                        }}
-                      >
-                        <div className="searchResultTitle">{msg.ThoughtName || "Unknown Thought"}</div>
-                        <div className="searchResultSnippet">{msg.Message}</div>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <p className="searchResultCount">
+                      {searchResults.length} {searchResults.length === 1 ? "result" : "results"} across all your thoughts
+                    </p>
+                    <ul className="flex flex-col gap-2">
+                      {searchResults.map((msg) => (
+                        <li
+                          key={msg.MessageID}
+                          className="searchResultItem"
+                          onClick={() => {
+                            const targetThought = msg.ThoughtName || ThoughtName || "";
+                            navigate(`/thought/${encodeURIComponent(targetThought)}`);
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="searchResultTitle">{msg.ThoughtName || "Unknown Thought"}</div>
+                            {msg.DateSent && (
+                              <div className="searchResultMeta">{new Date(msg.DateSent).toLocaleDateString()}</div>
+                            )}
+                          </div>
+                          <div className="searchResultSnippet">{msg.Message}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
                 )}
               </div>
             ) : (
-              <p className="modalEmptyNote mt-4">Search across all your thoughts.</p>
+              <p className="modalEmptyNote mt-4">
+                Search matches message text from every thought you&apos;ve written — not just this one. Start typing to find a word, phrase, or memory.
+              </p>
             )}
           </div>
         </div>
 
         {/* MAIN AREA */}
-        <div id="mainSection" className={`dashBody flex flex-col w-full chatInput justify-between ${activeTab === "main" ? "flex" : "hidden"} lg:flex`}>
+        <div id="mainSection" className={`dashBody flex flex-col w-full min-h-0 chatInput justify-between ${activeTab === "main" ? "flex" : "hidden"} lg:flex`}>
           <div className="thoughtInfoHead flex items-center gap-4">
             <Link to="/dashboard" className="backtodashbtn hidden lg:flex items-center justify-center">
               <i className="fa-solid fa-arrow-left"></i>
@@ -493,19 +523,18 @@ function Thought() {
           {messages.length === 0 && h1Visible ? (
             <div className="initialChatBody w-full max-w-2xl m-auto flex flex-col gap-8 mb-5">
               <div className="flex items-center justify-center gap-4">
-                <h1 className="text-2xl font-semibold text-white">Welcome to {ThoughtName}</h1>
+                <h1 className="text-2xl font-semibold text-white">This thought is empty.</h1>
                 <i className="fa-solid fa-thought-bubble text-5xl text-[#438eef]"></i>
               </div>
               <div className="text-center">
                 <p className="text-slate-400">
-                  A place to compile all your thoughts and talk to yourself. To
-                  begin, just enter a thought in the text bar.
+                 Enter what you are thinking into the the text bar to begin this thought.
                 </p>
               </div>
             </div>
           ) : (
             <div className="chatbox w-full h-full ">
-              <div className="sentMessages w-full">
+              <div className="sentMessages w-full" ref={sentMessagesRef}>
                 {messages.map((msg) => (
                   <div key={msg.MessageID} className="sentMessage flex flex-col justify-start items-start w-full">
                     <div className="flex items-start justify-between w-full" onMouseEnter={() => setHoveredId(msg.MessageID)} onMouseLeave={() => setHoveredId(null)}>
@@ -668,7 +697,7 @@ function Thought() {
           </section>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

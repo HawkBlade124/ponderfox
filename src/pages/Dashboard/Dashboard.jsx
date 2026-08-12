@@ -8,16 +8,14 @@ import AddFolderModal from "../../components/modals/AddFolder.jsx";
 import InfoModal from "../../components/modals/Info.jsx";
 import DashMenu from "../../components/DashMenu.jsx";
 import PonderFoxMark from "../../components/PonderFoxMark.jsx";
+import TopProfileTile from "../../components/TopProfileTile.jsx";
+import SearchBox from "../../components/SearchBox.jsx";
 import { getTierColor } from "../../utils/tier.js";
-
-function getInitials(name) {
-  if (!name) return "?";
-  return name.trim().slice(0, 2).toUpperCase();
-}
+import { buildApiUrl } from "../../utils/api.js";
 
 function Dashboard() {
 
-  const { user, Thoughts, setThoughts, token, loading, logout } = useAuth();
+  const { user, Thoughts, setThoughts, token, loading } = useAuth();
   const { ListName } = useParams();
 
   const [error, setError] = useState("");
@@ -31,16 +29,22 @@ function Dashboard() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedThought, setSelectedThought] = useState("");
   const [favorite, setFavorite] = useState(false);
-  const [showStatsSidebar, setShowStatsSidebar] = useState(false);
 
   const [listThoughts, setListThoughts] = useState([]);
   const [listsOverview, setListsOverview] = useState([]);
+  const [moodBoards, setMoodBoards] = useState([]);
   const [sortBy, setSortBy] = useState("date-desc");
   const [viewMode, setViewMode] = useState(
     () => localStorage.getItem("thoughtViewMode") || "grid"
   );
+  const [gridSize, setGridSize] = useState(
+    () => localStorage.getItem("thoughtGridSize") || "medium"
+  );
   const [brainDumpSearch, setBrainDumpSearch] = useState("");
   const [quickAccessSearch, setQuickAccessSearch] = useState("");
+  const [recentSearch, setRecentSearch] = useState("");
+  const [listsSearch, setListsSearch] = useState("");
+  const [moodBoardsSearch, setMoodBoardsSearch] = useState("");
 
   const matchesSearch = (thought, query) => {
     const q = query.trim().toLowerCase();
@@ -54,6 +58,17 @@ function Dashboard() {
   const changeViewMode = (mode) => {
     setViewMode(mode);
     localStorage.setItem("thoughtViewMode", mode);
+  };
+
+  const changeGridSize = (size) => {
+    setGridSize(size);
+    localStorage.setItem("thoughtGridSize", size);
+  };
+
+  const gridSizeClasses = {
+    small: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5",
+    medium: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4",
+    large: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
   };
 
   const displayThoughts = ListName ? listThoughts : Thoughts;
@@ -92,8 +107,24 @@ function Dashboard() {
     l.ListName.toLowerCase().includes(brainDumpSearch.trim().toLowerCase())
   );
 
-  const pinnedThoughts = Thoughts.filter((f) => f.Pinned);
-  const searchedPinnedThoughts = pinnedThoughts.filter((f) => matchesSearch(f, quickAccessSearch));
+  const DASH_PREVIEW_LIMIT = 3;
+
+  const pinnedThoughts = [...Thoughts].filter((f) => f.Pinned).sort((a, b) => new Date(b.DateCreated) - new Date(a.DateCreated));
+  const searchedPinnedThoughts = pinnedThoughts.filter((f) => matchesSearch(f, quickAccessSearch)).slice(0, DASH_PREVIEW_LIMIT);
+
+  const recentThoughts = [...Thoughts].sort((a, b) => new Date(b.DateCreated) - new Date(a.DateCreated));
+  const searchedRecentThoughts = recentThoughts.filter((f) => matchesSearch(f, recentSearch)).slice(0, DASH_PREVIEW_LIMIT);
+
+  const searchedListsOverview = listsOverview
+    .filter((l) => l.ListName.toLowerCase().includes(listsSearch.trim().toLowerCase()))
+    .slice(0, DASH_PREVIEW_LIMIT);
+
+  // Mood boards carry no creation date, so MoodBoardID (an auto-increment
+  // primary key) stands in as the recency signal.
+  const moodBoardsByRecency = [...moodBoards].sort((a, b) => b.MoodBoardID - a.MoodBoardID);
+  const searchedMoodBoards = moodBoardsByRecency
+    .filter((b) => b.BoardName.toLowerCase().includes(moodBoardsSearch.trim().toLowerCase()))
+    .slice(0, DASH_PREVIEW_LIMIT);
 
 
 const editThought = async (ThoughtId, newName, newDescr) => {
@@ -325,6 +356,24 @@ useEffect(() => {
   fetchListsOverview();
 }, [token, loading]);
 
+useEffect(() => {
+  if (loading || !token) return;
+
+  const fetchMoodBoards = async () => {
+    try {
+      const res = await fetch(`${buildApiUrl()}/moodboards`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) setMoodBoards(data.boards);
+    } catch (err) {
+      console.error("Error fetching mood boards:", err);
+    }
+  };
+
+  fetchMoodBoards();
+}, [token, loading]);
+
 const addFolder = async (folderName) => {
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/lists`, {
@@ -358,12 +407,6 @@ if (loading) {
 
 if (!user) return null;
 
-  const statTiles = [
-    { key: "total", label: "Total Thoughts", value: Thoughts.length, icon: "fa-regular fa-brain" },
-    { key: "favorites", label: "Favorites", value: Thoughts.filter((f) => f.Favorite).length, icon: "fa-solid fa-heart" },
-    { key: "tier", label: "Account Tier", value: user.Tier, icon: "fa-regular fa-crown", valueClass: "text-lg", valueStyle: { color: getTierColor(user.Tier) } },
-  ];
-
   return (
     <div id="dashboard" className="w-full">
       <EditModal  isOpen={showEditModal}  onClose={() => setShowEditModal(false)} thought={selectedThought}  onSave={editThought}/>
@@ -372,7 +415,7 @@ if (!user) return null;
     <AddFolderModal isOpen={showAddFolderModal} onClose={() => setShowAddFolderModal(false)} onConfirm={(folderName) => addFolder(folderName)}/>
     <InfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} thought={selectedThought}/>
       <div id="dashWrap" className="flex w-full">
-        <DashMenu hideFooter showStatsToggle={!ListName} onStatsClick={() => setShowStatsSidebar(true)} />
+        <DashMenu />
       <div className="rightScreen w-full p-6 ml">
       <div id="homeHead" className="flex justify-between items-center">
         <div>
@@ -392,74 +435,24 @@ if (!user) return null;
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {user && (
-            <div className="topProfileTile">
-              <Link to="/settings" className="flex items-center gap-[10px] min-w-0" style={{ textDecoration: "none" }}>
-                <div className="topProfileAvatar">{getInitials(user.Username)}</div>
-                <div className="topProfileInfo">
-                  <div className="topProfileName">{user.Username}</div>
-                  <div className="topProfileEmail">{user.Email}</div>
-                </div>
-              </Link>
-              <i className="fa-regular fa-arrow-right-from-bracket topProfileLogout" title="Logout" onClick={logout}></i>
-            </div>
+          {displayThoughts.length + sortedFolders.length > 1 && (
+            <SearchBox value={brainDumpSearch} onChange={(e) => setBrainDumpSearch(e.target.value)} placeholder="Search thoughts and folders" />
           )}
+          <TopProfileTile />
         </div>
       </div>
-
-      {!ListName && (
-      <>
-      <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-6">
-        {statTiles.map((t) => (
-          <div key={t.key} className={`statTile ${t.action ? "statTileAction" : ""}`} onClick={t.onClick}>
-            <div>
-              <div className="statTileLabel">{t.label}</div>
-              <div className={`statTileValue ${t.valueClass || ""}`} style={t.valueStyle}>{t.value}</div>
-            </div>
-            <div className="statTileIcon"><i className={t.icon}></i></div>
-          </div>
-        ))}
-      </div>
-
-      {showStatsSidebar && (
-        <div className="lg:hidden fixed inset-0 z-30 flex">
-          <div className="w-72 max-w-[80%] h-full bg-[#0b0e17] border-r border-slate-800 p-4 flex flex-col gap-4 overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h2 className="text-white font-semibold text-lg">Stats</h2>
-              <i className="fa-regular fa-xmark text-white text-xl cursor-pointer" onClick={() => setShowStatsSidebar(false)}></i>
-            </div>
-            <div className="flex flex-col gap-4">
-              {statTiles.map((t) => (
-                <div
-                  key={t.key}
-                  className={`statTile ${t.action ? "statTileAction" : ""}`}
-                  onClick={t.onClick ? () => { t.onClick(); setShowStatsSidebar(false); } : undefined}
-                >
-                  <div>
-                    <div className="statTileLabel">{t.label}</div>
-                    <div className={`statTileValue ${t.valueClass || ""}`} style={t.valueStyle}>{t.value}</div>
-                  </div>
-                  <div className="statTileIcon"><i className={t.icon}></i></div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex-1" onClick={() => setShowStatsSidebar(false)}></div>
-        </div>
-      )}
-      </>
-      )}
 
       <div id="dashLayout" className="flex justify-between w-full  mt-5">
       <div id="layoutLeft" className="w-full">
 
       <section className="dashBody w-full">
         <div className="flex flex-col gap-3">
-        <div className="flex items-center flex-wrap gap-2 justify-center lg:justify-start">
+        <div className="flex items-center flex-wrap gap-2 justify-between lg:justify-between">
           <h2 className="text-2xl flex items-center gap-2">
             <i className={`fa-regular ${ListName ? "fa-list-tree" : "fa-brain"} text-[#438eef]`}></i>
             {ListName || "Your Brain Dump"}
           </h2>
+          <div className="flex items-center gap-2 w-full lg:w-auto">
           {displayThoughts.length + sortedFolders.length > 1 && (
             <>
             <select className="sortSelect" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
@@ -477,6 +470,13 @@ if (!user) return null;
                 <i className="fa-regular fa-list"></i>
               </button>
             </div>
+            {viewMode === "grid" && (
+              <div className="viewToggle flex items-center">
+                <button type="button" onClick={() => changeGridSize("small")} className={`viewToggleBtn ${gridSize === "small" ? "viewToggleBtnActive" : ""}`} title="Small grid">S</button>
+                <button type="button" onClick={() => changeGridSize("medium")} className={`viewToggleBtn ${gridSize === "medium" ? "viewToggleBtnActive" : ""}`} title="Medium grid">M</button>
+                <button type="button" onClick={() => changeGridSize("large")} className={`viewToggleBtn ${gridSize === "large" ? "viewToggleBtnActive" : ""}`} title="Large grid">L</button>
+              </div>
+            )}
             </>
           )}
           <button type="button" className="statTile statTileAction quickActionButton" onClick={() => addThoughtModal()}>
@@ -489,15 +489,9 @@ if (!user) return null;
               <div className="statTileIcon"><i className="fa-regular fa-folder-plus"></i></div>
             </button>
           )}
-        </div>
-        {displayThoughts.length + sortedFolders.length > 1 && (
-          <div className="flex justify-center lg:justify-start">
-            <div className="dashSearchInput">
-              <i className="fa-regular fa-magnifying-glass"></i>
-              <input type="text" value={brainDumpSearch} onChange={(e) => setBrainDumpSearch(e.target.value)} placeholder="Search thoughts and folders" />
-            </div>
           </div>
-        )}
+        </div>
+
         </div>
 
         {displayThoughts.length === 0 && sortedFolders.length === 0 ? (
@@ -513,67 +507,93 @@ if (!user) return null;
             <button type="button" className="emptyStateAction" onClick={() => setBrainDumpSearch("")}>Clear search</button>
           </div>
         ) : viewMode === "grid" ? (
-        <div className="flex w-full">
-        <div id="thoughtList" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full text-3xl mb-5 mt-5 place-items-center">
-          {searchedFolders.map((l) => (
-            <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem w-full flex flex-col items-center justify-between no-underline">
-              <div className="flex justify-between w-full">
-                <i className="text-xl fa-solid fa-folder text-[#438eef]"></i>
+        <div className="flex flex-col w-full mb-5 mt-5">
+          {searchedFolders.length > 0 && (
+            <div className="w-full">
+              <h3 className="dashGroupLabel"><i className="fa-solid fa-folder"></i> Folders</h3>
+              <div className={`grid ${gridSizeClasses[gridSize]} gap-6 w-full text-3xl place-items-center`}>
+                {searchedFolders.map((l) => (
+                  <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem w-full flex flex-col items-center justify-between no-underline">
+                    <div className="flex justify-between w-full">
+                      <i className="text-xl fa-solid fa-folder text-[#438eef]"></i>
+                    </div>
+                    <div className="thoughtName">{l.ListName}</div>
+                    <div className="text-lg text-slate-400">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
+                  </Link>
+                ))}
               </div>
-              <div className="thoughtName">{l.ListName}</div>
-              <div className="text-lg text-slate-400">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
-            </Link>
-          ))}
-          {searchedThoughts.map((f, i) => (
-            <Link
-              key={i}
-              to={`/thought/${encodeURIComponent(f.ThoughtName)}`}
-              className="thoughtItem w-full flex flex-col items-center justify-between no-underline"
-            >
-              <div className="flex justify-between w-full">
-                <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-xl cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[#438eef]" : "fa-regular fa-thumbtack-angle"}`}></i>
-                <div className="flex">
-                  <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); favoriteThought(f.ThoughtID, !f.Favorite); }} className={`text-xl cursor-pointer ${f.Favorite ? "fa-solid fa-heart text-red-500" : "fa-regular fa-heart"}`}/>
-                  <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-xl cursor-pointer fa-regular fa-circle-info"/>
-                </div>
+            </div>
+          )}
+          {searchedThoughts.length > 0 && (
+            <div className="w-full">
+              <h3 className="dashGroupLabel mt-15"><i className="fa-solid fa-brain"></i> Thoughts</h3>
+              <div className={`grid ${gridSizeClasses[gridSize]} gap-6 w-full text-3xl place-items-center`}>
+                {searchedThoughts.map((f, i) => (
+                  <Link
+                    key={i}
+                    to={`/thought/${encodeURIComponent(f.ThoughtName)}`}
+                    className="thoughtItem w-full flex flex-col items-center justify-between no-underline"
+                  >
+                    <div className="flex justify-between w-full">
+                      <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-xl cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[#438eef]" : "fa-regular fa-thumbtack-angle"}`}></i>
+                      <div className="flex">
+                        <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); favoriteThought(f.ThoughtID, !f.Favorite); }} className={`text-xl cursor-pointer ${f.Favorite ? "fa-solid fa-heart text-red-500" : "fa-regular fa-heart"}`}/>
+                        <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-xl cursor-pointer fa-regular fa-circle-info"/>
+                      </div>
+                    </div>
+                    <div className="thoughtName">{f.ThoughtName}</div>
+                    <div className="text-lg">{f.ThoughtDescr}</div>
+                    <div className="thoughtFoot flex items-center justify-end w-full mt-5">
+                      <div className="thoughtFunctions flex items-center justify-end w-full gap-1">
+                        <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-xl fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>
+                        <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteThoughtModal(f); }} className="text-xl fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-200"></i>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
-              <div className="thoughtName">{f.ThoughtName}</div>
-              <div className="text-lg">{f.ThoughtDescr}</div>
-              <div className="thoughtFoot flex items-center justify-end w-full mt-5">
-                <div className="thoughtFunctions flex items-center justify-end w-full gap-1">
-                  <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-xl fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>
-                  <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteThoughtModal(f); }} className="text-xl fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-200"></i>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+            </div>
+          )}
         </div>
         ) : (
-        <div id="thoughtListRows" className="flex flex-col gap-3 w-full mb-5 mt-5">
-          {searchedFolders.map((l) => (
-            <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtRow w-full flex items-center gap-4">
-              <i className="text-lg fa-solid fa-folder text-[#438eef]"></i>
-              <div className="flex-1 min-w-0">
-                <div className="thoughtName truncate">{l.ListName}</div>
-                <div className="text-sm text-slate-400 truncate">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
+        <div className="flex flex-col w-full mb-5 mt-5">
+          {searchedFolders.length > 0 && (
+            <div className="w-full">
+              <h3 className="dashGroupLabel"><i className="fa-solid fa-folder"></i> Folders</h3>
+              <div className="flex flex-col gap-3 w-full">
+                {searchedFolders.map((l) => (
+                  <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtRow w-full flex items-center gap-4">
+                    <i className="text-lg fa-solid fa-folder text-[#438eef]"></i>
+                    <div className="flex-1 min-w-0">
+                      <div className="thoughtName truncate">{l.ListName}</div>
+                      <div className="text-sm text-slate-400 truncate">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
+                    </div>
+                    <i className="fa-regular fa-chevron-right text-sm text-slate-500"></i>
+                  </Link>
+                ))}
               </div>
-              <i className="fa-regular fa-chevron-right text-sm text-slate-500"></i>
-            </Link>
-          ))}
-          {searchedThoughts.map((f, i) => (
-            <Link key={i} to={`/thought/${encodeURIComponent(f.ThoughtName)}`} className="thoughtRow w-full flex items-center gap-4">
-              <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-lg cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[#438eef]" : "fa-regular fa-thumbtack-angle"}`}></i>
-              <div className="flex-1 min-w-0">
-                <div className="thoughtName truncate">{f.ThoughtName}</div>
-                <div className="text-sm text-slate-400 truncate">{f.ThoughtDescr}</div>
+            </div>
+          )}
+          {searchedThoughts.length > 0 && (
+            <div className="w-full">
+              <h3 className="dashGroupLabel mt-15"><i className="fa-solid fa-brain"></i> Thoughts</h3>
+              <div className="flex flex-col gap-3 w-full">
+                {searchedThoughts.map((f, i) => (
+                  <Link key={i} to={`/thought/${encodeURIComponent(f.ThoughtName)}`} className="thoughtRow w-full flex items-center gap-4">
+                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-lg cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[#438eef]" : "fa-regular fa-thumbtack-angle"}`}></i>
+                    <div className="flex-1 min-w-0">
+                      <div className="thoughtName truncate">{f.ThoughtName}</div>
+                      <div className="text-sm text-slate-400 truncate">{f.ThoughtDescr}</div>
+                    </div>
+                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); favoriteThought(f.ThoughtID, !f.Favorite); }} className={`text-lg cursor-pointer ${f.Favorite ? "fa-solid fa-heart text-red-500" : "fa-regular fa-heart"}`}/>
+                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-lg cursor-pointer fa-regular fa-circle-info"/>
+                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-lg fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>
+                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteThoughtModal(f); }} className="text-lg fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-200"></i>
+                  </Link>
+                ))}
               </div>
-              <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); favoriteThought(f.ThoughtID, !f.Favorite); }} className={`text-lg cursor-pointer ${f.Favorite ? "fa-solid fa-heart text-red-500" : "fa-regular fa-heart"}`}/>
-              <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-lg cursor-pointer fa-regular fa-circle-info"/>
-              <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-lg fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>
-              <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteThoughtModal(f); }} className="text-lg fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-200"></i>
-            </Link>
-          ))}
+            </div>
+          )}
         </div>
         )}
       </section>
@@ -582,14 +602,39 @@ if (!user) return null;
       <div id="dashGrid" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-5">
         <section className="dashBody">
           <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-clock-rotate-left text-[#438eef]"></i> Recent</h2>
-          <div className="emptyState emptyStateSmall">
-            <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
-            <p>No recent thoughts</p>
-          </div>
+          {Thoughts.length > DASH_PREVIEW_LIMIT && (
+            <div className="dashSearchInput dashSearchInputFull mt-2">
+              <i className="fa-regular fa-magnifying-glass"></i>
+              <input type="text" value={recentSearch} onChange={(e) => setRecentSearch(e.target.value)} placeholder="Search recent" />
+            </div>
+          )}
+          {recentThoughts.length === 0 ? (
+            <div className="emptyState emptyStateSmall">
+              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <p>No recent thoughts</p>
+            </div>
+          ) : searchedRecentThoughts.length === 0 ? (
+            <div className="emptyState emptyStateSmall">
+              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <p>No matches</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 mt-2">
+              {searchedRecentThoughts.map((f) => (
+                <Link key={f.ThoughtID} to={`/thought/${encodeURIComponent(f.ThoughtName)}`} className="thoughtRow thoughtRowCompact flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="thoughtName truncate">{f.ThoughtName}</div>
+                    <div className="text-xs text-slate-400 truncate">{f.ThoughtDescr}</div>
+                  </div>
+                  <i className="fa-regular fa-chevron-right text-xs text-slate-500"></i>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
         <section className="dashBody">
           <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-bolt text-[#438eef]"></i> Quick Access</h2>
-          {pinnedThoughts.length > 1 && (
+          {pinnedThoughts.length > DASH_PREVIEW_LIMIT && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>
               <input type="text" value={quickAccessSearch} onChange={(e) => setQuickAccessSearch(e.target.value)} placeholder="Search pinned" />
@@ -621,16 +666,31 @@ if (!user) return null;
         </section>
         <section className="dashBody">
           <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-list-tree text-[#438eef]"></i> Lists</h2>
+          {listsOverview.length > DASH_PREVIEW_LIMIT && (
+            <div className="dashSearchInput dashSearchInputFull mt-2">
+              <i className="fa-regular fa-magnifying-glass"></i>
+              <input type="text" value={listsSearch} onChange={(e) => setListsSearch(e.target.value)} placeholder="Search lists" />
+            </div>
+          )}
           {listsOverview.length === 0 ? (
             <div className="emptyState emptyStateSmall">
               <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
               <p>No lists created</p>
             </div>
+          ) : searchedListsOverview.length === 0 ? (
+            <div className="emptyState emptyStateSmall">
+              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <p>No matches</p>
+            </div>
           ) : (
-            <div className="modalChipRow mt-2">
-              {listsOverview.map((l) => (
-                <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="modalChip">
-                  {l.ListName} ({l.ThoughtCount})
+            <div className="flex flex-col gap-2 mt-2">
+              {searchedListsOverview.map((l) => (
+                <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtRow thoughtRowCompact flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="thoughtName truncate">{l.ListName}</div>
+                    <div className="text-xs text-slate-400 truncate">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
+                  </div>
+                  <i className="fa-regular fa-chevron-right text-xs text-slate-500"></i>
                 </Link>
               ))}
             </div>
@@ -638,10 +698,35 @@ if (!user) return null;
         </section>
         <section className="dashBody">
           <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-images text-[#438eef]"></i> Mood Boards</h2>
-          <div className="emptyState emptyStateSmall">
-            <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
-            <p>No mood boards</p>
-          </div>
+          {moodBoards.length > DASH_PREVIEW_LIMIT && (
+            <div className="dashSearchInput dashSearchInputFull mt-2">
+              <i className="fa-regular fa-magnifying-glass"></i>
+              <input type="text" value={moodBoardsSearch} onChange={(e) => setMoodBoardsSearch(e.target.value)} placeholder="Search mood boards" />
+            </div>
+          )}
+          {moodBoards.length === 0 ? (
+            <div className="emptyState emptyStateSmall">
+              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <p>No mood boards</p>
+            </div>
+          ) : searchedMoodBoards.length === 0 ? (
+            <div className="emptyState emptyStateSmall">
+              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <p>No matches</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 mt-2">
+              {searchedMoodBoards.map((b) => (
+                <Link key={b.MoodBoardID} to={`/mood-boards/${b.MoodBoardID}`} className="thoughtRow thoughtRowCompact flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="thoughtName truncate">{b.BoardName}</div>
+                    <div className="text-xs text-slate-400 truncate">{b.SectionCount} {b.SectionCount === 1 ? "section" : "sections"}</div>
+                  </div>
+                  <i className="fa-regular fa-chevron-right text-xs text-slate-500"></i>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       </div>
       )}

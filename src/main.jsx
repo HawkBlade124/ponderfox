@@ -7,6 +7,7 @@ import './assets/font-awesome/css/solid.min.css';
 import './css/index.css';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import ReactModal from "react-modal";
 import {StyledEngineProvider} from "@mui/material/styles";
 
@@ -17,7 +18,9 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
     <StyledEngineProvider injectFirst>
       <AuthProvider>
-        <App />
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
       </AuthProvider>
       </StyledEngineProvider>
     </BrowserRouter>

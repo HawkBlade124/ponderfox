@@ -11,6 +11,7 @@ function buildApiUrl() {
 function Register() {
   const [Username, setName] = useState("");
   const [Email, setEmail] = useState("");
+  const [ConfirmEmail, setConfirmEmail] = useState("");
   const [Password, setPassword] = useState("");
   const [ConfirmPassword, setConfirmPassword] = useState("");
   const [Tier] = useState("Free");
@@ -21,6 +22,11 @@ function Register() {
 
   const registerUser = async (e) => {
     e.preventDefault();
+
+    if (Email.trim() !== ConfirmEmail.trim()) {
+      setError("Emails do not match");
+      return;
+    }
 
     if (Password !== ConfirmPassword) {
       setError("Passwords do not match");
@@ -79,12 +85,14 @@ function Register() {
   };
 
   useEffect(() => {
-    if (ConfirmPassword && Password !== ConfirmPassword) {
+    if (ConfirmEmail && Email !== ConfirmEmail) {
+      setError("Emails do not match");
+    } else if (ConfirmPassword && Password !== ConfirmPassword) {
       setError("Passwords do not match");
     } else {
       setError("");
     }
-  }, [Password, ConfirmPassword]);
+  }, [Email, ConfirmEmail, Password, ConfirmPassword]);
 
   return (
     <AuthLayout
@@ -127,6 +135,21 @@ function Register() {
             value={Email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
+            className="rounded-lg border border-slate-700 bg-slate-800/60 h-11 px-4 !text-white placeholder:!text-slate-500 outline-none focus:border-[#438eef] focus:ring-2 focus:ring-[#438eef]/20 transition"
+            required
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="confirmEmail" className="text-sm font-medium text-slate-300">
+            Confirm Email
+          </label>
+          <input
+            id="confirmEmail"
+            type="email"
+            value={ConfirmEmail}
+            onChange={(e) => setConfirmEmail(e.target.value)}
+            placeholder="Re-enter your email"
             className="rounded-lg border border-slate-700 bg-slate-800/60 h-11 px-4 !text-white placeholder:!text-slate-500 outline-none focus:border-[#438eef] focus:ring-2 focus:ring-[#438eef]/20 transition"
             required
           />
