@@ -16,9 +16,7 @@ const menuItems = [
 const workspaceItems = [
   { to: "/mood-boards", label: "Mood Boards", icon: "fa-regular fa-game-board" },
   { to: "/prompts", label: "Prompts", icon: "fa-regular fa-microphone-stand" },
-  { to: "/categories", label: "Categories", icon: "fa-regular fa-list" },
-  { to: "/tags", label: "Tags", icon: "fa-regular fa-tag" },
-  { to: "/lists", label: "Lists", icon: "fa-regular fa-list-tree" },
+  { to: "/organize", label: "Organize", icon: "fa-regular fa-layer-group" },
   { to: "/goals", label: "Goals", icon: "fa-regular fa-bullseye-arrow" },
 ];
 

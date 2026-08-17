@@ -1,6 +1,16 @@
 import ReactModal from 'react-modal';
 
-function DeleteModal({ isOpen, onClose, thought, onConfirm }) {
+function DeleteModal({
+  isOpen,
+  onClose,
+  thought,
+  itemName,
+  title = "Delete Thought?",
+  confirmLabel = "Delete Thought",
+  onConfirm,
+}) {
+  const name = itemName ?? thought?.ThoughtName;
+
   return (
     <ReactModal
       id="deleteModal"
@@ -8,7 +18,7 @@ function DeleteModal({ isOpen, onClose, thought, onConfirm }) {
       isOpen={isOpen}
       onRequestClose={onClose}
       ariaHideApp={false}
-      contentLabel="Delete Thought"
+      contentLabel={title}
     >
       <i className="fa-solid fa-xmark modalClose" onClick={onClose}></i>
 
@@ -16,9 +26,9 @@ function DeleteModal({ isOpen, onClose, thought, onConfirm }) {
         <div className="modalIconBadge modalIconBadgeDanger">
           <i className="fa-solid fa-trash"></i>
         </div>
-        <h2 className="modalTitle">Delete Thought?</h2>
+        <h2 className="modalTitle">{title}</h2>
         <p className="modalSubtitle">
-          Are you sure you want to delete <strong>{thought?.ThoughtName}</strong>? This can't be undone.
+          Are you sure you want to delete <strong>{name}</strong>? This can't be undone.
         </p>
       </div>
 
@@ -30,7 +40,7 @@ function DeleteModal({ isOpen, onClose, thought, onConfirm }) {
             onClose();
           }}
         >
-          Delete Thought
+          {confirmLabel}
         </button>
         <hr className="modalDivider" />
         <button className="modalTextLink" onClick={onClose}>

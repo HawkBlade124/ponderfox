@@ -12,10 +12,8 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import Thought from "./pages/Thought/Thought";
 import PageNotFound from "./pages/PageNotFound/PageNotFound";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
-import Lists from "./pages/Lists/Lists";
 import Settings from "./pages/Settings/Settings";
-import Categories from "./pages/Categories/Categories";
-import Tags from "./pages/Tags/Tags";
+import Organize from "./pages/Organize/Organize";
 import Prompts from "./pages/Prompts/Prompts";
 import PromptDetail from "./pages/Prompts/PromptDetail";
 import Goals from "./pages/Goals/Goals";
@@ -36,6 +34,7 @@ function App() {
     "/settings",
     "/categories",
     "/tags",
+    "/organize",
     "/prompts",
     "/goals",
     "/mood-boards",
@@ -59,15 +58,15 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/thoughts" element={<Dashboard />} />
         <Route path="/thoughts/:ListName" element={<Dashboard />} />
-        <Route path="/lists" element={<Lists />} />
         <Route path="/lists/:ListName" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/thought/:ThoughtName" element={<Thought />} />
         <Route path="/404" element={<PageNotFound />} />
         <Route path="/Unauthorized" element={<Unauthorized />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/tags" element={<Tags />} />
+        <Route path="/organize" element={<Organize />} />
+        <Route path="/categories/:CategoryName" element={<Dashboard />} />
+        <Route path="/tags/:TagName" element={<Dashboard />} />
         <Route path="/prompts" element={<Prompts />} />
         <Route path="/prompts/:categoryKey" element={<PromptDetail />} />
         <Route path="/goals" element={<Goals />} />

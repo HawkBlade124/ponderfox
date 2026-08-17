@@ -1,7 +1,18 @@
 import ReactModal from 'react-modal';
 import { useState } from 'react';
 
-function AddFolderModal({ isOpen, onClose, onConfirm }) {
+function AddFolderModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = "New Folder",
+  icon = "fa-regular fa-folder-plus",
+  subtitle = "Give your folder a name. You can sort thoughts into it afterward.",
+  fieldLabel = "Folder Name",
+  placeholder = "e.g. Work ideas",
+  submitLabel = "Create Folder",
+  entityLabel = "Folder",
+}) {
   const [folderName, setFolderName] = useState("");
   const [error, setError] = useState("");
 
@@ -16,11 +27,11 @@ function AddFolderModal({ isOpen, onClose, onConfirm }) {
 
     const trimmed = folderName.trim();
     if (!trimmed) {
-      setError("Folder name is required.");
+      setError(`${entityLabel} name is required.`);
       return;
     }
     if (trimmed.length > 100) {
-      setError("Folder name must be 100 characters or fewer.");
+      setError(`${entityLabel} name must be 100 characters or fewer.`);
       return;
     }
 
@@ -42,35 +53,35 @@ function AddFolderModal({ isOpen, onClose, onConfirm }) {
       isOpen={isOpen}
       onRequestClose={handleClose}
       ariaHideApp={false}
-      contentLabel="New Folder"
+      contentLabel={title}
     >
       <i className="fa-solid fa-xmark modalClose" onClick={handleClose}></i>
 
       <div className="modalHeader">
         <div className="modalIconBadge">
-          <i className="fa-regular fa-folder-plus"></i>
+          <i className={icon}></i>
         </div>
-        <h2 className="modalTitle">New Folder</h2>
-        <p className="modalSubtitle">Give your folder a name. You can sort thoughts into it afterward.</p>
+        <h2 className="modalTitle">{title}</h2>
+        <p className="modalSubtitle">{subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="modalForm">
         <div className="modalFieldGroup">
-          <label className="modalFieldLabel" htmlFor="addFolderName">Folder Name</label>
+          <label className="modalFieldLabel" htmlFor="addFolderName">{fieldLabel}</label>
           <input
             id="addFolderName"
             className="modalFieldInput"
             type="text"
             value={folderName}
             onChange={(e) => setFolderName(e.target.value)}
-            placeholder="e.g. Work ideas"
+            placeholder={placeholder}
           />
         </div>
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
 
         <button id="addFolderBtn" className="modalPrimaryButton" type="submit">
-          Create Folder
+          {submitLabel}
         </button>
         <hr className="modalDivider" />
         <button id="cancelAction" className="modalTextLink" onClick={handleClose} type="button">

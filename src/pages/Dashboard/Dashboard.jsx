@@ -16,7 +16,32 @@ import { buildApiUrl } from "../../utils/api.js";
 function Dashboard() {
 
   const { user, Thoughts, setThoughts, token, loading } = useAuth();
-  const { ListName } = useParams();
+  const { ListName, TagName, CategoryName } = useParams();
+
+  const GroupType = ListName ? "list" : TagName ? "tag" : CategoryName ? "category" : null;
+  const GroupName = ListName || TagName || CategoryName || null;
+
+  const groupMeta = {
+    list: {
+      overviewPath: "/organize", overviewLabel: "Lists", icon: "fa-list-tree",
+      emptyMessage: "No thoughts in this list yet.", apiSegment: "lists", bodyKey: "list",
+      thoughtsPath: (name) => `lists/${encodeURIComponent(name)}/thoughts`,
+    },
+    tag: {
+      overviewPath: "/organize?tab=tag", overviewLabel: "Tags", icon: "fa-tag",
+      emptyMessage: "No thoughts tagged here yet.", apiSegment: "tags", bodyKey: "tag",
+      thoughtsPath: (name) => `tags/by-name/${encodeURIComponent(name)}/thoughts`,
+    },
+    category: {
+      overviewPath: "/organize?tab=category", overviewLabel: "Categories", icon: "fa-list",
+      emptyMessage: "No thoughts in this category yet.", apiSegment: "categories", bodyKey: "category",
+      thoughtsPath: (name) => `categories/by-name/${encodeURIComponent(name)}/thoughts`,
+    },
+  };
+  const groupOverviewPath = GroupType ? groupMeta[GroupType].overviewPath : "/thoughts";
+  const groupOverviewLabel = GroupType ? groupMeta[GroupType].overviewLabel : "Dashboard";
+  const groupIcon = GroupType ? groupMeta[GroupType].icon : "fa-brain";
+  const emptyGroupMessage = GroupType ? groupMeta[GroupType].emptyMessage : "";
 
   const [error, setError] = useState("");
   const [ThoughtName, setThoughtName] = useState("");
@@ -71,8 +96,8 @@ function Dashboard() {
     large: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
   };
 
-  const displayThoughts = ListName ? listThoughts : Thoughts;
-  const updateThoughts = ListName ? setListThoughts : setThoughts;
+  const displayThoughts = GroupName ? listThoughts : Thoughts;
+  const updateThoughts = GroupName ? setListThoughts : setThoughts;
 
   const sortThoughts = (list) => {
     const compare = (a, b) => {
@@ -100,7 +125,7 @@ function Dashboard() {
   const sortedThoughts = sortThoughts(displayThoughts);
   const searchedThoughts = sortedThoughts.filter((f) => matchesSearch(f, brainDumpSearch));
 
-  const sortedFolders = ListName
+  const sortedFolders = GroupName
     ? []
     : [...listsOverview].sort((a, b) => a.ListName.localeCompare(b.ListName));
   const searchedFolders = sortedFolders.filter((l) =>
@@ -203,18 +228,19 @@ const addThought = async (ThoughtName, ThoughtDescr) => {
     if (res.ok) {
       updateThoughts((prev) => [...prev, data.newThought]);
 
-      if (ListName) {
+      if (GroupType) {
+        const { apiSegment, bodyKey } = groupMeta[GroupType];
         try {
-          await fetch(`${import.meta.env.VITE_API_URL}/api/lists`, {
+          await fetch(`${import.meta.env.VITE_API_URL}/api/${apiSegment}`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ list: ListName, ThoughtID: data.newThought.ThoughtID }),
+            body: JSON.stringify({ [bodyKey]: GroupName, ThoughtID: data.newThought.ThoughtID }),
           });
         } catch (err) {
-          console.error("Error adding new thought to list:", err);
+          console.error("Error adding new thought to group:", err);
         }
       }
 
@@ -317,15 +343,15 @@ useEffect(() => {
 
   const fetchThoughts = async () => {
     try {
-      const url = ListName
-        ? `${import.meta.env.VITE_API_URL}/api/lists/${encodeURIComponent(ListName)}/thoughts`
+      const url = GroupType
+        ? `${import.meta.env.VITE_API_URL}/api/${groupMeta[GroupType].thoughtsPath(GroupName)}`
         : `${import.meta.env.VITE_API_URL}/api/thoughts?unlisted=true`;
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       const parsed = Array.isArray(data) ? data : data.Thoughts || data.data || [];
-      if (ListName) {
+      if (GroupName) {
         setListThoughts(parsed);
       } else {
         setThoughts(parsed);
@@ -337,7 +363,7 @@ useEffect(() => {
   };
 
   fetchThoughts();
-}, [token, loading, ListName]);
+}, [token, loading, GroupType, GroupName]);
 
 const fetchListsOverview = async () => {
   try {
@@ -421,15 +447,15 @@ if (!user) return null;
         <div>
           <div className="dashBreadcrumb">
             Pages <i className="fa-regular fa-chevron-right text-[10px] mx-1"></i>{" "}
-            {ListName ? (
-              <><Link to="/thoughts">Dashboard</Link> <i className="fa-regular fa-chevron-right text-[10px] mx-1"></i> <span>{ListName}</span></>
+            {GroupName ? (
+              <><Link to={groupOverviewPath}>{groupOverviewLabel}</Link> <i className="fa-regular fa-chevron-right text-[10px] mx-1"></i> <span>{GroupName}</span></>
             ) : (
               <span>Dashboard</span>
             )}
           </div>
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-semibold text-white">{ListName || "Your Thought Dashboard"}</h1>
-            {!ListName && (
+            <h1 className="text-3xl font-semibold text-white">{GroupName || "Your Thought Dashboard"}</h1>
+            {!GroupName && (
               <span id="tierName" style={{ color: getTierColor(user.Tier), backgroundColor: `${getTierColor(user.Tier)}80` }}>{user.Tier}</span>
             )}
           </div>
@@ -449,8 +475,8 @@ if (!user) return null;
         <div className="flex flex-col gap-3">
         <div className="flex items-center flex-wrap gap-2 justify-between lg:justify-between">
           <h2 className="text-2xl flex items-center gap-2">
-            <i className={`fa-regular ${ListName ? "fa-list-tree" : "fa-brain"} text-[#438eef]`}></i>
-            {ListName || "Your Brain Dump"}
+            <i className={`fa-regular ${groupIcon} text-[#438eef]`}></i>
+            {GroupName || "Your Brain Dump"}
           </h2>
           <div className="flex items-center gap-2 w-full lg:w-auto">
           {displayThoughts.length + sortedFolders.length > 1 && (
@@ -483,7 +509,7 @@ if (!user) return null;
             <div className="statTileValue text-lg">New Thought</div>
             <div className="statTileIcon"><i className="fa-regular fa-message-plus"></i></div>
           </button>
-          {!ListName && (
+          {!GroupName && (
             <button type="button" className="statTile statTileAction quickActionButton" onClick={() => setShowAddFolderModal(true)}>
               <div className="statTileValue text-lg">New Folder</div>
               <div className="statTileIcon"><i className="fa-regular fa-folder-plus"></i></div>
@@ -497,7 +523,7 @@ if (!user) return null;
         {displayThoughts.length === 0 && sortedFolders.length === 0 ? (
           <div className="emptyState">
             <PonderFoxMark size={120} className="emptyStateArt" />
-            <p>{ListName ? "No thoughts in this list yet." : "No thoughts or folders yet — start your first brain dump."}</p>
+            <p>{GroupName ? emptyGroupMessage : "No thoughts or folders yet — start your first brain dump."}</p>
             <button type="button" className="emptyStateAction" onClick={() => addThoughtModal()}>Create a thought</button>
           </div>
         ) : searchedThoughts.length === 0 && searchedFolders.length === 0 ? (
@@ -598,7 +624,7 @@ if (!user) return null;
         )}
       </section>
 
-      {!ListName && (
+      {!GroupName && (
       <div id="dashGrid" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-5">
         <section className="dashBody">
           <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-clock-rotate-left text-[#438eef]"></i> Recent</h2>

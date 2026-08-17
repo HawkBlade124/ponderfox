@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS categories (
   "CategoryName" VARCHAR(100) NOT NULL,
   "DateCreated" TIMESTAMP NOT NULL
 );
+ALTER TABLE categories ALTER COLUMN "ThoughtID" DROP NOT NULL;
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS "Pinned" BOOLEAN NOT NULL DEFAULT FALSE;
 CREATE INDEX IF NOT EXISTS idx_categories_thought ON categories ("ThoughtID");
 
 CREATE TABLE IF NOT EXISTS tags (
@@ -52,6 +54,8 @@ CREATE TABLE IF NOT EXISTS tags (
   "TagName" VARCHAR(100) NOT NULL,
   "DateCreated" TIMESTAMP NOT NULL
 );
+ALTER TABLE tags ALTER COLUMN "ThoughtID" DROP NOT NULL;
+ALTER TABLE tags ADD COLUMN IF NOT EXISTS "Pinned" BOOLEAN NOT NULL DEFAULT FALSE;
 CREATE INDEX IF NOT EXISTS idx_tags_thought ON tags ("ThoughtID");
 
 CREATE TABLE IF NOT EXISTS lists (
@@ -62,6 +66,7 @@ CREATE TABLE IF NOT EXISTS lists (
   "DateCreated" TIMESTAMP NOT NULL
 );
 ALTER TABLE lists ALTER COLUMN "ThoughtID" DROP NOT NULL;
+ALTER TABLE lists ADD COLUMN IF NOT EXISTS "Pinned" BOOLEAN NOT NULL DEFAULT FALSE;
 CREATE INDEX IF NOT EXISTS idx_lists_thought ON lists ("ThoughtID");
 
 -- Schedules feature (day-timeline builder) was removed in favor of Revisit reminders.
