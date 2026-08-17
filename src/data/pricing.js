@@ -1,41 +1,36 @@
-// Placeholder pricing — swap in real plan details when they're finalized.
-// Shared between the Home page teaser and the full Pricing page so the two
-// can't drift out of sync.
+// Displayed prices are marketing copy — swap in the real numbers once
+// finalized. The actual amount charged always comes from the Stripe Price
+// tied to each plan's lookupKey on the server (see PLAN_CONFIG in server.js),
+// never from anything here.
 export const PRICING_TIERS = [
   {
-    title: "Free",
+    title: "Free Thinker",
     price: "$0",
     unit: "/mo",
     blurb: "Get started thinking out loud.",
     features: ["Unlimited thoughts", "3 folders", "30-day history"],
     filled: false,
     featured: false,
+    plan: null,
   },
   {
-    title: "Plus",
-    price: "$6",
+    title: "Thinker",
+    price: "$7",
     unit: "/mo",
     blurb: "For regular reflection.",
     features: ["Unlimited folders", "Unlimited history", "Thought search"],
     filled: true,
     featured: true,
+    plan: "thinker",
   },
   {
-    title: "Pro",
-    price: "$12",
+    title: "Deep Thinker",
+    price: "$15",
     unit: "/mo",
     blurb: "For power journalers.",
-    features: ["Everything in Plus", "Export your thoughts", "Priority support"],
+    features: ["Everything in Thinker", "Export your thoughts", "Priority support"],
     filled: false,
     featured: false,
-  },
-  {
-    title: "Lifetime",
-    price: "$149",
-    unit: " once",
-    blurb: "Pay once, think forever.",
-    features: ["Everything in Pro", "Lifetime updates", "Early access to new features"],
-    filled: false,
-    featured: false,
+    plan: "deep-thinker",
   },
 ];

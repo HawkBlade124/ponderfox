@@ -16,6 +16,11 @@ function TopProfileTile() {
           <div className="topProfileEmail">{user.Email}</div>
         </div>
       </Link>
+      {user.Tier === "Free Thinker" && (
+        <Link to="/pricing" className="topProfileUpgrade">
+          <i className="fa-solid fa-arrow-up"></i> Upgrade
+        </Link>
+      )}
       <i className="fa-regular fa-arrow-right-from-bracket topProfileLogout" title="Logout" onClick={logout}></i>
     </div>
   );

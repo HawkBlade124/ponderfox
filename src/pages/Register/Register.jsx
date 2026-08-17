@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext"; // assuming you already have this
 import AuthLayout from "../../components/AuthLayout";
 
@@ -8,17 +8,23 @@ function buildApiUrl() {
   return base.includes("/api") ? base : `${base}/api`;
 }
 
+const CHECKOUT_PLANS = new Set(["thinker", "deep-thinker"]);
+
 function Register() {
   const [Username, setName] = useState("");
   const [Email, setEmail] = useState("");
   const [ConfirmEmail, setConfirmEmail] = useState("");
   const [Password, setPassword] = useState("");
   const [ConfirmPassword, setConfirmPassword] = useState("");
-  const [Tier] = useState("Free");
+  const [Tier] = useState("Free Thinker");
   const [Error, setError] = useState("");
   const [show, setShow] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setUser, setToken } = useAuth();
+
+  const plan = searchParams.get("plan");
+  const wantsCheckout = CHECKOUT_PLANS.has(plan);
 
   const registerUser = async (e) => {
     e.preventDefault();
@@ -76,6 +82,25 @@ function Register() {
       localStorage.setItem("user", JSON.stringify(loginData.user));
       setUser(loginData.user);
       setToken(loginData.token);
+
+      if (wantsCheckout) {
+        try {
+          const checkoutRes = await fetch(`${apiBase}/billing/create-checkout-session`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${loginData.token}` },
+            body: JSON.stringify({ plan }),
+          });
+          const checkoutData = await checkoutRes.json();
+          if (checkoutRes.ok && checkoutData.url) {
+            window.location.href = checkoutData.url;
+            return;
+          }
+        } catch (checkoutErr) {
+          console.error("Checkout redirect error:", checkoutErr);
+        }
+        // Fall through to the dashboard if checkout couldn't be started —
+        // the account still exists, they can upgrade from Settings instead.
+      }
 
       navigate("/dashboard");
     } catch (err) {

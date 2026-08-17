@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { getTierColor } from "../utils/tier.js";
 import { buildApiUrl } from "../utils/api.js";
 import { getInitials } from "../utils/user.js";
+import { formatBytes } from "../utils/format.js";
 import logoMark from "../assets/ponder-fox-verticle.png";
 
 const menuItems = [
@@ -46,14 +47,6 @@ const navGroups = [
     ],
   },
 ];
-
-function formatBytes(bytes) {
-  if (!bytes) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const value = bytes / Math.pow(1024, i);
-  return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
-}
 
 function DashMenu() {
   const { user, token, logout } = useAuth();

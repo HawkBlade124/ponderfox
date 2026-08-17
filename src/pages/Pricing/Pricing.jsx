@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { PRICING_TIERS } from "../../data/pricing";
+import { useCheckout } from "../../hooks/useCheckout.js";
 import "../../css/Pricing.css";
 
 const PRICING_FAQS = [
@@ -18,8 +19,35 @@ const PRICING_FAQS = [
   },
 ];
 
+function CheckoutResultBanner({ searchParams }) {
+  if (searchParams.get("success")) {
+    return (
+      <div className="pricingResultBanner pricingResultBannerSuccess">
+        <i className="fa-solid fa-circle-check"></i>
+        <div>
+          <strong>You're all set.</strong> Your subscription is active — head to{" "}
+          <Link to="/settings">Settings</Link> to manage billing anytime.
+        </div>
+      </div>
+    );
+  }
+
+  if (searchParams.get("canceled")) {
+    return (
+      <div className="pricingResultBanner pricingResultBannerCanceled">
+        <i className="fa-regular fa-circle-xmark"></i>
+        <div>Checkout was canceled — no charge was made. Pick a plan below whenever you're ready.</div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function Pricing() {
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
+  const [searchParams] = useSearchParams();
+  const { startCheckout, loadingPlan } = useCheckout();
 
   return (
     <div className="pricingPageRoot">
@@ -35,6 +63,8 @@ function Pricing() {
         </div>
       </section>
 
+      <CheckoutResultBanner searchParams={searchParams} />
+
       <section className="pricingPageGridSection">
         <div className="pricingPageGrid">
           {PRICING_TIERS.map((tier) => (
@@ -45,12 +75,20 @@ function Pricing() {
                 {tier.price}<span className="pricingPagePriceUnit">{tier.unit}</span>
               </p>
               <p className="pricingPageBlurb">{tier.blurb}</p>
-              <Link
-                to="/register"
-                className={tier.filled ? "pricingPageCta pricingPageCtaFilled" : "pricingPageCta"}
-              >
-                Choose {tier.title}
-              </Link>
+              {tier.plan ? (
+                <button
+                  type="button"
+                  onClick={() => startCheckout(tier.plan)}
+                  disabled={loadingPlan === tier.plan}
+                  className={tier.filled ? "pricingPageCta pricingPageCtaFilled pricingPageCtaButton" : "pricingPageCta pricingPageCtaButton"}
+                >
+                  {loadingPlan === tier.plan ? "Redirecting…" : `Choose ${tier.title}`}
+                </button>
+              ) : (
+                <Link to="/register" className={tier.filled ? "pricingPageCta pricingPageCtaFilled" : "pricingPageCta"}>
+                  Choose {tier.title}
+                </Link>
+              )}
               <ul className="pricingPageFeatureList">
                 {tier.features.map((feature) => (
                   <li className="pricingPageFeatureItem" key={feature}>

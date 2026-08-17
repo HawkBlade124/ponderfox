@@ -12,6 +12,18 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS "RevisitEnabled" BOOLEAN NOT NULL DEF
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "RevisitThresholdDays" INT NOT NULL DEFAULT 14;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "AccentColor" VARCHAR(7) NOT NULL DEFAULT '#438eef';
 
+-- Tier names: Free Thinker (free), Thinker, Deep Thinker (paid, Stripe-backed).
+ALTER TABLE users DROP CONSTRAINT IF EXISTS "users_Tier_check";
+UPDATE users SET "Tier" = 'Free Thinker' WHERE "Tier" = 'Free';
+UPDATE users SET "Tier" = 'Thinker' WHERE "Tier" = 'Pro';
+UPDATE users SET "Tier" = 'Deep Thinker' WHERE "Tier" = 'Ultimate';
+ALTER TABLE users ALTER COLUMN "Tier" SET DEFAULT 'Free Thinker';
+ALTER TABLE users ADD CONSTRAINT "users_Tier_check" CHECK ("Tier" IN ('Free Thinker', 'Thinker', 'Deep Thinker'));
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeCustomerId" VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeSubscriptionId" VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeSubscriptionStatus" VARCHAR(50);
+
 CREATE TABLE IF NOT EXISTS thoughts (
   "ThoughtID" SERIAL PRIMARY KEY,
   "UserID" INT NOT NULL REFERENCES users("UserID") ON DELETE CASCADE,

@@ -1,11 +1,11 @@
 export function getTierColor(tier) {
   switch (tier) {
-    case "Free":
+    case "Free Thinker":
       return "#63ea94";
-    case "Unlimited":
+    case "Thinker":
+      return "#438eef";
+    case "Deep Thinker":
       return "#d6b25d";
-    case "Unlimited Free Lifetime":
-      return "#85a1c8";
     default:
       return "#ccc";
   }

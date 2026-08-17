@@ -4,6 +4,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import heroImg from "../../assets/hero.jpg";
 import { PRICING_TIERS } from "../../data/pricing";
+import { useCheckout } from "../../hooks/useCheckout.js";
 import "../../css/Home.css";
 
 const WHO_CARDS = [
@@ -74,6 +75,7 @@ function PlaceholderPanel({ label }) {
 function Home() {
   const rootRef = useRef(null);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
+  const { startCheckout, loadingPlan } = useCheckout();
 
   useEffect(() => {
     const targets = rootRef.current.querySelectorAll("[data-reveal]");
@@ -231,12 +233,20 @@ function Home() {
                   {tier.price}<span className="pricingPriceUnit">{tier.unit}</span>
                 </p>
                 <p className="pricingBlurb">{tier.blurb}</p>
-                <Link
-                  to="/register"
-                  className={tier.filled ? "pricingCta pricingCtaFilled" : "pricingCta"}
-                >
-                  Choose {tier.title}
-                </Link>
+                {tier.plan ? (
+                  <button
+                    type="button"
+                    onClick={() => startCheckout(tier.plan)}
+                    disabled={loadingPlan === tier.plan}
+                    className={tier.filled ? "pricingCta pricingCtaFilled pricingCtaButton" : "pricingCta pricingCtaButton"}
+                  >
+                    {loadingPlan === tier.plan ? "Redirecting…" : `Choose ${tier.title}`}
+                  </button>
+                ) : (
+                  <Link to="/register" className={tier.filled ? "pricingCta pricingCtaFilled" : "pricingCta"}>
+                    Choose {tier.title}
+                  </Link>
+                )}
                 <ul className="pricingFeatureList">
                   {tier.features.map((feature) => (
                     <li className="pricingFeatureItem" key={feature}>

@@ -759,6 +759,16 @@ background: linear-gradient(180deg, #001233, #000102);
   color: #eaf1f7;
 }
 
+.pricingCtaButton {
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+}
+.pricingCtaButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .pricingFeatureList {
   list-style: none;
   padding: 0;

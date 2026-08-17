@@ -5,7 +5,12 @@ import { ACCENT_PRESETS } from "../../utils/accentColors.js";
 import { useState, useEffect } from "react";
 import ReactModal from "react-modal";
 import DashMenu from "../../components/DashMenu.jsx";
+import DeleteModal from "../../components/modals/Delete.jsx";
 import { buildApiUrl } from "../../utils/api.js";
+import { getTierColor } from "../../utils/tier.js";
+import { useCheckout } from "../../hooks/useCheckout.js";
+import { PRICING_TIERS } from "../../data/pricing.js";
+import { formatBytes } from "../../utils/format.js";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -32,25 +37,12 @@ function PasswordField({ id, value, onChange, show, onToggleShow, placeholder = 
   );
 }
 
-function userTierColor(tier) {
-  switch (tier) {
-    case "Free":
-      return "#63ea94";
-    case "Unlimited":
-      return "#d6b25d";
-    case "Unlimited Free Lifetime":
-      return "#85a1c8";
-    default:
-      return "#ccc";
-  }
-}
-
 const TABS = [
   { id: "account", label: "Account Settings", icon: "fa-regular fa-user" },
   { id: "billing", label: "Billing & Subscription", icon: "fa-regular fa-credit-card" },
   { id: "appearance", label: "Appearance", icon: "fa-regular fa-palette" },
   { id: "notifications", label: "Notifications", icon: "fa-regular fa-bell" },
-  { id: "integrations", label: "Integrations", icon: "fa-regular fa-plug" },
+  { id: "usage", label: "Usage", icon: "fa-regular fa-chart-simple" },
   { id: "security", label: "Security", icon: "fa-regular fa-lock" },
 ];
 
@@ -72,7 +64,160 @@ function Settings() {
     setAccentSaving(null);
   };
 
+  const { startCheckout, loadingPlan } = useCheckout();
+
   const [activeTab, setActiveTab] = useState("account");
+
+  const [billing, setBilling] = useState(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingError, setBillingError] = useState("");
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== "billing" || !token || billing || billingLoading) return;
+
+    setBillingLoading(true);
+    setBillingError("");
+    fetch(`${buildApiUrl()}/billing/summary`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setBilling(data);
+        } else {
+          setBillingError(data.error || "Failed to load billing information");
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading billing summary:", err);
+        setBillingError("Couldn't reach the server. Please try again.");
+      })
+      .finally(() => setBillingLoading(false));
+  }, [activeTab, token, billing, billingLoading]);
+
+  const openBillingPortal = async () => {
+    setPortalLoading(true);
+    setBillingError("");
+    try {
+      const res = await fetch(`${buildApiUrl()}/billing/create-portal-session`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setBillingError(data.error || "Couldn't open the billing portal.");
+        setPortalLoading(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Error opening billing portal:", err);
+      setBillingError("Couldn't reach the server. Please try again.");
+      setPortalLoading(false);
+    }
+  };
+
+  const [usage, setUsage] = useState(null);
+  const [usageLoading, setUsageLoading] = useState(false);
+  const [usageError, setUsageError] = useState("");
+
+  useEffect(() => {
+    if (activeTab !== "usage" || !token || usage || usageLoading) return;
+
+    setUsageLoading(true);
+    setUsageError("");
+    fetch(`${buildApiUrl()}/me/usage`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setUsage(data);
+        } else {
+          setUsageError(data.error || "Failed to load usage data");
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading usage:", err);
+        setUsageError("Couldn't reach the server. Please try again.");
+      })
+      .finally(() => setUsageLoading(false));
+  }, [activeTab, token, usage, usageLoading]);
+
+  const [imagesToDelete, setImagesToDelete] = useState([]);
+  const [showDeleteImageModal, setShowDeleteImageModal] = useState(false);
+  const [selectedImageUrls, setSelectedImageUrls] = useState(new Set());
+
+  const confirmDeleteImage = (image) => {
+    setImagesToDelete([image]);
+    setShowDeleteImageModal(true);
+  };
+
+  const confirmDeleteSelectedImages = () => {
+    if (!usage) return;
+    const selected = usage.images.items.filter((img) => selectedImageUrls.has(img.url));
+    if (selected.length === 0) return;
+    setImagesToDelete(selected);
+    setShowDeleteImageModal(true);
+  };
+
+  const toggleImageSelected = (url) => {
+    setSelectedImageUrls((prev) => {
+      const next = new Set(prev);
+      if (next.has(url)) {
+        next.delete(url);
+      } else {
+        next.add(url);
+      }
+      return next;
+    });
+  };
+
+  const deleteImages = async () => {
+    if (imagesToDelete.length === 0) return;
+    const targets = imagesToDelete;
+    const targetUrls = new Set(targets.map((img) => img.url));
+
+    try {
+      const res = await fetch(`${buildApiUrl()}/me/images`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ urls: targets.map((img) => img.url) }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setUsageError(data.error || "Failed to delete image(s)");
+        return;
+      }
+
+      const deletedUrls = new Set(data.deleted);
+      const deletedBytes = targets
+        .filter((img) => deletedUrls.has(img.url))
+        .reduce((sum, img) => sum + img.bytes, 0);
+
+      setUsage((prev) =>
+        prev
+          ? {
+              ...prev,
+              images: {
+                count: prev.images.count - deletedUrls.size,
+                bytes: prev.images.bytes - deletedBytes,
+                items: prev.images.items.filter((img) => !deletedUrls.has(img.url)),
+              },
+            }
+          : prev
+      );
+      setSelectedImageUrls((prev) => {
+        const next = new Set(prev);
+        for (const url of targetUrls) next.delete(url);
+        return next;
+      });
+
+      if (data.failed?.length > 0) {
+        setUsageError(`Couldn't delete ${data.failed.length} image(s). Please try again.`);
+      }
+    } catch (err) {
+      console.error("Error deleting image(s):", err);
+      setUsageError("Couldn't reach the server. Please try again.");
+    }
+  };
 
   const [profileUsername, setProfileUsername] = useState(user?.Username ?? "");
   const [profileEmail, setProfileEmail] = useState(user?.Email ?? "");
@@ -338,7 +483,7 @@ function Settings() {
                 </div>
                 <span
                   id="tierName"
-                  style={{ color: userTierColor(user.Tier), backgroundColor: `${userTierColor(user.Tier)}80` }}
+                  style={{ color: getTierColor(user.Tier), backgroundColor: `${getTierColor(user.Tier)}80` }}
                 >
                   {user.Tier}
                 </span>
@@ -584,7 +729,210 @@ function Settings() {
             </section>
           )}
 
-          {activeTab !== "account" && activeTab !== "security" && activeTab !== "appearance" && activeTab !== "notifications" && (
+          {activeTab === "billing" && (
+            <section className="dashBody mt-5">
+              <div className="settingsFieldSection">
+                <h2 className="settingsSectionTitle">Billing &amp; Subscription</h2>
+                <p className="settingsSectionSubtitle">Your plan, billing address, and card on file.</p>
+
+                {billingLoading && !billing ? (
+                  <p className="text-sm text-slate-400 mt-4">Loading billing information…</p>
+                ) : (
+                  <>
+                    <div className="settingsPreferenceRow">
+                      <div>
+                        <div className="settingsPreferenceLabel">Current plan</div>
+                        <div className="settingsPreferenceHint">
+                          {billing?.status ? `Subscription status: ${billing.status}` : "No active subscription"}
+                        </div>
+                      </div>
+                      <span
+                        id="tierName"
+                        style={{ color: getTierColor(user.Tier), backgroundColor: `${getTierColor(user.Tier)}80` }}
+                      >
+                        {user.Tier}
+                      </span>
+                    </div>
+
+                    {user.Tier === "Free Thinker" ? (
+                      <div className="settingsPreferenceRow">
+                        <div>
+                          <div className="settingsPreferenceLabel">Upgrade</div>
+                          <div className="settingsPreferenceHint">Get more folders, history, and search.</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {PRICING_TIERS.filter((tier) => tier.plan).map((tier) => (
+                            <button
+                              key={tier.plan}
+                              type="button"
+                              className="modalPrimaryButton"
+                              style={{ width: "auto" }}
+                              disabled={loadingPlan === tier.plan}
+                              onClick={() => startCheckout(tier.plan)}
+                            >
+                              {loadingPlan === tier.plan ? "Redirecting…" : `Choose ${tier.title}`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="settingsPreferenceRow">
+                        <div>
+                          <div className="settingsPreferenceLabel">Manage billing</div>
+                          <div className="settingsPreferenceHint">Update your card, change plans, or cancel.</div>
+                        </div>
+                        <button
+                          type="button"
+                          className="modalPrimaryButton"
+                          style={{ width: "auto" }}
+                          onClick={openBillingPortal}
+                          disabled={portalLoading}
+                        >
+                          {portalLoading ? "Opening…" : "Manage Billing"}
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="settingsPreferenceRow">
+                      <div>
+                        <div className="settingsPreferenceLabel">Billing address</div>
+                        <div className="settingsPreferenceHint">
+                          {billing?.address ? (
+                            <>
+                              {billing.address.line1}
+                              {billing.address.line2 ? `, ${billing.address.line2}` : ""}
+                              <br />
+                              {[billing.address.city, billing.address.state, billing.address.postal_code].filter(Boolean).join(", ")}
+                              {billing.address.country ? `, ${billing.address.country}` : ""}
+                            </>
+                          ) : (
+                            "No billing address on file yet."
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="settingsPreferenceRow">
+                      <div>
+                        <div className="settingsPreferenceLabel">Payment method</div>
+                        <div className="settingsPreferenceHint">
+                          {billing?.card
+                            ? `${billing.card.brand.charAt(0).toUpperCase()}${billing.card.brand.slice(1)} •••• ${billing.card.last4} — expires ${billing.card.expMonth}/${billing.card.expYear}`
+                            : "No payment method on file yet."}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {billingError && <p className="text-red-400 text-sm mt-2">{billingError}</p>}
+              </div>
+            </section>
+          )}
+
+          {activeTab === "usage" && (
+            <section className="dashBody mt-5">
+              <div className="settingsFieldSection">
+                <h2 className="settingsSectionTitle">Usage</h2>
+                <p className="settingsSectionSubtitle">All of your usage data, in one place.</p>
+
+                {usageLoading && !usage ? (
+                  <p className="text-sm text-slate-400 mt-4">Loading usage data…</p>
+                ) : (
+                  <>
+                    <div className="settingsPreferenceRow">
+                      <div>
+                        <div className="settingsPreferenceLabel">Images</div>
+                        <div className="settingsPreferenceHint">
+                          {usage
+                            ? `${usage.images.count} ${usage.images.count === 1 ? "image" : "images"} uploaded`
+                            : "Attachments across all your thoughts"}
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-200">
+                        {usage ? formatBytes(usage.images.bytes) : "—"}
+                      </span>
+                    </div>
+
+                    {usage && (
+                      <div className="usageQuotaBar">
+                        <div
+                          className={`usageQuotaBarFill ${usage.images.bytes / usage.quota.bytes >= 0.9 ? "usageQuotaBarFillWarning" : ""}`}
+                          style={{ width: `${Math.min(100, (usage.images.bytes / usage.quota.bytes) * 100)}%` }}
+                        ></div>
+                      </div>
+                    )}
+                    {usage && (
+                      <div className="text-xs text-slate-500 mt-1">
+                        {formatBytes(usage.images.bytes)} of {formatBytes(usage.quota.bytes)} used ({usage.quota.tier})
+                      </div>
+                    )}
+
+                    {usage && usage.images.items.length > 0 && (
+                      <>
+                        <div className="usageSelectionBar">
+                          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+                            <input
+                              type="checkbox"
+                              checked={selectedImageUrls.size === usage.images.items.length}
+                              onChange={(e) =>
+                                setSelectedImageUrls(
+                                  e.target.checked ? new Set(usage.images.items.map((img) => img.url)) : new Set()
+                                )
+                              }
+                            />
+                            {selectedImageUrls.size > 0 ? `${selectedImageUrls.size} selected` : "Select all"}
+                          </label>
+                          {selectedImageUrls.size > 0 && (
+                            <button type="button" className="usageDeleteSelectedBtn" onClick={confirmDeleteSelectedImages}>
+                              <i className="fa-regular fa-trash-can"></i> Delete Selected
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="usageImageGrid">
+                          {usage.images.items.map((image) => (
+                            <div key={image.key} className={`usageImageCard ${selectedImageUrls.has(image.url) ? "usageImageCardSelected" : ""}`}>
+                              <input
+                                type="checkbox"
+                                className="usageImageCheckbox"
+                                checked={selectedImageUrls.has(image.url)}
+                                onChange={() => toggleImageSelected(image.url)}
+                              />
+                              <img src={image.url} alt="" className="usageImageThumb" />
+                              <div className="usageImageMeta">
+                                <span>{formatBytes(image.bytes)}</span>
+                                <i
+                                  className="fa-regular fa-trash-can usageImageDelete"
+                                  title="Delete image"
+                                  onClick={() => confirmDeleteImage(image)}
+                                ></i>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+
+                <p className="text-xs text-slate-500 mt-4">More usage categories are coming soon.</p>
+
+                {usageError && <p className="text-red-400 text-sm mt-2">{usageError}</p>}
+              </div>
+            </section>
+          )}
+
+          <DeleteModal
+            isOpen={showDeleteImageModal}
+            onClose={() => setShowDeleteImageModal(false)}
+            itemName={imagesToDelete.length === 1 ? "this image" : `these ${imagesToDelete.length} images`}
+            title={imagesToDelete.length === 1 ? "Delete Image?" : "Delete Images?"}
+            confirmLabel={imagesToDelete.length === 1 ? "Delete Image" : `Delete ${imagesToDelete.length} Images`}
+            onConfirm={deleteImages}
+          />
+
+          {activeTab !== "account" && activeTab !== "security" && activeTab !== "appearance" && activeTab !== "notifications" && activeTab !== "billing" && activeTab !== "usage" && (
             <section className="dashBody mt-5">
               <div className="settingsComingSoonPanel">
                 <div className="settingsComingSoonIcon">
