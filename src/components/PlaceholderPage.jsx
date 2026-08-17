@@ -26,7 +26,7 @@ function PlaceholderPage({ title, icon, description }) {
         <div className="rightScreen w-full p-6 ml">
           <div id="homeHead" className="flex justify-between items-center">
             <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
-              <i className={`${icon} text-[#438eef]`}></i> {title}
+              <i className={`${icon} text-[var(--accent)]`}></i> {title}
             </h1>
             <div className="flex items-center gap-3">
               <SearchBox value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`Search ${title.toLowerCase()}`} />

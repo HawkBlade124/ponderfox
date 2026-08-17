@@ -38,7 +38,7 @@ function Dashboard() {
       thoughtsPath: (name) => `categories/by-name/${encodeURIComponent(name)}/thoughts`,
     },
   };
-  const groupOverviewPath = GroupType ? groupMeta[GroupType].overviewPath : "/thoughts";
+  const groupOverviewPath = GroupType ? groupMeta[GroupType].overviewPath : "/dashboard";
   const groupOverviewLabel = GroupType ? groupMeta[GroupType].overviewLabel : "Dashboard";
   const groupIcon = GroupType ? groupMeta[GroupType].icon : "fa-brain";
   const emptyGroupMessage = GroupType ? groupMeta[GroupType].emptyMessage : "";
@@ -475,7 +475,7 @@ if (!user) return null;
         <div className="flex flex-col gap-3">
         <div className="flex items-center flex-wrap gap-2 justify-between lg:justify-between">
           <h2 className="text-2xl flex items-center gap-2">
-            <i className={`fa-regular ${groupIcon} text-[#438eef]`}></i>
+            <i className={`fa-regular ${groupIcon} text-[var(--accent)]`}></i>
             {GroupName || "Your Brain Dump"}
           </h2>
           <div className="flex items-center gap-2 w-full lg:w-auto">
@@ -541,7 +541,7 @@ if (!user) return null;
                 {searchedFolders.map((l) => (
                   <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem w-full flex flex-col items-center justify-between no-underline">
                     <div className="flex justify-between w-full">
-                      <i className="text-xl fa-solid fa-folder text-[#438eef]"></i>
+                      <i className="text-xl fa-solid fa-folder text-[var(--accent)]"></i>
                     </div>
                     <div className="thoughtName">{l.ListName}</div>
                     <div className="text-lg text-slate-400">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
@@ -561,7 +561,7 @@ if (!user) return null;
                     className="thoughtItem w-full flex flex-col items-center justify-between no-underline"
                   >
                     <div className="flex justify-between w-full">
-                      <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-xl cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[#438eef]" : "fa-regular fa-thumbtack-angle"}`}></i>
+                      <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-xl cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[var(--accent)]" : "fa-regular fa-thumbtack-angle"}`}></i>
                       <div className="flex">
                         <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); favoriteThought(f.ThoughtID, !f.Favorite); }} className={`text-xl cursor-pointer ${f.Favorite ? "fa-solid fa-heart text-red-500" : "fa-regular fa-heart"}`}/>
                         <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-xl cursor-pointer fa-regular fa-circle-info"/>
@@ -589,7 +589,7 @@ if (!user) return null;
               <div className="flex flex-col gap-3 w-full">
                 {searchedFolders.map((l) => (
                   <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtRow w-full flex items-center gap-4">
-                    <i className="text-lg fa-solid fa-folder text-[#438eef]"></i>
+                    <i className="text-lg fa-solid fa-folder text-[var(--accent)]"></i>
                     <div className="flex-1 min-w-0">
                       <div className="thoughtName truncate">{l.ListName}</div>
                       <div className="text-sm text-slate-400 truncate">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
@@ -606,7 +606,7 @@ if (!user) return null;
               <div className="flex flex-col gap-3 w-full">
                 {searchedThoughts.map((f, i) => (
                   <Link key={i} to={`/thought/${encodeURIComponent(f.ThoughtName)}`} className="thoughtRow w-full flex items-center gap-4">
-                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-lg cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[#438eef]" : "fa-regular fa-thumbtack-angle"}`}></i>
+                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-lg cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[var(--accent)]" : "fa-regular fa-thumbtack-angle"}`}></i>
                     <div className="flex-1 min-w-0">
                       <div className="thoughtName truncate">{f.ThoughtName}</div>
                       <div className="text-sm text-slate-400 truncate">{f.ThoughtDescr}</div>
@@ -627,7 +627,7 @@ if (!user) return null;
       {!GroupName && (
       <div id="dashGrid" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-5">
         <section className="dashBody">
-          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-clock-rotate-left text-[#438eef]"></i> Recent</h2>
+          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-clock-rotate-left text-[var(--accent)]"></i> Recent</h2>
           {Thoughts.length > DASH_PREVIEW_LIMIT && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>
@@ -659,7 +659,7 @@ if (!user) return null;
           )}
         </section>
         <section className="dashBody">
-          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-bolt text-[#438eef]"></i> Quick Access</h2>
+          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-bolt text-[var(--accent)]"></i> Quick Access</h2>
           {pinnedThoughts.length > DASH_PREVIEW_LIMIT && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>
@@ -691,7 +691,7 @@ if (!user) return null;
           )}
         </section>
         <section className="dashBody">
-          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-list-tree text-[#438eef]"></i> Lists</h2>
+          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-list-tree text-[var(--accent)]"></i> Lists</h2>
           {listsOverview.length > DASH_PREVIEW_LIMIT && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>
@@ -723,7 +723,7 @@ if (!user) return null;
           )}
         </section>
         <section className="dashBody">
-          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-images text-[#438eef]"></i> Mood Boards</h2>
+          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-images text-[var(--accent)]"></i> Mood Boards</h2>
           {moodBoards.length > DASH_PREVIEW_LIMIT && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>

@@ -37,7 +37,7 @@ function Prompts() {
             <div>
               <div className="dashBreadcrumb">Pages <i className="fa-regular fa-chevron-right text-[10px] mx-1"></i> <span>Prompts</span></div>
               <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
-                <i className="fa-regular fa-microphone-stand text-[#438eef]"></i> Prompts
+                <i className="fa-regular fa-microphone-stand text-[var(--accent)]"></i> Prompts
               </h1>
               <p className="text-sm text-slate-400 mt-1">Pick a category and get a question to sit with.</p>
             </div>

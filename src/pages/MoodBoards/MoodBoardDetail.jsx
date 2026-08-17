@@ -78,7 +78,7 @@ function SortableBlockCard({ block, onDelete, onStartEdit, onSaveText, isEditing
           href={block.LinkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-[#438eef] hover:underline break-all text-sm"
+          className="flex items-center gap-2 text-[var(--accent)] hover:underline break-all text-sm"
         >
           <i className="fa-regular fa-link"></i> {block.LinkLabel || block.LinkUrl}
         </a>
@@ -87,7 +87,7 @@ function SortableBlockCard({ block, onDelete, onStartEdit, onSaveText, isEditing
       {block.BlockType === "text" &&
         (isEditing ? (
           <textarea
-            className="bg-slate-900 text-white text-sm rounded-md p-2 w-full outline-none border border-[#438eef] resize-none"
+            className="bg-slate-900 text-white text-sm rounded-md p-2 w-full outline-none border border-[var(--accent)] resize-none"
             value={editingText}
             autoFocus
             rows={3}
@@ -103,7 +103,7 @@ function SortableBlockCard({ block, onDelete, onStartEdit, onSaveText, isEditing
       {block.BlockType === "thought" && (
         <Link
           to={`/thought/${encodeURIComponent(block.ThoughtName || "")}`}
-          className="flex items-center gap-2 text-[#438eef] hover:underline text-sm"
+          className="flex items-center gap-2 text-[var(--accent)] hover:underline text-sm"
         >
           <i className="fa-solid fa-brain"></i> {block.ThoughtName || "View thought"}
         </Link>

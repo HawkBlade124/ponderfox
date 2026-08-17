@@ -524,7 +524,7 @@ function Thought() {
             <div className="initialChatBody w-full max-w-2xl m-auto flex flex-col gap-8 mb-5">
               <div className="flex items-center justify-center gap-4">
                 <h1 className="text-2xl font-semibold text-white">This thought is empty.</h1>
-                <i className="fa-solid fa-thought-bubble text-5xl text-[#438eef]"></i>
+                <i className="fa-solid fa-thought-bubble text-5xl text-[var(--accent)]"></i>
               </div>
               <div className="text-center">
                 <p className="text-slate-400">
@@ -640,7 +640,7 @@ function Thought() {
 
         {/* RIGHT SIDEBAR */}
         <div id="rightSide" className={`sidebar dashBody flex-col ${activeTab === "details" ? "flex" : "hidden"} lg:flex`}>
-          <h2 className="settingsSectionTitle"><i className="fa-regular fa-circle-info text-[#438eef]"></i> Detailed Information</h2>
+          <h2 className="settingsSectionTitle"><i className="fa-regular fa-circle-info text-[var(--accent)]"></i> Detailed Information</h2>
 
           <section className="sidebarSection">
             <h3 className="modalFieldLabel">Categories</h3>

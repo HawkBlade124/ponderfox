@@ -120,14 +120,14 @@ function PromptDetail() {
                 <span>{category.label}</span>
               </div>
               <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
-                <i className={`${category.icon} text-[#438eef]`}></i> {category.label}
+                <i className={`${category.icon} text-[var(--accent)]`}></i> {category.label}
               </h1>
             </div>
           </div>
 
           <div className="mt-8 flex flex-col items-center">
             <div className="dashBody w-full max-w-2xl flex flex-col items-center gap-6 p-10 text-center">
-              <i className={`${category.icon} text-4xl text-[#438eef]`}></i>
+              <i className={`${category.icon} text-4xl text-[var(--accent)]`}></i>
               <p className="text-2xl font-semibold text-white leading-relaxed">{currentPrompt}</p>
 
               {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -142,7 +142,7 @@ function PromptDetail() {
                 <button
                   onClick={startThought}
                   disabled={starting}
-                  className="bg-[#438eef] hover:bg-[#2f7ae0] transition text-white font-semibold h-11 px-5 rounded-lg cursor-pointer flex items-center gap-2 disabled:opacity-60"
+                  className="bg-[var(--accent)] hover:bg-[color-mix(in srgb, var(--accent) 85%, black)] transition text-white font-semibold h-11 px-5 rounded-lg cursor-pointer flex items-center gap-2 disabled:opacity-60"
                 >
                   <i className="fa-regular fa-message-plus"></i> {starting ? "Starting..." : "Start a Thought"}
                 </button>

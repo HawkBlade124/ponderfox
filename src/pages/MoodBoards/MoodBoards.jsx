@@ -80,7 +80,7 @@ function MoodBoards() {
             <div>
               <div className="dashBreadcrumb">Pages <i className="fa-regular fa-chevron-right text-[10px] mx-1"></i> <span>Mood Boards</span></div>
               <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
-                <i className="fa-regular fa-game-board text-[#438eef]"></i> Mood Boards
+                <i className="fa-regular fa-game-board text-[var(--accent)]"></i> Mood Boards
               </h1>
             </div>
             <div className="flex items-center gap-3">
@@ -89,7 +89,7 @@ function MoodBoards() {
               )}
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-[#438eef] hover:bg-[#2f7ae0] transition text-white font-semibold h-11 px-5 rounded-lg cursor-pointer flex items-center gap-2"
+                className="bg-[var(--accent)] hover:bg-[color-mix(in srgb, var(--accent) 85%, black)] transition text-white font-semibold h-11 px-5 rounded-lg cursor-pointer flex items-center gap-2"
               >
                 <i className="fa-regular fa-plus"></i> New Mood Board
               </button>

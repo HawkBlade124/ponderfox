@@ -7,17 +7,44 @@ import { getInitials } from "../utils/user.js";
 import logoMark from "../assets/ponder-fox-verticle.png";
 
 const menuItems = [
-  { to: "/dashboard", label: "Home", icon: "fa-regular fa-home" },
-  { to: "/thoughts", label: "Thoughts", icon: "fa-regular fa-thought-bubble" },
+  { to: "/dashboard", label: "Dashboard", icon: "fa-regular fa-home" },
+];
+
+const pinnedItems = [
   { to: "/insights", label: "Insights", icon: "fa-regular fa-chart-line" },
   { to: "/settings", label: "Settings", icon: "fa-regular fa-cog" },
 ];
 
-const workspaceItems = [
-  { to: "/mood-boards", label: "Mood Boards", icon: "fa-regular fa-game-board" },
-  { to: "/prompts", label: "Prompts", icon: "fa-regular fa-microphone-stand" },
-  { to: "/organize", label: "Organize", icon: "fa-regular fa-layer-group" },
-  { to: "/goals", label: "Goals", icon: "fa-regular fa-bullseye-arrow" },
+const navGroups = [
+  {
+    id: "think",
+    label: "Think",
+    icon: "fa-regular fa-brain",
+    children: [
+      { pathname: "/thoughts", to: "/thoughts", tab: null, label: "Thoughts", icon: "fa-regular fa-thought-bubble" },
+      { pathname: "/prompts", to: "/prompts", tab: null, label: "Prompts", icon: "fa-regular fa-microphone-stand" },
+      { pathname: "/mood-boards", to: "/mood-boards", tab: null, label: "Mood Boards", icon: "fa-regular fa-game-board" },
+    ],
+  },
+  {
+    id: "organize",
+    label: "Organize",
+    icon: "fa-regular fa-layer-group",
+    children: [
+      { pathname: "/organize", to: "/organize?tab=category", tab: "category", label: "Categories", icon: "fa-regular fa-list" },
+      { pathname: "/organize", to: "/organize?tab=tag", tab: "tag", label: "Tags", icon: "fa-regular fa-tag" },
+      { pathname: "/organize", to: "/organize", tab: null, label: "Lists", icon: "fa-regular fa-list-tree" },
+      { pathname: "/organize", to: "/organize?tab=folder", tab: "folder", label: "Folders", icon: "fa-regular fa-folder-tree" },
+    ],
+  },
+  {
+    id: "do",
+    label: "Do",
+    icon: "fa-regular fa-bolt",
+    children: [
+      { pathname: "/goals", to: "/goals", tab: null, label: "Goals", icon: "fa-regular fa-bullseye-arrow" },
+    ],
+  },
 ];
 
 function formatBytes(bytes) {
@@ -38,6 +65,27 @@ function DashMenu() {
   };
 
   const [storageBytes, setStorageBytes] = useState(null);
+  const [openGroups, setOpenGroups] = useState(() => {
+    const initial = new Set();
+    navGroups.forEach((group) => {
+      if (group.children.some((child) => location.pathname === child.pathname)) {
+        initial.add(group.id);
+      }
+    });
+    return initial;
+  });
+
+  const toggleGroup = (id) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!token) return;
@@ -56,6 +104,12 @@ function DashMenu() {
   }, [token]);
 
   const isActive = (to) => location.pathname.startsWith(to);
+  const activeTab = new URLSearchParams(location.search).get("tab");
+  const isChildActive = (child) => {
+    if (location.pathname !== child.pathname) return false;
+    return child.pathname !== "/organize" || activeTab === child.tab;
+  };
+  const isGroupActive = (group) => group.children.some((child) => location.pathname === child.pathname);
 
   return (
     <>
@@ -107,14 +161,41 @@ function DashMenu() {
               </Link>
             ))}
 
-            <div className="sidebarSectionLabel">Workspace</div>
-            {workspaceItems.map((item) => (
+            {navGroups.map((group) => {
+              const open = openGroups.has(group.id);
+              return (
+                <div key={group.id}>
+                  <div
+                    className={`sidebarLink ${isGroupActive(group) ? "sidebarLinkActive" : ""}`}
+                    onClick={() => toggleGroup(group.id)}
+                  >
+                    <span className="sidebarLinkIcon"><i className={group.icon}></i></span>
+                    <span className="sidebarLinkLabel">{group.label}</span>
+                    <i className={`fa-regular fa-chevron-right sidebarLinkChevron ${open ? "sidebarLinkChevronOpen" : ""}`}></i>
+                  </div>
+                  {open && (
+                    <div className="sidebarSubNav">
+                      {group.children.map((child) => (
+                        <Link key={child.to} to={child.to} className={`sidebarSubLink ${isChildActive(child) ? "sidebarSubLinkActive" : ""}`}>
+                          <i className={child.icon}></i>
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className="sidebarPinnedNav">
+            {pinnedItems.map((item) => (
               <Link key={item.to} to={item.to} className={`sidebarLink ${isActive(item.to) ? "sidebarLinkActive" : ""}`}>
                 <span className="sidebarLinkIcon"><i className={item.icon}></i></span>
                 <span className="sidebarLinkLabel">{item.label}</span>
               </Link>
             ))}
-          </nav>
+          </div>
 
           {user && (
             <div className="sidebarFooter">

@@ -189,7 +189,7 @@ function EntityList({
                 <>
                   <i
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); togglePin(item); }}
-                    className={`text-lg cursor-pointer ${item.Pinned ? "fa-solid fa-thumbtack-angle text-[#438eef]" : "fa-regular fa-thumbtack-angle text-slate-400"}`}
+                    className={`text-lg cursor-pointer ${item.Pinned ? "fa-solid fa-thumbtack-angle text-[var(--accent)]" : "fa-regular fa-thumbtack-angle text-slate-400"}`}
                   ></i>
                   <div className="flex-1 min-w-0">
                     <div className="thoughtName truncate">{name}</div>

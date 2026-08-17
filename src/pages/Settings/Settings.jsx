@@ -1,5 +1,7 @@
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useAccentColor } from "../../context/AccentColorContext.jsx";
+import { ACCENT_PRESETS } from "../../utils/accentColors.js";
 import { useState, useEffect } from "react";
 import ReactModal from "react-modal";
 import DashMenu from "../../components/DashMenu.jsx";
@@ -55,6 +57,20 @@ const TABS = [
 function Settings() {
   const { user, token, loading, logout, setUser } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { accentColor, setAccentColor } = useAccentColor();
+  const [accentSaving, setAccentSaving] = useState(null);
+  const [accentError, setAccentError] = useState("");
+
+  const chooseAccentColor = async (hex) => {
+    if (hex === accentColor) return;
+    setAccentError("");
+    setAccentSaving(hex);
+    const result = await setAccentColor(hex);
+    if (!result.success) {
+      setAccentError(result.error || "Failed to save accent color");
+    }
+    setAccentSaving(null);
+  };
 
   const [activeTab, setActiveTab] = useState("account");
 
@@ -484,6 +500,33 @@ function Settings() {
                     </button>
                   </div>
                 </div>
+
+                <div className="settingsPreferenceRow">
+                  <div>
+                    <div className="settingsPreferenceLabel">Accent Color</div>
+                    <div className="settingsPreferenceHint">Personalize buttons, icons, and highlights across your account.</div>
+                  </div>
+                  <div className="accentSwatchRow">
+                    {ACCENT_PRESETS.map((preset) => (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        className={`accentSwatch ${accentColor === preset.value ? "accentSwatchActive" : ""}`}
+                        style={{ backgroundColor: preset.value }}
+                        title={preset.name}
+                        disabled={accentSaving !== null}
+                        onClick={() => chooseAccentColor(preset.value)}
+                      >
+                        {accentSaving === preset.value ? (
+                          <i className="fa-regular fa-spinner-third fa-spin"></i>
+                        ) : accentColor === preset.value ? (
+                          <i className="fa-solid fa-check"></i>
+                        ) : null}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {accentError && <p className="text-red-400 text-sm">{accentError}</p>}
               </div>
             </section>
           )}

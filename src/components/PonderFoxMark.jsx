@@ -15,8 +15,8 @@ function PonderFoxMark({ size = 96, sparkle = true, className = "" }) {
     >
       <defs>
         <linearGradient id={gradientId} x1="20" y1="10" x2="180" y2="190" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#6fc6ff" />
-          <stop offset="100%" stopColor="#438eef" />
+          <stop offset="0%" stopColor="color-mix(in srgb, var(--accent) 65%, white)" />
+          <stop offset="100%" stopColor="var(--accent)" />
         </linearGradient>
       </defs>
 
@@ -40,9 +40,9 @@ function PonderFoxMark({ size = 96, sparkle = true, className = "" }) {
 
       {sparkle && (
         <>
-          <circle cx="152" cy="42" r="4" fill="#6fc6ff" />
-          <circle cx="168" cy="60" r="2.5" fill="#6fc6ff" opacity="0.7" />
-          <circle cx="140" cy="24" r="2" fill="#6fc6ff" opacity="0.5" />
+          <circle cx="152" cy="42" r="4" fill="color-mix(in srgb, var(--accent) 65%, white)" />
+          <circle cx="168" cy="60" r="2.5" fill="color-mix(in srgb, var(--accent) 65%, white)" opacity="0.7" />
+          <circle cx="140" cy="24" r="2" fill="color-mix(in srgb, var(--accent) 65%, white)" opacity="0.5" />
         </>
       )}
     </svg>

@@ -62,8 +62,8 @@ function ThoughtsChart({ data }) {
     <svg width="100%" viewBox={`0 0 ${width} ${chartHeight + labelHeight}`} role="img" aria-label={`Thoughts added over the last ${CHART_DAYS} days`}>
       <defs>
         <linearGradient id="insightsPageBarGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6fc6ff" />
-          <stop offset="100%" stopColor="#438eef" />
+          <stop offset="0%" stopColor="color-mix(in srgb, var(--accent) 65%, white)" />
+          <stop offset="100%" stopColor="var(--accent)" />
         </linearGradient>
       </defs>
       <line x1="0" y1={chartHeight} x2={width} y2={chartHeight} className="insightsChartAxis" strokeWidth="1" />
@@ -129,7 +129,7 @@ function Insights() {
             <div>
               <div className="dashBreadcrumb">Pages <i className="fa-regular fa-chevron-right text-[10px] mx-1"></i> <span>Insights</span></div>
               <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
-                <i className="fa-regular fa-chart-line text-[#438eef]"></i> Insights
+                <i className="fa-regular fa-chart-line text-[var(--accent)]"></i> Insights
               </h1>
             </div>
           </div>
@@ -174,7 +174,7 @@ function Insights() {
 
           <div className="mt-5">
             <section className="dashBody w-full">
-              <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-chart-simple text-[#438eef]"></i> Thoughts added, last {CHART_DAYS} days</h2>
+              <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-chart-simple text-[var(--accent)]"></i> Thoughts added, last {CHART_DAYS} days</h2>
               <div className="mt-4">
                 <ThoughtsChart data={chartData} />
               </div>

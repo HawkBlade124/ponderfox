@@ -8,6 +8,7 @@ import './css/index.css';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import { AccentColorProvider } from './context/AccentColorContext.jsx';
 import ReactModal from "react-modal";
 import {StyledEngineProvider} from "@mui/material/styles";
 
@@ -19,7 +20,9 @@ createRoot(document.getElementById('root')).render(
     <StyledEngineProvider injectFirst>
       <AuthProvider>
         <ThemeProvider>
-          <App />
+          <AccentColorProvider>
+            <App />
+          </AccentColorProvider>
         </ThemeProvider>
       </AuthProvider>
       </StyledEngineProvider>

@@ -1,3 +1,6 @@
+﻿:root {
+	--accent: #438eef;
+}
 #root {
   margin: 0 auto;
   width:100%;
@@ -37,9 +40,9 @@ header {
 	right:0;
 	top:0;
 	place-content: center;
-	background:rgba(67,142,239,0.14);
+	background:color-mix(in srgb, var(--accent) 14%, transparent);
 	color:#cdd6e8;
-	border:1px solid rgba(67,142,239,0.35);
+	border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
 	padding:15px 0;
 	max-width: 750px;
 	border-radius:15px;
@@ -66,7 +69,7 @@ header {
 }
 .sendWrapper {
 	background:#0b0e17;
-	border:1px solid rgba(67,142,239,0.25);
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 	display:flex;
 	align-items: center;
 	padding: 6px 6px 6px 18px;
@@ -74,8 +77,8 @@ header {
 	border-radius: 25px;
 }
 .sendWrapper:focus-within{
-	border-color:#438eef;
-	box-shadow:0 0 0 3px rgba(67,142,239,0.2);
+	border-color:var(--accent);
+	box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 .sendWrapper input {
 	width:100%;
@@ -119,7 +122,7 @@ header {
 	justify-content:center;
 	border-radius:50%;
 	border:none;
-	background:linear-gradient(135deg, #6fc6ff 0%, #438eef 100%);
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
 	color:#fff;
 	cursor:pointer;
 	transition:filter 0.15s ease, opacity 0.15s ease;
@@ -142,7 +145,7 @@ height:90vh
 }
 .sentMessage{
 	background-color: #151a2b;
-	border:1px solid rgba(67,142,239,0.18);
+	border:1px solid color-mix(in srgb, var(--accent) 18%, transparent);
 	margin:10px 0;
 	padding:10px 15px;
 	border-radius: 15px;
@@ -185,15 +188,15 @@ height:90vh
 }
 .searchResultItem{
 	background:#0b0e17;
-	border:1px solid rgba(67,142,239,0.2);
+	border:1px solid color-mix(in srgb, var(--accent) 20%, transparent);
 	border-radius:12px;
 	padding:10px 12px;
 	cursor:pointer;
 	transition:border-color 0.15s ease, background 0.15s ease;
 }
 .searchResultItem:hover{
-	border-color:rgba(67,142,239,0.5);
-	background:rgba(67,142,239,0.08);
+	border-color:color-mix(in srgb, var(--accent) 50%, transparent);
+	background:color-mix(in srgb, var(--accent) 8%, transparent);
 }
 .searchResultTitle{
 	font-weight:600;
@@ -270,20 +273,20 @@ height:90vh
 .thoughtItem {
 	display:flex;
 	background:
-		linear-gradient(160deg, rgba(67,142,239,0.14) 0%, rgba(16,19,28,0) 55%),
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, transparent) 0%, rgba(16,19,28,0) 55%),
 		#0b102b;
-	color:#438eef;
+	color:var(--accent);
 	border-radius:20px;
 	padding: 20px 10px;
 	width:100%;
 	height:230px;
 	max-width:350px;
-	border:1px solid rgba(67,142,239,0.4);
+	border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
 	transition:border-color 0.2s ease, transform 0.2s ease;
 	overflow:hidden;
 }
 .thoughtItem:hover{
-	border-color:rgba(67,142,239,0.8);
+	border-color:color-mix(in srgb, var(--accent) 80%, transparent);
 	transform:translateY(-2px);
 }
 .thoughtName{
@@ -307,7 +310,7 @@ height:90vh
 	width:100%;	
 	max-width:45px;
 	height:40px;	
-	border:2px solid #438eef;
+	border:2px solid var(--accent);
 }
 
 .thoughtFunctions i:hover, .contThoughtButton:hover{
@@ -318,7 +321,7 @@ height:90vh
 	box-sizing: border-box;	
 	border-radius:6px;
 	cursor:pointer;
-	border:2px solid #438eef;
+	border:2px solid var(--accent);
 }
 
 .ReactModal__Overlay {
@@ -355,7 +358,7 @@ height:90vh
 }
 .ReactModal__Content.modal{
 	background-image:
-		linear-gradient(160deg, rgba(67,142,239,0.20) 0%, rgba(67,142,239,0) 42%),
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 20%, transparent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 42%),
 		repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 26px),
 		repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 26px),
 		linear-gradient(160deg, #1a2138 0%, #10131f 60%);
@@ -366,7 +369,7 @@ height:90vh
 	max-height:calc(100vh - 40px)!important;
 	overflow-y:auto;
 	border-radius:26px;
-	border:1px solid rgba(67,142,239,0.25);
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 	box-shadow:0 25px 60px rgba(0,0,0,0.55);
 	padding:34px 32px;
 	outline:none;
@@ -391,7 +394,7 @@ height:90vh
 	transition:color 0.15s ease;
 }
 .modalClose:hover{
-	color:#438eef;
+	color:var(--accent);
 }
 .modalHeader{
 	display:flex;
@@ -408,10 +411,10 @@ height:90vh
 	align-items:center;
 	justify-content:center;
 	border-radius:16px;
-	background:linear-gradient(135deg, #6fc6ff 0%, #438eef 100%);
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
 	color:#fff;
 	font-size:24px;
-	box-shadow:0 10px 24px rgba(67,142,239,0.45);
+	box-shadow:0 10px 24px color-mix(in srgb, var(--accent) 45%, transparent);
 	margin-bottom:14px;
 }
 .modalIconBadgeDanger{
@@ -452,7 +455,7 @@ height:90vh
 	width:100%;
 	background:#0b0e17;
 	color:#e5eaf5;
-	border:1px solid rgba(67,142,239,0.25);
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 	border-radius:12px;
 	padding:11px 14px;
 	font-size:14px;
@@ -464,8 +467,8 @@ height:90vh
 }
 .modalFieldInput:focus{
 	outline:none;
-	border-color:#438eef;
-	box-shadow:0 0 0 3px rgba(67,142,239,0.2);
+	border-color:var(--accent);
+	box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 .modalFieldTextarea{
 	min-height:80px;
@@ -482,14 +485,14 @@ height:90vh
 	flex-shrink:0;
 	width:40px;
 	border-radius:12px;
-	border:1px solid rgba(67,142,239,0.35);
-	background:rgba(67,142,239,0.14);
-	color:#438eef;
+	border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+	background:color-mix(in srgb, var(--accent) 14%, transparent);
+	color:var(--accent);
 	cursor:pointer;
 	transition:background 0.15s ease;
 }
 .modalInlineAddBtn:hover{
-	background:rgba(67,142,239,0.26);
+	background:color-mix(in srgb, var(--accent) 26%, transparent);
 }
 .modalChipRow{
 	display:flex;
@@ -497,8 +500,8 @@ height:90vh
 	gap:8px;
 }
 .modalChip{
-	background:rgba(67,142,239,0.14);
-	border:1px solid rgba(67,142,239,0.3);
+	background:color-mix(in srgb, var(--accent) 14%, transparent);
+	border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 	color:#cdd6e8;
 	font-size:12px;
 	padding:4px 12px;
@@ -511,7 +514,7 @@ height:90vh
 }
 .modalPrimaryButton{
 	width:100%;
-	background:linear-gradient(90deg, #6fc6ff 0%, #438eef 100%);
+	background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
 	color:#fff;
 	border:none;
 	border-radius:14px;
@@ -519,7 +522,7 @@ height:90vh
 	font-weight:700;
 	font-size:15px;
 	cursor:pointer;
-	box-shadow:0 10px 24px rgba(67,142,239,0.35);
+	box-shadow:0 10px 24px color-mix(in srgb, var(--accent) 35%, transparent);
 	transition:filter 0.15s ease, transform 0.05s ease;
 }
 .modalPrimaryButton:hover{
@@ -566,7 +569,7 @@ height:90vh
 	transition:color 0.15s ease;
 }
 .modalTextLink:hover{
-	color:#438eef;
+	color:var(--accent);
 }
 .folderFormInput{
 	border:2px solid oklch(62.3% 0.214 259.815);
@@ -618,7 +621,7 @@ height:90vh
 	left:-30px;
 	width:180px;
 	height:180px;
-	background:#438eef;
+	background:var(--accent);
 }
 .sidebarGlowCyan{
 	bottom:80px;
@@ -701,6 +704,12 @@ height:90vh
 	text-decoration:none;
 	transition:background 0.15s ease, color 0.15s ease;
 }
+.sidebarPinnedNav{
+	display:flex;
+	flex-direction:column;
+	gap:2px;
+	margin:6px 12px 0;
+}
 .sidebarLink:hover{
 	background:rgba(255,255,255,0.08);
 	color:#fff;
@@ -726,11 +735,47 @@ height:90vh
 	box-shadow:inset 0 0 0 1px rgba(255,255,255,0.16);
 }
 .sidebarLinkActive .sidebarLinkIcon{
-	background:linear-gradient(135deg, #6fc6ff 0%, #438eef 100%);
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
 	color:#fff;
 }
 .sidebarLinkActive .sidebarLinkLabel{
 	font-weight:700;
+}
+.sidebarLinkChevron{
+	margin-left:auto;
+	font-size:11px;
+	color:rgba(230,235,245,0.45);
+	transition:transform 0.15s ease;
+}
+.sidebarLinkChevronOpen{
+	transform:rotate(90deg);
+}
+.sidebarSubNav{
+	display:flex;
+	flex-direction:column;
+	gap:2px;
+	padding:2px 0 4px 16px;
+}
+.sidebarSubLink{
+	display:flex;
+	align-items:center;
+	gap:10px;
+	padding:7px 10px;
+	border-radius:10px;
+	cursor:pointer;
+	color:rgba(230,235,245,0.65);
+	text-decoration:none;
+	font-size:13px;
+	transition:background 0.15s ease, color 0.15s ease;
+}
+.sidebarSubLink:hover{
+	background:rgba(255,255,255,0.06);
+	color:#fff;
+}
+.sidebarSubLinkActive{
+	background:rgba(255,255,255,0.14);
+	color:#fff;
+	font-weight:600;
 }
 .sidebarFooter{
 	display:flex;
@@ -744,7 +789,7 @@ height:90vh
 	height:36px;
 	flex-shrink:0;
 	border-radius:11px;
-	background:linear-gradient(135deg, #6fc6ff 0%, #438eef 100%);
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
 	display:flex;
 	align-items:center;
 	justify-content:center;
@@ -789,7 +834,7 @@ height:90vh
 	border-radius:16px;
 	background-image:
 		linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 100%),
-		linear-gradient(160deg, rgba(67,142,239,0.12) 0%, rgba(67,142,239,0) 60%);
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 60%);
 	background-color:rgba(16,19,28,0.6);
 	backdrop-filter: blur(24px) saturate(160%);
 	-webkit-backdrop-filter: blur(24px) saturate(160%);
@@ -801,7 +846,7 @@ height:90vh
 	height:36px;
 	flex-shrink:0;
 	border-radius:11px;
-	background:linear-gradient(135deg, #6fc6ff 0%, #438eef 100%);
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
 	display:flex;
 	align-items:center;
 	justify-content:center;
@@ -846,7 +891,7 @@ height:90vh
 }
 .dashBody{
 	background:#10131c;
-	border:1px solid rgba(67,142,239,0.16);
+	border:1px solid color-mix(in srgb, var(--accent) 16%, transparent);
 	padding:18px 22px;
 	margin:10px 0;
 	border-radius: 20px;
@@ -858,21 +903,21 @@ height:90vh
 	margin-bottom:6px;
 }
 .addThoughtButton{
-	background:rgba(67,142,239,0.12);
-	color:#438eef;
-	border:1px solid rgba(67,142,239,0.4);
+	background:color-mix(in srgb, var(--accent) 12%, transparent);
+	color:var(--accent);
+	border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
 	border-radius:10px;
 	padding:8px 16px;
 	cursor:pointer;
 	transition: background 0.15s ease;
 }
 .addThoughtButton:hover{
-	background:rgba(67,142,239,0.24);
+	background:color-mix(in srgb, var(--accent) 24%, transparent);
 }
 .sortSelect{
 	background:#0b0e17;
 	color:#cdd6e8;
-	border:1px solid rgba(67,142,239,0.25);
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 	border-radius:10px;
 	padding:8px 12px;
 	font-size:13px;
@@ -880,7 +925,7 @@ height:90vh
 }
 .sortSelect:focus{
 	outline:none;
-	border-color:#438eef;
+	border-color:var(--accent);
 }
 .dashSearchInput{
 	position:relative;
@@ -898,7 +943,7 @@ height:90vh
 .dashSearchInput input{
 	background:#0b0e17;
 	color:#cdd6e8;
-	border:1px solid rgba(67,142,239,0.25);
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 	border-radius:10px;
 	padding:8px 12px 8px 30px;
 	font-size:13px;
@@ -909,7 +954,7 @@ height:90vh
 }
 .dashSearchInput input:focus{
 	outline:none;
-	border-color:#438eef;
+	border-color:var(--accent);
 }
 .dashSearchInputFull{
 	width:100%;
@@ -919,7 +964,7 @@ height:90vh
 }
 .viewToggle{
 	background:#0b0e17;
-	border:1px solid rgba(67,142,239,0.25);
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 	border-radius:10px;
 	padding:3px;
 	gap:2px;
@@ -939,14 +984,14 @@ height:90vh
 	color:#fff;
 }
 .viewToggleBtnActive{
-	background:rgba(67,142,239,0.24);
+	background:color-mix(in srgb, var(--accent) 24%, transparent);
 	color:#fff;
 }
 .thoughtRow{
 	background:
-		linear-gradient(160deg, rgba(67,142,239,0.10) 0%, rgba(16,19,28,0) 55%),
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 10%, transparent) 0%, rgba(16,19,28,0) 55%),
 		#0b102b;
-	border:1px solid rgba(67,142,239,0.3);
+	border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 	border-radius:14px;
 	padding:12px 16px;
 	text-decoration:none;
@@ -954,7 +999,7 @@ height:90vh
 	transition:border-color 0.2s ease;
 }
 .thoughtRow:hover{
-	border-color:rgba(67,142,239,0.7);
+	border-color:color-mix(in srgb, var(--accent) 70%, transparent);
 }
 .thoughtRow .thoughtName{
 	font-size:15px;
@@ -986,8 +1031,8 @@ height:90vh
 .emptyStateAction{
 	margin-top:4px;
 	background:transparent;
-	color:#438eef;
-	border:1px solid rgba(67,142,239,0.4);
+	color:var(--accent);
+	border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
 	border-radius:8px;
 	padding:6px 14px;
 	font-size:13px;
@@ -995,7 +1040,7 @@ height:90vh
 	transition: background 0.15s ease;
 }
 .emptyStateAction:hover{
-	background:rgba(67,142,239,0.12);
+	background:color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .emptyStateSmall{
 	padding:18px 10px 6px;
@@ -1029,7 +1074,7 @@ height:90vh
 	justify-content:space-between;
 	gap:12px;
 	background:#10131c;
-	border:1px solid rgba(67,142,239,0.16);
+	border:1px solid color-mix(in srgb, var(--accent) 16%, transparent);
 	border-radius:20px;
 	padding:18px 20px;
 	transition:border-color 0.2s ease, transform 0.2s ease;
@@ -1038,7 +1083,7 @@ height:90vh
 	cursor:pointer;
 	background-image:
 		linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 100%),
-		linear-gradient(160deg, rgba(67,142,239,0.12) 0%, rgba(67,142,239,0) 60%);
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 60%);
 	background-color:rgba(16,19,28,0.6);
 	backdrop-filter: blur(24px) saturate(160%);
 	-webkit-backdrop-filter: blur(24px) saturate(160%);
@@ -1047,7 +1092,7 @@ height:90vh
 	transition:border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, background-image 0.2s ease;
 }
 .statTile:hover{
-	border-color:rgba(67,142,239,0.4);
+	border-color:color-mix(in srgb, var(--accent) 40%, transparent);
 	transform:translateY(-2px);
 }
 .statTileAction:hover{
@@ -1076,13 +1121,13 @@ height:90vh
 	height:48px;
 	flex-shrink:0;
 	border-radius:14px;
-	background:linear-gradient(135deg, #6fc6ff 0%, #438eef 100%);
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
 	display:flex;
 	align-items:center;
 	justify-content:center;
 	color:#fff;
 	font-size:18px;
-	box-shadow:0 8px 20px rgba(67,142,239,0.35);
+	box-shadow:0 8px 20px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 .statTileAction .statTileIcon{
 	background:linear-gradient(135deg, #4bdba0 0%, #1fae74 100%);
@@ -1105,9 +1150,9 @@ height:90vh
 }
 .comingSoonBadge{
 	margin-top:6px;
-	background:rgba(67,142,239,0.12);
-	color:#438eef;
-	border:1px solid rgba(67,142,239,0.4);
+	background:color-mix(in srgb, var(--accent) 12%, transparent);
+	color:var(--accent);
+	border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
 	border-radius:999px;
 	padding:4px 14px;
 	font-size:12px;
@@ -1117,7 +1162,7 @@ height:90vh
 }
 .adminFilterBar{
 	background:#10131c;
-	border:1px solid rgba(67,142,239,0.16);
+	border:1px solid color-mix(in srgb, var(--accent) 16%, transparent);
 	border-radius:14px;
 	padding:16px 18px;
 	margin-top:16px;
@@ -1139,7 +1184,7 @@ height:90vh
 .adminFilterField select{
 	background:#0b0e17;
 	color:#cdd6e8;
-	border:1px solid rgba(67,142,239,0.25);
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 	border-radius:8px;
 	padding:8px 12px;
 	font-size:13px;
@@ -1148,7 +1193,7 @@ height:90vh
 .adminFilterField input:focus,
 .adminFilterField select:focus{
 	outline:none;
-	border-color:#438eef;
+	border-color:var(--accent);
 }
 .adminFilterClear{
 	background:rgba(230,235,245,0.06);
@@ -1165,7 +1210,7 @@ height:90vh
 }
 .adminTableWrap{
 	margin-top:20px;
-	border:1px solid rgba(67,142,239,0.16);
+	border:1px solid color-mix(in srgb, var(--accent) 16%, transparent);
 	border-radius:14px;
 	overflow-x:auto;
 }
@@ -1184,7 +1229,7 @@ height:90vh
 	text-transform:uppercase;
 	letter-spacing:0.04em;
 	padding:12px 18px;
-	border-bottom:1px solid rgba(67,142,239,0.16);
+	border-bottom:1px solid color-mix(in srgb, var(--accent) 16%, transparent);
 	white-space:nowrap;
 }
 .adminTableSortable{
@@ -1203,10 +1248,10 @@ height:90vh
 	transition:background 0.15s ease;
 }
 .adminTable tbody tr:hover{
-	background:rgba(67,142,239,0.08);
+	background:color-mix(in srgb, var(--accent) 8%, transparent);
 }
 .adminTable tbody tr:not(:last-child) td{
-	border-bottom:1px solid rgba(67,142,239,0.1);
+	border-bottom:1px solid color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .adminTable td{
 	padding:14px 18px;
@@ -1224,8 +1269,8 @@ height:90vh
 }
 .adminTableOpButton{
 	background:transparent;
-	color:#438eef;
-	border:1px solid rgba(67,142,239,0.4);
+	color:var(--accent);
+	border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
 	border-radius:8px;
 	padding:6px 14px;
 	font-size:13px;
@@ -1237,7 +1282,7 @@ height:90vh
 	transition:background 0.15s ease;
 }
 .adminTableOpButton:hover{
-	background:rgba(67,142,239,0.12);
+	background:color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .settingsProfileBanner{
 	display:flex;
@@ -1249,14 +1294,14 @@ height:90vh
 	height:64px;
 	flex-shrink:0;
 	border-radius:18px;
-	background:linear-gradient(135deg, #6fc6ff 0%, #438eef 100%);
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
 	display:flex;
 	align-items:center;
 	justify-content:center;
 	font-size:22px;
 	font-weight:700;
 	color:#fff;
-	box-shadow:0 10px 24px rgba(67,142,239,0.35);
+	box-shadow:0 10px 24px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 .settingsProfileMeta{
 	flex:1;
@@ -1296,8 +1341,8 @@ height:90vh
 	color:#cdd6e8;
 }
 .settingsTabActive{
-	color:#438eef;
-	border-bottom-color:#438eef;
+	color:var(--accent);
+	border-bottom-color:var(--accent);
 }
 .settingsFieldSection{
 	padding:22px 0;
@@ -1364,12 +1409,12 @@ height:90vh
 	width:52px;
 	height:52px;
 	border-radius:16px;
-	background:rgba(67,142,239,0.12);
+	background:color-mix(in srgb, var(--accent) 12%, transparent);
 	display:flex;
 	align-items:center;
 	justify-content:center;
 	font-size:20px;
-	color:#438eef;
+	color:var(--accent);
 	margin-bottom:6px;
 }
 .settingsComingSoonPanel .settingsSectionTitle{
@@ -1431,6 +1476,35 @@ height:90vh
 	color:#5b6472;
 	margin-top:2px;
 }
+.accentSwatchRow{
+	display:flex;
+	flex-wrap:wrap;
+	gap:10px;
+}
+.accentSwatch{
+	width:30px;
+	height:30px;
+	border-radius:50%;
+	border:2px solid transparent;
+	box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15);
+	cursor:pointer;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	color:#fff;
+	font-size:12px;
+	transition:transform 0.15s ease, border-color 0.15s ease;
+}
+.accentSwatch:hover{
+	transform:scale(1.08);
+}
+.accentSwatch:disabled{
+	cursor:not-allowed;
+}
+.accentSwatchActive{
+	border-color:#fff;
+	box-shadow:0 0 0 2px rgba(255,255,255,0.15);
+}
 .settingsDangerZone{
 	border-color:rgba(227,72,72,0.3);
 	background:linear-gradient(160deg, rgba(227,72,72,0.08) 0%, rgba(16,19,28,0) 55%), #10131c;
@@ -1450,7 +1524,7 @@ height:90vh
 }
 #headBarWrap {
 	background:rgba(255,255,255,0.06);
-	border:1px solid rgba(67,142,239,0.2);
+	border:1px solid color-mix(in srgb, var(--accent) 20%, transparent);
 	width:100%;
 	margin: 0 auto;
 	max-width: 350px;
@@ -1475,7 +1549,7 @@ height:90vh
 	color:#fff;
 }
 .thoughtTabActive{
-	background:rgba(67,142,239,0.22);
+	background:color-mix(in srgb, var(--accent) 22%, transparent);
 	color:#fff;
 }
 #footWrap{
@@ -1494,7 +1568,7 @@ footer{
 #dashWrap .leftSidebar {
 	background-image:
 		linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 100%),
-		linear-gradient(160deg, rgba(67,142,239,0.12) 0%, rgba(67,142,239,0) 60%);
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 60%);
 	backdrop-filter: blur(24px) saturate(160%);
 	-webkit-backdrop-filter: blur(24px) saturate(160%);
 	width:100%;
@@ -1528,7 +1602,7 @@ footer{
 }
 .backtodashbtn:hover,
 .mobileBackBtn:hover{
-	background:rgba(67,142,239,0.16);
+	background:color-mix(in srgb, var(--accent) 16%, transparent);
 	color:#fff;
 }
 .underline-hover {
@@ -1546,7 +1620,7 @@ footer{
   width: 100%;
   background: currentColor;
   transform: scaleX(0);
-  transform-origin: left; /* key for left → right */
+  transform-origin: left; /* key for left â†’ right */
   transition: transform 0.3s ease;
 }
 
@@ -1847,7 +1921,7 @@ footer{
 [data-theme="light"] .topProfileTile{
 	background-image:
 		linear-gradient(160deg, rgba(15,23,42,0.05) 0%, rgba(15,23,42,0.01) 100%),
-		linear-gradient(160deg, rgba(67,142,239,0.12) 0%, rgba(67,142,239,0) 60%);
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 60%);
 	background-color:rgba(255,255,255,0.8);
 	border-color:rgba(15,23,42,0.1);
 	box-shadow:0 10px 24px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
@@ -1875,19 +1949,19 @@ footer{
 /* ---- Card gradients that fade to a dark base now fade to white ---- */
 [data-theme="light"] .thoughtItem{
 	background:
-		linear-gradient(160deg, rgba(67,142,239,0.12) 0%, rgba(255,255,255,0) 55%),
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, rgba(255,255,255,0) 55%),
 		#ffffff;
 }
 [data-theme="light"] .thoughtRow{
 	background:
-		linear-gradient(160deg, rgba(67,142,239,0.08) 0%, rgba(255,255,255,0) 55%),
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, rgba(255,255,255,0) 55%),
 		#ffffff;
 }
 
 /* ---- Modal ---- */
 [data-theme="light"] .ReactModal__Content.modal{
 	background-image:
-		linear-gradient(160deg, rgba(67,142,239,0.14) 0%, rgba(67,142,239,0) 42%),
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, transparent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 42%),
 		repeating-linear-gradient(0deg, rgba(15,23,42,0.03) 0px, rgba(15,23,42,0.03) 1px, transparent 1px, transparent 26px),
 		repeating-linear-gradient(90deg, rgba(15,23,42,0.03) 0px, rgba(15,23,42,0.03) 1px, transparent 1px, transparent 26px),
 		linear-gradient(160deg, #ffffff 0%, #f7f9fc 60%);
