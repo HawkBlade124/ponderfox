@@ -47,7 +47,7 @@ function Login() {
         }
 
         setSuccess(true);
-        navigate("/dashboard");
+        navigate(res.data.user.HasOnboarded ? "/dashboard" : "/welcome");
         setTimeout(() => {
           window.location.reload();
         }, 50);

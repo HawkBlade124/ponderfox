@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import DashMenu from "./DashMenu.jsx";
-import PonderFoxMark from "./PonderFoxMark.jsx";
+import EmptyStateArt from "./EmptyStateArt.jsx";
 import TopProfileTile from "./TopProfileTile.jsx";
 import SearchBox from "./SearchBox.jsx";
 
@@ -36,7 +36,7 @@ function PlaceholderPage({ title, icon, description }) {
           <div className="mt-5">
             <section className="dashBody w-full">
               <div className="emptyState">
-                <PonderFoxMark size={110} className="emptyStateArt" />
+                <EmptyStateArt size={110} className="emptyStateArt" />
                 <p>{description}</p>
                 <span className="comingSoonBadge">Coming soon</span>
               </div>

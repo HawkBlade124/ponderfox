@@ -8,6 +8,7 @@ import Contact from "./pages/Contact/Contact";
 import Pricing from "./pages/Pricing/Pricing";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
+import Welcome from "./pages/Welcome/Welcome";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Thought from "./pages/Thought/Thought";
 import PageNotFound from "./pages/PageNotFound/PageNotFound";
@@ -17,6 +18,7 @@ import Organize from "./pages/Organize/Organize";
 import Prompts from "./pages/Prompts/Prompts";
 import PromptDetail from "./pages/Prompts/PromptDetail";
 import Goals from "./pages/Goals/Goals";
+import Timers from "./pages/Timers/Timers";
 import MoodBoards from "./pages/MoodBoards/MoodBoards";
 import MoodBoardDetail from "./pages/MoodBoards/MoodBoardDetail";
 import Insights from "./pages/Insights/Insights";
@@ -27,6 +29,7 @@ function App() {
   const noLayoutRoutes = [
     "/login",
     "/register",
+    "/welcome",
     "/dashboard",
     "/thoughts",
     "/thought",
@@ -37,6 +40,7 @@ function App() {
     "/organize",
     "/prompts",
     "/goals",
+    "/timers",
     "/mood-boards",
     "/insights",
   ];
@@ -55,6 +59,7 @@ function App() {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/welcome" element={<Welcome />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/thoughts" element={<Dashboard />} />
         <Route path="/thoughts/:ListName" element={<Dashboard />} />
@@ -70,6 +75,7 @@ function App() {
         <Route path="/prompts" element={<Prompts />} />
         <Route path="/prompts/:categoryKey" element={<PromptDetail />} />
         <Route path="/goals" element={<Goals />} />
+        <Route path="/timers" element={<Timers />} />
         <Route path="/mood-boards" element={<MoodBoards />} />
         <Route path="/mood-boards/:moodBoardId" element={<MoodBoardDetail />} />
         <Route path="/insights" element={<Insights />} />

@@ -70,6 +70,20 @@ export function buildEmailFromType(type, context = {}) {
         templateName: "revisit_reminder"
       };
     }
+
+    case "daily_digest":
+    case "weekly_digest": {
+      const { newThoughts, newMessages, usageSummary } = context;
+      const isDaily = type === "daily_digest";
+      const span = isDaily ? "day" : "week";
+      const thoughtsLine = `${newThoughts} new Thought${newThoughts === 1 ? "" : "s"}`;
+      const messagesLine = `${newMessages} new message${newMessages === 1 ? "" : "s"}`;
+      return {
+        subject: isDaily ? "Your Daily Ponderfox Digest" : "Your Weekly Ponderfox Digest",
+        body: `Hi ${context.username}, here's your ${span} in review: ${thoughtsLine} and ${messagesLine} over the past ${span}. Storage used: ${usageSummary}. View your dashboard: ${FRONTEND_URL}/dashboard\n\nYou're getting this because you opted into the ${isDaily ? "daily" : "weekly"} digest in Settings > Notifications. You can turn it off there anytime.`,
+        templateName: type
+      };
+    }
   }
 
   throw new Error("Unknown email type: " + type);

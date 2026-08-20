@@ -2,7 +2,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAccentColor } from "../../context/AccentColorContext.jsx";
 import { ACCENT_PRESETS } from "../../utils/accentColors.js";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactModal from "react-modal";
 import DashMenu from "../../components/DashMenu.jsx";
 import DeleteModal from "../../components/modals/Delete.jsx";
@@ -11,10 +11,21 @@ import { getTierColor } from "../../utils/tier.js";
 import { useCheckout } from "../../hooks/useCheckout.js";
 import { PRICING_TIERS } from "../../data/pricing.js";
 import { formatBytes } from "../../utils/format.js";
+import PasswordStrength from "../../components/PasswordStrength.jsx";
 
 function getInitials(name) {
   if (!name) return "?";
   return name.trim().slice(0, 2).toUpperCase();
+}
+
+function getFirstName(name) {
+  return name?.trim().split(/\s+/)[0] || "there";
+}
+
+function getMemberSinceYear(dateCreated) {
+  if (!dateCreated) return "";
+  const year = new Date(dateCreated).getFullYear();
+  return Number.isNaN(year) ? "" : year;
 }
 
 function PasswordField({ id, value, onChange, show, onToggleShow, placeholder = "••••••••", autoFocus, className = "modalFieldInput" }) {
@@ -34,6 +45,23 @@ function PasswordField({ id, value, onChange, show, onToggleShow, placeholder = 
         onClick={onToggleShow}
       ></i>
     </div>
+  );
+}
+
+function NotificationToggle({ checked, onChange, label }) {
+  return (
+    <button
+      type="button"
+      className={`settingsToggle ${checked ? "settingsToggleOn" : ""}`}
+      aria-pressed={checked}
+      aria-label={`${label}: ${checked ? "On" : "Off"}`}
+      onClick={() => onChange(!checked)}
+    >
+      <span className="settingsToggleTrack">
+        <span className="settingsToggleThumb"></span>
+      </span>
+      <span className="settingsToggleText">{checked ? "On" : "Off"}</span>
+    </button>
   );
 }
 
@@ -72,7 +100,6 @@ function Settings() {
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState("");
   const [portalLoading, setPortalLoading] = useState(false);
-
   useEffect(() => {
     if (activeTab !== "billing" || !token || billing || billingLoading) return;
 
@@ -220,6 +247,8 @@ function Settings() {
   };
 
   const [profileUsername, setProfileUsername] = useState(user?.Username ?? "");
+  const [profileFirstName, setProfileFirstName] = useState(user?.FirstName ?? "");
+  const [profileLastName, setProfileLastName] = useState(user?.LastName ?? "");
   const [profileEmail, setProfileEmail] = useState(user?.Email ?? "");
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [profilePassword, setProfilePassword] = useState("");
@@ -238,9 +267,12 @@ function Settings() {
 
   const [revisitEnabled, setRevisitEnabled] = useState(user?.RevisitEnabled ?? true);
   const [revisitThresholdDays, setRevisitThresholdDays] = useState(user?.RevisitThresholdDays ?? 14);
-  const [revisitSaving, setRevisitSaving] = useState(false);
-  const [revisitError, setRevisitError] = useState("");
-  const [revisitSaved, setRevisitSaved] = useState(false);
+  const [newsletterEnabled, setNewsletterEnabled] = useState(user?.NewsletterEnabled ?? false);
+  const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(user?.WeeklyDigestEnabled ?? false);
+  const [dailyDigestEnabled, setDailyDigestEnabled] = useState(user?.DailyDigestEnabled ?? false);
+  const [notificationsSaving, setNotificationsSaving] = useState(false);
+  const [notificationsError, setNotificationsError] = useState("");
+  const [notificationsSaved, setNotificationsSaved] = useState(false);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
@@ -255,9 +287,14 @@ function Settings() {
   useEffect(() => {
     if (!user) return;
     setProfileUsername(user.Username ?? "");
+    setProfileFirstName(user.FirstName ?? "");
+    setProfileLastName(user.LastName ?? "");
     setProfileEmail(user.Email ?? "");
     setRevisitEnabled(user.RevisitEnabled ?? true);
     setRevisitThresholdDays(user.RevisitThresholdDays ?? 14);
+    setNewsletterEnabled(user.NewsletterEnabled ?? false);
+    setWeeklyDigestEnabled(user.WeeklyDigestEnabled ?? false);
+    setDailyDigestEnabled(user.DailyDigestEnabled ?? false);
   }, [user]);
 
   const closeDeleteModal = () => {
@@ -334,7 +371,13 @@ function Settings() {
       const res = await fetch(`${buildApiUrl()}/me/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ Username: profileUsername.trim(), Email: profileEmail.trim(), password: profilePassword }),
+        body: JSON.stringify({
+          Username: profileUsername.trim(),
+          FirstName: profileFirstName.trim(),
+          LastName: profileLastName.trim(),
+          Email: profileEmail.trim(),
+          password: profilePassword,
+        }),
       });
       const data = await res.json();
       if (!data.success) {
@@ -392,38 +435,77 @@ function Settings() {
     }
   };
 
-  const saveRevisitSettings = async () => {
-    setRevisitError("");
-    setRevisitSaved(false);
+  // `overrides` lets a change handler pass the just-clicked/typed value straight
+  // through, since the corresponding setState call hasn't landed yet when this
+  // fires immediately after it.
+  const saveNotificationSettings = async (overrides = {}) => {
+    const nextRevisitEnabled = overrides.revisitEnabled ?? revisitEnabled;
+    const nextRevisitThresholdDays = overrides.revisitThresholdDays ?? revisitThresholdDays;
+    const nextNewsletterEnabled = overrides.newsletterEnabled ?? newsletterEnabled;
+    const nextWeeklyDigestEnabled = overrides.weeklyDigestEnabled ?? weeklyDigestEnabled;
+    const nextDailyDigestEnabled = overrides.dailyDigestEnabled ?? dailyDigestEnabled;
 
-    const days = Number(revisitThresholdDays);
-    if (revisitEnabled && (!Number.isInteger(days) || days < 1 || days > 365)) {
-      setRevisitError("Please enter a number of days between 1 and 365.");
+    setNotificationsError("");
+    setNotificationsSaved(false);
+
+    const days = Number(nextRevisitThresholdDays);
+    if (nextRevisitEnabled && (!Number.isInteger(days) || days < 1 || days > 365)) {
+      setNotificationsError("Please enter a number of days between 1 and 365.");
       return;
     }
 
-    setRevisitSaving(true);
+    setNotificationsSaving(true);
     try {
-      const res = await fetch(`${buildApiUrl()}/me/revisit-settings`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ enabled: revisitEnabled, thresholdDays: days }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        setRevisitError("We couldn't save your preferences. Please try again.");
+      const [revisitRes, prefsRes] = await Promise.all([
+        fetch(`${buildApiUrl()}/me/revisit-settings`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ enabled: nextRevisitEnabled, thresholdDays: days }),
+        }),
+        fetch(`${buildApiUrl()}/me/notification-settings`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            newsletterEnabled: nextNewsletterEnabled,
+            weeklyDigestEnabled: nextWeeklyDigestEnabled,
+            dailyDigestEnabled: nextDailyDigestEnabled,
+          }),
+        }),
+      ]);
+      const [revisitData, prefsData] = await Promise.all([revisitRes.json(), prefsRes.json()]);
+
+      if (!revisitData.success || !prefsData.success) {
+        setNotificationsError("We couldn't save your preferences. Please try again.");
         return;
       }
-      setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setRevisitSaved(true);
+
+      setUser(prefsData.user);
+      localStorage.setItem("user", JSON.stringify(prefsData.user));
+      setNotificationsSaved(true);
     } catch (err) {
-      console.error("Error saving revisit settings:", err);
-      setRevisitError("We couldn't reach the server. Check your connection and try again.");
+      console.error("Error saving notification settings:", err);
+      setNotificationsError("We couldn't reach the server. Check your connection and try again.");
     } finally {
-      setRevisitSaving(false);
+      setNotificationsSaving(false);
     }
   };
+
+  // Toggles save immediately; the threshold-days number input debounces so
+  // it doesn't fire a request on every keystroke.
+  const notificationSaveTimeout = useRef(null);
+  useEffect(() => () => clearTimeout(notificationSaveTimeout.current), []);
+
+  const scheduleNotificationSave = (overrides) => {
+    clearTimeout(notificationSaveTimeout.current);
+    notificationSaveTimeout.current = setTimeout(() => saveNotificationSettings(overrides), 600);
+  };
+
+  // The "Saved" toast is self-dismissing: clear it 3s after it appears.
+  useEffect(() => {
+    if (!notificationsSaved) return;
+    const timeout = setTimeout(() => setNotificationsSaved(false), 3000);
+    return () => clearTimeout(timeout);
+  }, [notificationsSaved]);
 
   if (loading) {
     return (
@@ -478,8 +560,11 @@ function Settings() {
               <section className="dashBody settingsProfileBanner mt-5">
                 <div className="settingsAvatar">{getInitials(user.Username)}</div>
                 <div className="settingsProfileMeta">
-                  <div className="settingsProfileName">{user.Username}</div>
+                  <div className="settingsProfileName">Hi there, {user.FirstName?.trim() || getFirstName(user.Username)}</div>
                   <div className="settingsProfileEmail">{user.Email}</div>
+                  {getMemberSinceYear(user.DateCreated) && (
+                    <div className="settingsProfileMemberSince">You have been a member since {getMemberSinceYear(user.DateCreated)}</div>
+                  )}
                 </div>
                 <span
                   id="tierName"
@@ -492,7 +577,7 @@ function Settings() {
               <section className="dashBody mt-5">
                 <div className="settingsFieldSection">
                   <h2 className="settingsSectionTitle">Profile Information</h2>
-                  <p className="settingsSectionSubtitle">Update your username and email address.</p>
+                  <p className="settingsSectionSubtitle">Update your name, username, and email address.</p>
 
                   <div className="settingsFieldRow">
                     <label htmlFor="settingsUsername">Username</label>
@@ -503,6 +588,34 @@ function Settings() {
                         type="text"
                         value={profileUsername}
                         onChange={(e) => setProfileUsername(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="settingsFieldRow">
+                    <label htmlFor="settingsFirstName">First name</label>
+                    <div className="settingsFieldControl">
+                      <input
+                        id="settingsFirstName"
+                        className="modalFieldInput"
+                        type="text"
+                        value={profileFirstName}
+                        onChange={(e) => setProfileFirstName(e.target.value)}
+                        placeholder="Your first name"
+                        maxLength={100}
+                      />
+                    </div>
+                  </div>
+                  <div className="settingsFieldRow">
+                    <label htmlFor="settingsLastName">Last name</label>
+                    <div className="settingsFieldControl">
+                      <input
+                        id="settingsLastName"
+                        className="modalFieldInput"
+                        type="text"
+                        value={profileLastName}
+                        onChange={(e) => setProfileLastName(e.target.value)}
+                        placeholder="Your last name"
+                        maxLength={100}
                       />
                     </div>
                   </div>
@@ -561,6 +674,11 @@ function Settings() {
                         show={showPasswordFields}
                         onToggleShow={() => setShowPasswordFields((v) => !v)}
                       />
+                      {newPassword && (
+                        <div className="mt-2">
+                          <PasswordStrength password={newPassword} />
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="settingsFieldRow">
@@ -689,14 +807,14 @@ function Settings() {
                       Get emailed when a Thought hasn&apos;t been opened in a while
                     </div>
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={revisitEnabled}
-                      onChange={(e) => setRevisitEnabled(e.target.checked)}
-                    />
-                    <span className="text-sm text-slate-300">{revisitEnabled ? "On" : "Off"}</span>
-                  </label>
+                  <NotificationToggle
+                    checked={revisitEnabled}
+                    onChange={(val) => {
+                      setRevisitEnabled(val);
+                      saveNotificationSettings({ revisitEnabled: val });
+                    }}
+                    label="Revisit reminders"
+                  />
                 </div>
 
                 {revisitEnabled && (
@@ -710,21 +828,67 @@ function Settings() {
                       min="1"
                       max="365"
                       value={revisitThresholdDays}
-                      onChange={(e) => setRevisitThresholdDays(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRevisitThresholdDays(val);
+                        scheduleNotificationSave({ revisitThresholdDays: val });
+                      }}
                       className="modalFieldInput"
                       style={{ width: "6rem" }}
                     />
                   </div>
                 )}
 
-                <div className="settingsSectionFooter">
-                  <span className={`text-sm ${revisitError ? "text-red-400" : "text-slate-400"}`}>
-                    {revisitError || (revisitSaved ? "Saved" : "")}
-                  </span>
-                  <button className="modalPrimaryButton" style={{ width: "auto" }} onClick={saveRevisitSettings} disabled={revisitSaving}>
-                    {revisitSaving ? "Saving..." : "Save"}
-                  </button>
+                <div className="settingsPreferenceRow">
+                  <div>
+                    <div className="settingsPreferenceLabel">Newsletter</div>
+                    <div className="settingsPreferenceHint">Occasional product news and tips from Ponderfox</div>
+                  </div>
+                  <NotificationToggle
+                    checked={newsletterEnabled}
+                    onChange={(val) => {
+                      setNewsletterEnabled(val);
+                      saveNotificationSettings({ newsletterEnabled: val });
+                    }}
+                    label="Newsletter"
+                  />
                 </div>
+
+                <div className="settingsPreferenceRow">
+                  <div>
+                    <div className="settingsPreferenceLabel">Weekly digest</div>
+                    <div className="settingsPreferenceHint">A weekly summary of your Thoughts and account usage</div>
+                  </div>
+                  <NotificationToggle
+                    checked={weeklyDigestEnabled}
+                    onChange={(val) => {
+                      setWeeklyDigestEnabled(val);
+                      saveNotificationSettings({ weeklyDigestEnabled: val });
+                    }}
+                    label="Weekly digest"
+                  />
+                </div>
+
+                <div className="settingsPreferenceRow">
+                  <div>
+                    <div className="settingsPreferenceLabel">Daily digest</div>
+                    <div className="settingsPreferenceHint">A daily summary of your Thoughts and account usage</div>
+                  </div>
+                  <NotificationToggle
+                    checked={dailyDigestEnabled}
+                    onChange={(val) => {
+                      setDailyDigestEnabled(val);
+                      saveNotificationSettings({ dailyDigestEnabled: val });
+                    }}
+                    label="Daily digest"
+                  />
+                </div>
+
+                {(notificationsSaving || notificationsError) && (
+                  <div className={`text-sm mt-2 ${notificationsError ? "text-red-400" : "text-slate-400"}`}>
+                    {notificationsError || "Saving…"}
+                  </div>
+                )}
               </div>
             </section>
           )}
@@ -792,25 +956,6 @@ function Settings() {
                         </button>
                       </div>
                     )}
-
-                    <div className="settingsPreferenceRow">
-                      <div>
-                        <div className="settingsPreferenceLabel">Billing address</div>
-                        <div className="settingsPreferenceHint">
-                          {billing?.address ? (
-                            <>
-                              {billing.address.line1}
-                              {billing.address.line2 ? `, ${billing.address.line2}` : ""}
-                              <br />
-                              {[billing.address.city, billing.address.state, billing.address.postal_code].filter(Boolean).join(", ")}
-                              {billing.address.country ? `, ${billing.address.country}` : ""}
-                            </>
-                          ) : (
-                            "No billing address on file yet."
-                          )}
-                        </div>
-                      </div>
-                    </div>
 
                     <div className="settingsPreferenceRow">
                       <div>
@@ -931,6 +1076,13 @@ function Settings() {
             confirmLabel={imagesToDelete.length === 1 ? "Delete Image" : `Delete ${imagesToDelete.length} Images`}
             onConfirm={deleteImages}
           />
+
+          {notificationsSaved && (
+            <div className="settingsToast" role="status">
+              <i className="fa-solid fa-circle-check"></i>
+              Notification preferences saved
+            </div>
+          )}
 
           {activeTab !== "account" && activeTab !== "security" && activeTab !== "appearance" && activeTab !== "notifications" && activeTab !== "billing" && activeTab !== "usage" && (
             <section className="dashBody mt-5">

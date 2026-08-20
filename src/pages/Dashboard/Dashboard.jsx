@@ -7,7 +7,7 @@ import AddModal from "../../components/modals/Add.jsx";
 import AddFolderModal from "../../components/modals/AddFolder.jsx";
 import InfoModal from "../../components/modals/Info.jsx";
 import DashMenu from "../../components/DashMenu.jsx";
-import PonderFoxMark from "../../components/PonderFoxMark.jsx";
+import EmptyStateArt from "../../components/EmptyStateArt.jsx";
 import TopProfileTile from "../../components/TopProfileTile.jsx";
 import SearchBox from "../../components/SearchBox.jsx";
 import { getTierColor } from "../../utils/tier.js";
@@ -522,13 +522,13 @@ if (!user) return null;
 
         {displayThoughts.length === 0 && sortedFolders.length === 0 ? (
           <div className="emptyState">
-            <PonderFoxMark size={120} className="emptyStateArt" />
+            <EmptyStateArt size={120} className="emptyStateArt" />
             <p>{GroupName ? emptyGroupMessage : "No thoughts or folders yet — start your first brain dump."}</p>
             <button type="button" className="emptyStateAction" onClick={() => addThoughtModal()}>Create a thought</button>
           </div>
         ) : searchedThoughts.length === 0 && searchedFolders.length === 0 ? (
           <div className="emptyState">
-            <PonderFoxMark size={120} className="emptyStateArt" />
+            <EmptyStateArt size={120} className="emptyStateArt" />
             <p>Nothing matches &quot;{brainDumpSearch}&quot;.</p>
             <button type="button" className="emptyStateAction" onClick={() => setBrainDumpSearch("")}>Clear search</button>
           </div>
@@ -636,12 +636,12 @@ if (!user) return null;
           )}
           {recentThoughts.length === 0 ? (
             <div className="emptyState emptyStateSmall">
-              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <EmptyStateArt size={48} className="emptyStateArt" />
               <p>No recent thoughts</p>
             </div>
           ) : searchedRecentThoughts.length === 0 ? (
             <div className="emptyState emptyStateSmall">
-              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <EmptyStateArt size={48} className="emptyStateArt" />
               <p>No matches</p>
             </div>
           ) : (
@@ -668,12 +668,12 @@ if (!user) return null;
           )}
           {pinnedThoughts.length === 0 ? (
             <div className="emptyState emptyStateSmall">
-              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <EmptyStateArt size={48} className="emptyStateArt" />
               <p>No pinned thoughts</p>
             </div>
           ) : searchedPinnedThoughts.length === 0 ? (
             <div className="emptyState emptyStateSmall">
-              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <EmptyStateArt size={48} className="emptyStateArt" />
               <p>No matches</p>
             </div>
           ) : (
@@ -700,12 +700,12 @@ if (!user) return null;
           )}
           {listsOverview.length === 0 ? (
             <div className="emptyState emptyStateSmall">
-              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <EmptyStateArt size={48} className="emptyStateArt" />
               <p>No lists created</p>
             </div>
           ) : searchedListsOverview.length === 0 ? (
             <div className="emptyState emptyStateSmall">
-              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <EmptyStateArt size={48} className="emptyStateArt" />
               <p>No matches</p>
             </div>
           ) : (
@@ -732,12 +732,12 @@ if (!user) return null;
           )}
           {moodBoards.length === 0 ? (
             <div className="emptyState emptyStateSmall">
-              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <EmptyStateArt size={48} className="emptyStateArt" />
               <p>No mood boards</p>
             </div>
           ) : searchedMoodBoards.length === 0 ? (
             <div className="emptyState emptyStateSmall">
-              <PonderFoxMark size={48} sparkle={false} className="emptyStateArt" />
+              <EmptyStateArt size={48} className="emptyStateArt" />
               <p>No matches</p>
             </div>
           ) : (

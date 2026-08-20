@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import DashMenu from "../../components/DashMenu.jsx";
 import TopProfileTile from "../../components/TopProfileTile.jsx";
 import SearchBox from "../../components/SearchBox.jsx";
-import PonderFoxMark from "../../components/PonderFoxMark.jsx";
+import EmptyStateArt from "../../components/EmptyStateArt.jsx";
 import { PROMPT_CATEGORIES, getCategoryMeta } from "../../data/prompts.js";
 
 const RANDOM_CATEGORY = getCategoryMeta("random");
@@ -51,7 +51,7 @@ function Prompts() {
             <section className="dashBody w-full">
               {searchedCategories.length === 0 ? (
                 <div className="emptyState">
-                  <PonderFoxMark size={120} className="emptyStateArt" />
+                  <EmptyStateArt size={120} className="emptyStateArt" />
                   <p>Nothing matches &quot;{search}&quot;.</p>
                   <button type="button" className="emptyStateAction" onClick={() => setSearch("")}>Clear search</button>
                 </div>

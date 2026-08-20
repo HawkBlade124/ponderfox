@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { buildApiUrl } from "../utils/api.js";
 
@@ -8,9 +8,11 @@ import { buildApiUrl } from "../utils/api.js";
 // via ?plan=), then Register.jsx picks the checkout back up after signup.
 export function useCheckout() {
   const { user, token } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [error, setError] = useState("");
+  const [checkoutReturnPath, setCheckoutReturnPath] = useState("/pricing");
 
   const startCheckout = async (plan) => {
     if (!plan) return;
@@ -21,12 +23,13 @@ export function useCheckout() {
     }
 
     setError("");
+    setCheckoutReturnPath(`${location.pathname}${location.search}`);
     setLoadingPlan(plan);
     try {
       const res = await fetch(`${buildApiUrl()}/billing/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, returnPath: `${location.pathname}${location.search}` }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
@@ -42,5 +45,9 @@ export function useCheckout() {
     }
   };
 
-  return { startCheckout, loadingPlan, error };
+  return {
+    startCheckout,
+    loadingPlan,
+    error,
+  };
 }

@@ -37,6 +37,20 @@
   color: inherit;
   text-decoration: underline;
 }
+.pricingResultBannerClose {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  margin-left: auto;
+  line-height: 1;
+}
+.pricingResultBannerClose:hover {
+  opacity: 1;
+}
 .pricingResultBannerSuccess {
   background: rgba(34, 197, 94, 0.14);
   border: 1px solid rgba(34, 197, 94, 0.4);
@@ -47,12 +61,12 @@
   font-size: 20px;
 }
 .pricingResultBannerCanceled {
-  background: rgba(148, 163, 184, 0.12);
+  background: rgba(148, 163, 184);
   border: 1px solid rgba(148, 163, 184, 0.35);
   color: #e2e8f0;
 }
 .pricingResultBannerCanceled i {
-  color: #94a3b8;
+  color: #36383a;
   font-size: 20px;
 }
 
@@ -125,15 +139,15 @@
 /* ---------- Grid ---------- */
 .pricingPageGridSection {
   max-width: 1320px;
-  margin: -50px auto 0;
-  padding: 0 64px 100px;
+  margin: 0 auto;
+  padding: 100px 64px;
   position: relative;
   z-index: 2;
 }
 
 .pricingPageGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 

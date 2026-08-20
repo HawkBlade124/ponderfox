@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import SearchBox from "../../components/SearchBox.jsx";
+import RichTextEditor from "../../components/RichTextEditor.jsx";
 import axios from "axios";
+import DOMPurify from "dompurify";
 
 function buildApiUrl() {
   const raw = (import.meta.env.VITE_API_URL || window.location.origin).trim();
@@ -11,10 +13,22 @@ function buildApiUrl() {
   return hasApi ? base : `${base}/api`;
 }
 
+// Keep in sync with MESSAGE_HTML_OPTIONS in server.js — this is a second
+// line of defense at render time, not a substitute for server-side sanitizing.
+const MESSAGE_HTML_TAGS = ["p", "strong", "em", "u", "s", "ul", "ol", "li", "blockquote", "code", "br"];
+function sanitizeMessageHtml(html) {
+  return DOMPurify.sanitize(html, { ALLOWED_TAGS: MESSAGE_HTML_TAGS, ALLOWED_ATTR: [] });
+}
+function messageToPlainText(html) {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 const REMINDER_DISMISSED_KEY = "thoughtReminderDismissed";
 
 function Thought() {
   const [message, setMessage] = useState("");
+  const [messageText, setMessageText] = useState("");
+  const editorRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [h1Visible, setH1Visible] = useState(true);
   const [reminderHidden, setReminderHidden] = useState(
@@ -153,12 +167,14 @@ function Thought() {
 
   // ---------- Enter message ----------
   const enteredMessage = async () => {
-    if (!message.trim()) return;
+    if (!messageText.trim()) return;
 
     const attachmentUrls = pendingAttachments.map((a) => a.url);
-    const messageText = message;
+    const messageHtml = message;
 
     setMessage("");
+    setMessageText("");
+    editorRef.current?.clear();
     setPendingAttachments([]);
     setH1Visible(false);
     if (localStorage.getItem(REMINDER_DISMISSED_KEY) !== "true") {
@@ -168,7 +184,7 @@ function Thought() {
     try {
       const res = await axios.post(
         `${apiBase}/messages`,
-        { ThoughtName, message: messageText, attachments: attachmentUrls },
+        { ThoughtName, message: messageHtml, attachments: attachmentUrls },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -478,7 +494,9 @@ function Thought() {
                               <div className="searchResultMeta">{new Date(msg.DateSent).toLocaleDateString()}</div>
                             )}
                           </div>
-                          <div className="searchResultSnippet">{msg.Message}</div>
+                          <div className="searchResultSnippet">
+                            {msg.ContentFormat === "html" ? messageToPlainText(msg.Message) : msg.Message}
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -547,7 +565,14 @@ function Thought() {
                         </div>
                       </div>
                     </div>
-                    {msg.Message && <div className="messageString">{msg.Message}</div>}
+                    {msg.Message && msg.ContentFormat === "html" ? (
+                      <div
+                        className="messageString"
+                        dangerouslySetInnerHTML={{ __html: sanitizeMessageHtml(msg.Message) }}
+                      />
+                    ) : (
+                      msg.Message && <div className="messageString">{msg.Message}</div>
+                    )}
                     {msg.Attachments && msg.Attachments.length > 0 && (
                       <div
                         className="messageAttachments"
@@ -624,9 +649,17 @@ function Thought() {
               </button>
             </div>
 
-            <input id="messageInput" name="chatInput" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && enteredMessage()} placeholder="A Penny For Your Thoughts?" />
+            <RichTextEditor
+              ref={editorRef}
+              placeholder="A Penny For Your Thoughts?"
+              onChange={({ html, text }) => {
+                setMessage(html);
+                setMessageText(text);
+              }}
+              onSubmit={enteredMessage}
+            />
 
-            <button onClick={enteredMessage} id="sendChat" className="send" disabled={!message.trim() || uploading}>
+            <button onClick={enteredMessage} id="sendChat" className="send" disabled={!messageText.trim() || uploading}>
               <i className="fa-solid fa-paper-plane"></i>
             </button>
           </div>

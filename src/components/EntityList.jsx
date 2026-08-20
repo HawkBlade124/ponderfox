@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import PonderFoxMark from "./PonderFoxMark.jsx";
+import EmptyStateArt from "./EmptyStateArt.jsx";
 import AddFolderModal from "./modals/AddFolder.jsx";
 import DeleteModal from "./modals/Delete.jsx";
 
@@ -173,12 +173,12 @@ function EntityList({
 
         {items.length === 0 ? (
           <div className="emptyState">
-            <PonderFoxMark size={120} className="emptyStateArt" />
+            <EmptyStateArt size={120} className="emptyStateArt" />
             <p>{emptyMessage}</p>
           </div>
         ) : searchedItems.length === 0 ? (
           <div className="emptyState">
-            <PonderFoxMark size={120} className="emptyStateArt" />
+            <EmptyStateArt size={120} className="emptyStateArt" />
             <p>Nothing matches &quot;{search}&quot;.</p>
           </div>
         ) : (

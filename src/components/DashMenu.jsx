@@ -44,6 +44,7 @@ const navGroups = [
     icon: "fa-regular fa-bolt",
     children: [
       { pathname: "/goals", to: "/goals", tab: null, label: "Goals", icon: "fa-regular fa-bullseye-arrow" },
+      { pathname: "/timers", to: "/timers", tab: null, label: "Timers", icon: "fa-regular fa-stopwatch" },
     ],
   },
 ];
@@ -188,6 +189,12 @@ function DashMenu() {
                 <span className="sidebarLinkLabel">{item.label}</span>
               </Link>
             ))}
+            {user?.Tier === "Free Thinker" && (
+              <Link to="/pricing" className="sidebarUpgradeButton">
+                <span className="sidebarLinkIcon"><i className="fa-solid fa-sparkles"></i></span>
+                <span className="sidebarLinkLabel">Upgrade</span>
+              </Link>
+            )}
           </div>
 
           {user && (

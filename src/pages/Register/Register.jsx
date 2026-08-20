@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext"; // assuming you already have this
 import AuthLayout from "../../components/AuthLayout";
+import PasswordStrength from "../../components/PasswordStrength";
 
 function buildApiUrl() {
   const base = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/+$/, "");
@@ -11,6 +12,8 @@ function buildApiUrl() {
 const CHECKOUT_PLANS = new Set(["thinker", "deep-thinker"]);
 
 function Register() {
+  const [FirstName, setFirstName] = useState("");
+  const [LastName, setLastName] = useState("");
   const [Username, setName] = useState("");
   const [Email, setEmail] = useState("");
   const [ConfirmEmail, setConfirmEmail] = useState("");
@@ -47,6 +50,8 @@ function Register() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          FirstName: FirstName.trim(),
+          LastName: LastName.trim(),
           Username: Username.trim(),
           Email: Email.trim(),
           Password: Password.trim(),
@@ -57,7 +62,7 @@ function Register() {
       const data = await res.json();
 
       if (!res.ok) {
-        const errorMessage = data.error || data.details || data.message || "Request failed";
+        const errorMessage = data.details || data.error || data.message || "Request failed";
         console.error("API Error:", errorMessage, "Status:", res.status);
         setError(errorMessage);
         return;
@@ -88,7 +93,7 @@ function Register() {
           const checkoutRes = await fetch(`${apiBase}/billing/create-checkout-session`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${loginData.token}` },
-            body: JSON.stringify({ plan }),
+            body: JSON.stringify({ plan, returnPath: `/register?plan=${encodeURIComponent(plan)}` }),
           });
           const checkoutData = await checkoutRes.json();
           if (checkoutRes.ok && checkoutData.url) {
@@ -98,11 +103,9 @@ function Register() {
         } catch (checkoutErr) {
           console.error("Checkout redirect error:", checkoutErr);
         }
-        // Fall through to the dashboard if checkout couldn't be started —
-        // the account still exists, they can upgrade from Settings instead.
       }
 
-      navigate("/dashboard");
+      navigate(loginData.user.HasOnboarded ? "/dashboard" : "/welcome");
     } catch (err) {
       console.error("Fetch error:", err);
       setError("An error occurred. Please try again.");
@@ -135,6 +138,40 @@ function Register() {
       </div>
 
       <form className="flex flex-col gap-5" onSubmit={registerUser}>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="firstName" className="text-sm font-medium text-slate-300">
+              First Name
+            </label>
+            <input
+              id="firstName"
+              type="text"
+              value={FirstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
+              className="rounded-lg border border-slate-700 bg-slate-800/60 h-11 px-4 !text-white placeholder:!text-slate-500 outline-none focus:border-[#438eef] focus:ring-2 focus:ring-[#438eef]/20 transition"
+              maxLength={100}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="lastName" className="text-sm font-medium text-slate-300">
+              Last Name
+            </label>
+            <input
+              id="lastName"
+              type="text"
+              value={LastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              className="rounded-lg border border-slate-700 bg-slate-800/60 h-11 px-4 !text-white placeholder:!text-slate-500 outline-none focus:border-[#438eef] focus:ring-2 focus:ring-[#438eef]/20 transition"
+              maxLength={100}
+              required
+            />
+          </div>
+        </div>
+
         <div className="flex flex-col gap-1.5">
           <label htmlFor="username" className="text-sm font-medium text-slate-300">
             Username
@@ -199,6 +236,7 @@ function Register() {
               onClick={() => setShow((v) => !v)}
             ></i>
           </div>
+          <PasswordStrength password={Password} />
         </div>
 
         <div className="flex flex-col gap-1.5">

@@ -2,7 +2,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DashMenu from "../../components/DashMenu.jsx";
-import PonderFoxMark from "../../components/PonderFoxMark.jsx";
+import EmptyStateArt from "../../components/EmptyStateArt.jsx";
 import TopProfileTile from "../../components/TopProfileTile.jsx";
 import SearchBox from "../../components/SearchBox.jsx";
 import { buildApiUrl } from "../../utils/api.js";
@@ -101,12 +101,12 @@ function MoodBoards() {
             <section className="dashBody w-full">
               {boards.length === 0 ? (
                 <div className="emptyState">
-                  <PonderFoxMark size={120} className="emptyStateArt" />
+                  <EmptyStateArt size={120} className="emptyStateArt" />
                   <p>No mood boards yet — collect images and inspiration that capture how you&apos;re feeling.</p>
                 </div>
               ) : searchedBoards.length === 0 ? (
                 <div className="emptyState">
-                  <PonderFoxMark size={120} className="emptyStateArt" />
+                  <EmptyStateArt size={120} className="emptyStateArt" />
                   <p>Nothing matches &quot;{search}&quot;.</p>
                   <button type="button" className="emptyStateAction" onClick={() => setSearch("")}>Clear search</button>
                 </div>

@@ -19,10 +19,10 @@ const PRICING_FAQS = [
   },
 ];
 
-function CheckoutResultBanner({ searchParams }) {
+function CheckoutResultBanner({ searchParams, onDismiss }) {
   if (searchParams.get("success")) {
     return (
-      <div className="pricingResultBanner pricingResultBannerSuccess">
+      <div className="pricingResultBanner pricingResultBannerSuccess" onClick={onDismiss}>
         <i className="fa-solid fa-circle-check"></i>
         <div>
           <strong>You're all set.</strong> Your subscription is active — head to{" "}
@@ -34,7 +34,7 @@ function CheckoutResultBanner({ searchParams }) {
 
   if (searchParams.get("canceled")) {
     return (
-      <div className="pricingResultBanner pricingResultBannerCanceled">
+      <div className="pricingResultBanner pricingResultBannerCanceled"  onClick={onDismiss}>
         <i className="fa-regular fa-circle-xmark"></i>
         <div>Checkout was canceled — no charge was made. Pick a plan below whenever you're ready.</div>
       </div>
@@ -46,8 +46,17 @@ function CheckoutResultBanner({ searchParams }) {
 
 function Pricing() {
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { startCheckout, loadingPlan } = useCheckout();
+
+  const dismissCheckoutBanner = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("success");
+      next.delete("canceled");
+      return next;
+    }, { replace: true });
+  };
 
   return (
     <div className="pricingPageRoot">
@@ -63,10 +72,10 @@ function Pricing() {
         </div>
       </section>
 
-      <CheckoutResultBanner searchParams={searchParams} />
+      <CheckoutResultBanner searchParams={searchParams} onDismiss={dismissCheckoutBanner} />
 
       <section className="pricingPageGridSection">
-        <div className="pricingPageGrid">
+        <div className="pricingPageGrid justify-between w-full">
           {PRICING_TIERS.map((tier) => (
             <div className={tier.featured ? "pricingPageCard pricingPageCardFeatured" : "pricingPageCard"} key={tier.title}>
               {tier.featured && <span className="pricingPageFeaturedBadge">Most Popular</span>}

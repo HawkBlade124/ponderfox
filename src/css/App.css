@@ -71,7 +71,7 @@ header {
 	background:#0b0e17;
 	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
 	display:flex;
-	align-items: center;
+	align-items: flex-end;
 	padding: 6px 6px 6px 18px;
 	margin:15px auto;
 	border-radius: 25px;
@@ -79,6 +79,117 @@ header {
 .sendWrapper:focus-within{
 	border-color:var(--accent);
 	box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.richTextEditor{
+	display:flex;
+	flex-direction:column;
+	width:100%;
+	min-width:0;
+}
+.richTextToolbar{
+	display:flex;
+	align-items:center;
+	gap:2px;
+	padding:2px 2px 6px;
+}
+.richTextToolbarBtn{
+	width:26px;
+	height:26px;
+	flex-shrink:0;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	border:none;
+	border-radius:7px;
+	background:transparent;
+	color:#7c8699;
+	font-size:12px;
+	cursor:pointer;
+	transition:background 0.15s ease, color 0.15s ease;
+}
+.richTextToolbarBtn:hover{
+	background:rgba(255,255,255,0.08);
+	color:#fff;
+}
+.richTextToolbarBtnActive{
+	background:color-mix(in srgb, var(--accent) 30%, transparent);
+	color:#fff;
+}
+.richTextToolbarDivider{
+	width:1px;
+	height:16px;
+	background:rgba(255,255,255,0.12);
+	margin:0 4px;
+	flex-shrink:0;
+}
+.richTextContentWrapper{
+	width:100%;
+}
+.richTextContent{
+	width:100%;
+	max-height:160px;
+	overflow-y:auto;
+	box-sizing:border-box;
+	color:#fff;
+	font-size:14px;
+	line-height:1.5;
+	padding:4px 0 8px;
+}
+.richTextContent:focus{
+	outline:none;
+}
+.richTextContent .is-editor-empty:first-child::before{
+	content: attr(data-placeholder);
+	float:left;
+	height:0;
+	pointer-events:none;
+	color:#fff;
+	opacity:0.4;
+}
+/* Shared rendering for rich-text output: the live composer (.richTextContent)
+   and sent messages (.messageString) both hold the same HTML shape produced
+   by RichTextEditor, and both need it since Tailwind's preflight strips the
+   browser defaults (list markers, blockquote indent) these tags rely on. */
+.richTextContent p,
+.messageString p{
+	margin:0 0 4px;
+}
+.richTextContent p:last-child,
+.messageString p:last-child{
+	margin-bottom:0;
+}
+.richTextContent ul,
+.messageString ul{
+	list-style:disc;
+}
+.richTextContent ol,
+.messageString ol{
+	list-style:decimal;
+}
+.richTextContent ul,
+.richTextContent ol,
+.messageString ul,
+.messageString ol{
+	margin:0 0 4px;
+	padding-left:22px;
+}
+.richTextContent li,
+.messageString li{
+	margin:2px 0;
+}
+.richTextContent blockquote,
+.messageString blockquote{
+	border-left:2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+	padding-left:10px;
+	color:#9aa4b8;
+	margin:4px 0;
+}
+.richTextContent code,
+.messageString code{
+	background:rgba(255,255,255,0.08);
+	border-radius:4px;
+	padding:1px 5px;
+	font-size:12.5px;
 }
 .sendWrapper input {
 	width:100%;
@@ -388,6 +499,9 @@ height:90vh
 	position:absolute;
 	top:18px;
 	right:20px;
+	padding:0;
+	border:0;
+	background:transparent;
 	color:#5b6472;
 	cursor:pointer;
 	font-size:16px;
@@ -709,6 +823,33 @@ height:90vh
 	flex-direction:column;
 	gap:2px;
 	margin:6px 12px 0;
+}
+.sidebarUpgradeButton{
+	display:flex;
+	align-items:center;
+	gap:10px;
+	padding:9px 10px;
+	border-radius:12px;
+	margin-top:6px;
+	background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
+	color:#fff;
+	text-decoration:none;
+	box-shadow:0 8px 20px color-mix(in srgb, var(--accent) 35%, transparent);
+	transition:filter 0.15s ease, transform 0.05s ease;
+}
+.sidebarUpgradeButton:hover{
+	filter:brightness(1.06);
+	color:#fff;
+}
+.sidebarUpgradeButton:active{
+	transform:scale(0.98);
+}
+.sidebarUpgradeButton .sidebarLinkIcon{
+	background:rgba(255,255,255,0.22);
+	color:#fff;
+}
+.sidebarUpgradeButton .sidebarLinkLabel{
+	font-weight:700;
 }
 .sidebarLink:hover{
 	background:rgba(255,255,255,0.08);
@@ -1335,6 +1476,11 @@ height:90vh
 	font-size:13px;
 	color:#7c8699;
 }
+.settingsProfileMemberSince{
+	font-size:12px;
+	color:#5b6472;
+	margin-top:3px;
+}
 .settingsTabBar{
 	display:flex;
 	gap:4px;
@@ -1495,6 +1641,82 @@ height:90vh
 	color:#5b6472;
 	margin-top:2px;
 }
+.settingsToggle{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding:0;
+	border:0;
+	background:transparent;
+	color:#7c8699;
+	cursor:pointer;
+	font-size:12px;
+}
+.settingsToggle:focus-visible{
+	outline:2px solid var(--accent);
+	outline-offset:4px;
+	border-radius:6px;
+}
+.settingsToggleTrack{
+	position:relative;
+	display:block;
+	width:40px;
+	height:22px;
+	border-radius:999px;
+	background:#252c3c;
+	border:1px solid rgba(255,255,255,0.14);
+	transition:background 0.15s ease, border-color 0.15s ease;
+}
+.settingsToggleThumb{
+	position:absolute;
+	top:3px;
+	left:3px;
+	width:14px;
+	height:14px;
+	border-radius:50%;
+	background:#9aa4b8;
+	transition:transform 0.15s ease, background 0.15s ease;
+}
+.settingsToggleOn .settingsToggleTrack{
+	background:color-mix(in srgb, var(--accent) 60%, transparent);
+	border-color:color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.settingsToggleOn .settingsToggleThumb{
+	background:#fff;
+	transform:translateX(18px);
+}
+.settingsToggleOn .settingsToggleText{
+	color:#cdd6e8;
+}
+.settingsToast{
+	position:fixed;
+	bottom:24px;
+	right:24px;
+	display:flex;
+	align-items:center;
+	gap:10px;
+	padding:14px 20px;
+	background:#10131c;
+	border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+	border-radius:14px;
+	box-shadow:0 20px 45px rgba(0,0,0,0.5);
+	color:#e5eaf5;
+	font-size:14px;
+	font-weight:500;
+	z-index:9999;
+	animation:settingsToastIn 0.2s ease, settingsToastOut 0.25s ease 2.75s forwards;
+}
+.settingsToast i{
+	color:#3ddc84;
+	font-size:16px;
+}
+@keyframes settingsToastIn{
+	from{ opacity:0; transform:translateY(10px); }
+	to{ opacity:1; transform:translateY(0); }
+}
+@keyframes settingsToastOut{
+	to{ opacity:0; transform:translateY(10px); }
+}
 .usageImageGrid{
 	display:grid;
 	grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
@@ -1560,6 +1782,105 @@ height:90vh
 }
 .usageQuotaBarFillWarning{
 	background:#f87171;
+}
+.timerCard{
+	display:flex;
+	flex-direction:column;
+	gap:10px;
+}
+.timerCardHead{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	gap:10px;
+}
+.timerName{
+	font-weight:600;
+	font-size:15px;
+	color:#e5eaf5;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}
+.timerDeleteIcon{
+	flex-shrink:0;
+	color:#5b6472;
+	cursor:pointer;
+	font-size:13px;
+	transition:color 0.15s ease;
+}
+.timerDeleteIcon:hover{
+	color:#ff8a7a;
+}
+.timerDisplay{
+	font-size:32px;
+	font-weight:700;
+	font-variant-numeric:tabular-nums;
+	color:var(--accent);
+	text-align:center;
+	padding:6px 0;
+}
+.timerDisplayFinished{
+	color:#ff8a7a;
+	font-size:22px;
+}
+.timerActions{
+	display:flex;
+	gap:8px;
+	margin-top:4px;
+}
+.timerActionBtn{
+	flex:1;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	gap:6px;
+	padding:9px 0;
+	border-radius:12px;
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+	background:rgba(255,255,255,0.04);
+	color:#cdd6e8;
+	font-size:13px;
+	font-weight:600;
+	cursor:pointer;
+	transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.timerActionBtn:hover{
+	background:rgba(255,255,255,0.08);
+	color:#fff;
+}
+.timerActionBtnPrimary{
+	background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
+	border-color:transparent;
+	color:#fff;
+}
+.timerActionBtnPrimary:hover{
+	filter:brightness(1.06);
+	color:#fff;
+}
+.timerActionBtn:disabled{
+	opacity:0.4;
+	cursor:not-allowed;
+}
+.timerDurationInputs{
+	display:flex;
+	gap:10px;
+}
+.timerDurationField{
+	flex:1;
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	gap:4px;
+}
+.timerDurationField input{
+	text-align:center;
+}
+.timerDurationField span{
+	font-size:11px;
+	color:#5b6472;
+	text-transform:uppercase;
+	letter-spacing:0.05em;
 }
 .usageSelectionBar{
 	display:flex;
@@ -1931,8 +2252,26 @@ footer{
 [data-theme="light"] .messageString,
 [data-theme="light"] .searchResultTitle,
 [data-theme="light"] .settingsPreferenceLabel,
+[data-theme="light"] .timerName,
 [data-theme="light"] .dashBreadcrumb span{
 	color:#1e293b;
+}
+[data-theme="light"] .timerDeleteIcon{
+	color:#94a3b8;
+}
+[data-theme="light"] .timerDeleteIcon:hover{
+	color:#dc2626;
+}
+[data-theme="light"] .timerDurationField span{
+	color:#64748b;
+}
+[data-theme="light"] .timerActionBtn{
+	background:rgba(15,23,42,0.04);
+	color:#334155;
+}
+[data-theme="light"] .timerActionBtn:hover{
+	background:rgba(15,23,42,0.08);
+	color:#0f172a;
 }
 [data-theme="light"] .sortSelect,
 [data-theme="light"] .dashSearchInput input,
@@ -1968,6 +2307,27 @@ footer{
 [data-theme="light"] .settingsPreferenceHint,
 [data-theme="light"] .modalEmptyNote,
 [data-theme="light"] .modalFootnote,
+[data-theme="light"] .settingsToggle{
+	color:#64748b;
+}
+[data-theme="light"] .settingsToggleTrack{
+	background:#e2e8f0;
+	border-color:rgba(15,23,42,0.12);
+}
+[data-theme="light"] .settingsToggleThumb{
+	background:#64748b;
+}
+[data-theme="light"] .settingsToggleOn .settingsToggleThumb{
+	background:#fff;
+}
+[data-theme="light"] .settingsToggleOn .settingsToggleText{
+	color:#334155;
+}
+[data-theme="light"] .settingsToast{
+	background:#ffffff;
+	color:#1a2033;
+	box-shadow:0 20px 45px rgba(15,23,42,0.15);
+}
 [data-theme="light"] .dashSearchInput i,
 [data-theme="light"] .modalClose,
 [data-theme="light"] .passwordToggleIcon{
@@ -1978,6 +2338,34 @@ footer{
 [data-theme="light"] .sendWrapper input::placeholder{
 	color:#94a3b8;
 	opacity:1;
+}
+[data-theme="light"] .richTextContent{
+	color:#334155;
+}
+[data-theme="light"] .richTextContent blockquote,
+[data-theme="light"] .messageString blockquote{
+	color:#64748b;
+}
+[data-theme="light"] .richTextContent code,
+[data-theme="light"] .messageString code{
+	background:rgba(15,23,42,0.06);
+}
+[data-theme="light"] .richTextContent .is-editor-empty:first-child::before{
+	color:#334155;
+	opacity:0.5;
+}
+[data-theme="light"] .richTextToolbarBtn{
+	color:#64748b;
+}
+[data-theme="light"] .richTextToolbarBtn:hover{
+	background:rgba(15,23,42,0.06);
+	color:#0f172a;
+}
+[data-theme="light"] .richTextToolbarBtnActive{
+	color:#0f172a;
+}
+[data-theme="light"] .richTextToolbarDivider{
+	background:rgba(15,23,42,0.1);
 }
 [data-theme="light"] .modalTextLink{
 	color:#64748b;
@@ -2019,6 +2407,7 @@ footer{
 	background:rgba(15,23,42,0.04);
 	border-color:rgba(15,23,42,0.12);
 }
+
 [data-theme="light"] .adminFilterClear:hover{
 	background:rgba(15,23,42,0.08);
 }

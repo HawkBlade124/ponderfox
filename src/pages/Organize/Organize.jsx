@@ -2,7 +2,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import DashMenu from "../../components/DashMenu.jsx";
-import PonderFoxMark from "../../components/PonderFoxMark.jsx";
+import EmptyStateArt from "../../components/EmptyStateArt.jsx";
 import TopProfileTile from "../../components/TopProfileTile.jsx";
 import SearchBox from "../../components/SearchBox.jsx";
 import EntityList from "../../components/EntityList.jsx";
@@ -142,7 +142,7 @@ function Organize() {
                 <i className={activeTab.icon}></i> {activeTab.plural}
               </h2>
               <div className="emptyState">
-                <PonderFoxMark size={110} className="emptyStateArt" />
+                <EmptyStateArt size={110} className="emptyStateArt" />
                 <p>{activeTab.description}</p>
                 <span className="comingSoonBadge">Coming soon</span>
               </div>
