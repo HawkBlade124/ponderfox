@@ -7,6 +7,8 @@ import About from "./pages/About/About";
 import Contact from "./pages/Contact/Contact";
 import Pricing from "./pages/Pricing/Pricing";
 import Login from "./pages/Login/Login";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import Register from "./pages/Register/Register";
 import Welcome from "./pages/Welcome/Welcome";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -29,6 +31,8 @@ function App() {
   const noLayoutRoutes = [
     "/login",
     "/register",
+    "/forgot-password",
+    "/reset-password",
     "/welcome",
     "/dashboard",
     "/thoughts",
@@ -59,6 +63,8 @@ function App() {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/thoughts" element={<Dashboard />} />

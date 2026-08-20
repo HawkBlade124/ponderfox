@@ -9,7 +9,7 @@ const FRONTEND_URL = (process.env.FRONTEND_URL || "https://ponderfox.com").repla
 export function buildEmailFromType(type, context = {}) {
   switch (type) {
     case "password_reset": {
-      const token = jwt.sign(
+      const token = context.resetToken || jwt.sign(
         { id: context.userId, purpose: "password_reset" },
         context.secretKey,
         { expiresIn: "1h" }

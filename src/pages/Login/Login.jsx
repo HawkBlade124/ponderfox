@@ -128,6 +128,10 @@ function Login() {
           Remember me
         </label>
 
+        <Link to="/forgot-password" className="-mt-3 text-sm text-[#438eef] hover:underline">
+          Forgot your password?
+        </Link>
+
         {error && <p className="text-red-400 text-sm">{error}</p>}
         {success && <p className="text-green-400 text-sm">Login successful!</p>}
 

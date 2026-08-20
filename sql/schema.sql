@@ -19,6 +19,16 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS "NewsletterEnabled" BOOLEAN NOT NULL 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "WeeklyDigestEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "DailyDigestEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
 
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  "PasswordResetTokenID" SERIAL PRIMARY KEY,
+  "UserID" INT NOT NULL REFERENCES users("UserID") ON DELETE CASCADE,
+  "TokenHash" CHAR(64) NOT NULL UNIQUE,
+  "ExpiresAt" TIMESTAMP NOT NULL,
+  "DateCreated" TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user ON password_reset_tokens ("UserID");
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expiry ON password_reset_tokens ("ExpiresAt");
+
 -- Unlike the flags above, this one needs different values for existing vs.
 -- future rows (existing accounts shouldn't see onboarding on their next
 -- login), so it can't be a plain ADD COLUMN DEFAULT. The backfill only runs
