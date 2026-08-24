@@ -135,7 +135,7 @@ function DashMenu() {
           </div>
         </div>
       )}
-      <div id="mobileMenu" className={`leftSidebar ${mobileMenu ? "flex" : "hidden"} lg:flex`}>
+      <div id="mobileMenu" className={`leftSidebar flex ${mobileMenu ? "leftSidebarOpen" : ""} lg:flex`}>
         <span className="sidebarGlow sidebarGlowBlue" aria-hidden="true"></span>
         <span className="sidebarGlow sidebarGlowCyan" aria-hidden="true"></span>
 
@@ -211,7 +211,7 @@ function DashMenu() {
           )}
         </div>
       </div>
-      <div id="dashOverlay" className={`lg:hidden w-full h-full ${mobileMenu ? "block" : "hidden"}`} onClick={closeMobileMenu}></div>
+      <div id="dashOverlay" className={`lg:hidden w-full h-full ${mobileMenu ? "dashOverlayOpen" : ""}`} onClick={closeMobileMenu}></div>
     </>
   );
 }

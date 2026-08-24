@@ -439,7 +439,7 @@ if (!user) return null;
 
   return (
     <div id="dashboard" className="w-full">
-      <EditModal  isOpen={showEditModal}  onClose={() => setShowEditModal(false)} thought={selectedThought}  onSave={editThought}/>
+      <EditModal  isOpen={showEditModal}  onClose={() => setShowEditModal(false)} thought={selectedThought}  onSave={editThought} onDelete={() => { setShowEditModal(false); deleteThoughtModal(selectedThought); }}/>
       <DeleteModal  isOpen={showDeleteModal}  onClose={() => setShowDeleteModal(false)} thought={selectedThought}  onConfirm={() => deleteThought(selectedThought.ThoughtID)}/>
      <AddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onConfirm={(ThoughtName, ThoughtDescr) => addThought(ThoughtName, ThoughtDescr)}/>
     <AddFolderModal isOpen={showAddFolderModal} onClose={() => setShowAddFolderModal(false)} onConfirm={(folderName) => addFolder(folderName)}/>
@@ -447,7 +447,7 @@ if (!user) return null;
       <div id="dashWrap" className="flex w-full">
         <DashMenu />
       <div className="rightScreen w-full p-6 ml">
-      <div id="homeHead" className="flex justify-between items-center">
+      <div id="homeHead" className="flex flex-wrap justify-between items-center gap-3">
         <div>
           <div className="dashBreadcrumb">
             Pages <i className="fa-regular fa-chevron-right text-[10px] mx-1"></i>{" "}
@@ -457,14 +457,14 @@ if (!user) return null;
               <span>Dashboard</span>
             )}
           </div>
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-semibold text-white">{GroupName || "Your Thought Dashboard"}</h1>
+          <div className="flex items-center flex-wrap gap-4">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-white">{GroupName || "Your Thought Dashboard"}</h1>
             {!GroupName && (
               <span id="tierName" style={{ color: getTierColor(user.Tier), backgroundColor: `${getTierColor(user.Tier)}80` }}>{user.Tier}</span>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           {displayThoughts.length + sortedFolders.length > 1 && (
             <SearchBox value={brainDumpSearch} onChange={(e) => setBrainDumpSearch(e.target.value)} placeholder="Search thoughts and folders" />
           )}
@@ -482,7 +482,7 @@ if (!user) return null;
             <i className={`fa-regular ${groupIcon} text-[var(--accent)]`}></i>
             {GroupName || "Your Brain Dump"}
           </h2>
-          <div className="flex items-center gap-2 w-full lg:w-auto">
+          <div className="flex items-center flex-wrap gap-2 w-full lg:w-auto">
           {displayThoughts.length + sortedFolders.length > 1 && (
             <>
             <select className="sortSelect" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
@@ -543,12 +543,12 @@ if (!user) return null;
               <h3 className="dashGroupLabel"><i className="fa-solid fa-folder"></i> Folders</h3>
               <div className={`grid ${gridSizeClasses[gridSize]} gap-6 w-full text-3xl place-items-center`}>
                 {searchedFolders.map((l) => (
-                  <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem w-full flex flex-col items-center justify-between no-underline">
+                  <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem folderItem w-full flex flex-col items-center justify-between no-underline">
                     <div className="flex justify-between w-full">
-                      <i className="text-xl fa-solid fa-folder text-[var(--accent)]"></i>
+                      <i className="folderItemIcon fa-solid fa-folder text-[var(--accent)]"></i>
                     </div>
                     <div className="thoughtName">{l.ListName}</div>
-                    <div className="text-lg text-slate-400">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
+                    <div className="folderItemCount text-slate-400">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
                   </Link>
                 ))}
               </div>
@@ -562,14 +562,11 @@ if (!user) return null;
                   <Link
                     key={i}
                     to={`/thought/${encodeURIComponent(f.ThoughtName)}`}
-                    className="thoughtItem w-full flex flex-col items-center justify-between no-underline"
+                    className="thoughtItem thoughtGridItem w-full flex flex-col items-center justify-between no-underline"
                   >
                     <div className="flex justify-between w-full">
-                      <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-xl cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[var(--accent)]" : "fa-regular fa-thumbtack-angle"}`}></i>
-                      <div className="flex">
-                        <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); favoriteThought(f.ThoughtID, !f.Favorite); }} className={`text-xl cursor-pointer ${f.Favorite ? "fa-solid fa-heart text-red-500" : "fa-regular fa-heart"}`}/>
-                        <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-xl cursor-pointer fa-regular fa-circle-info"/>
-                      </div>
+                      <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`thoughtItemIconPrimary cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[var(--accent)]" : "fa-regular fa-thumbtack-angle"}`}></i>
+                      <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="thoughtItemIconPrimary cursor-pointer fa-regular fa-circle-info"/>
                     </div>
                     <div className="flex items-center justify-center gap-2 w-full">
                       <div className="thoughtName">{f.ThoughtName}</div>
@@ -580,14 +577,8 @@ if (!user) return null;
                       )}
                     </div>
                     <div className="flex flex-col items-center gap-1">
-                      <div className="text-lg">{f.ThoughtDescr}</div>
+                      <div className="thoughtItemDescr">{f.ThoughtDescr}</div>
                       <div className="thoughtMeta text-xs text-slate-400">{formatRelativeTime(f.DateCreated)}</div>
-                    </div>
-                    <div className="thoughtFoot flex items-center justify-end w-full mt-5">
-                      <div className="thoughtFunctions flex items-center justify-end w-full gap-1">
-                        <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-xl fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>
-                        <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteThoughtModal(f); }} className="text-xl fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-200"></i>
-                      </div>
                     </div>
                   </Link>
                 ))}
@@ -632,11 +623,9 @@ if (!user) return null;
                       </div>
                       <div className="text-sm text-slate-400 truncate">{f.ThoughtDescr}</div>
                     </div>
-                    <span className="thoughtMeta text-xs text-slate-500 shrink-0">{formatRelativeTime(f.DateCreated)}</span>
-                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); favoriteThought(f.ThoughtID, !f.Favorite); }} className={`text-lg cursor-pointer ${f.Favorite ? "fa-solid fa-heart text-red-500" : "fa-regular fa-heart"}`}/>
+                    <span className="thoughtMeta text-xs text-slate-500 shrink-0">{formatRelativeTime(f.DateCreated)}</span>                    
                     <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-lg cursor-pointer fa-regular fa-circle-info"/>
-                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-lg fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>
-                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteThoughtModal(f); }} className="text-lg fa-solid fa-trash cursor-pointer text-red-500 hover:text-red-200"></i>
+                    <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-lg fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>                    
                   </Link>
                 ))}
               </div>
@@ -689,7 +678,7 @@ if (!user) return null;
         </section>
         <section className="dashBody">
           <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-list-tree text-[var(--accent)]"></i> Lists</h2>
-          {listsOverview.length > DASH_PREVIEW_LIMIT && (
+          {listsOverview.length > 0 && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>
               <input type="text" value={listsSearch} onChange={(e) => setListsSearch(e.target.value)} placeholder="Search lists" />
@@ -721,7 +710,7 @@ if (!user) return null;
         </section>
         <section className="dashBody">
           <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-images text-[var(--accent)]"></i> Mood Boards</h2>
-          {moodBoards.length > DASH_PREVIEW_LIMIT && (
+          {moodBoards.length > 0 && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>
               <input type="text" value={moodBoardsSearch} onChange={(e) => setMoodBoardsSearch(e.target.value)} placeholder="Search mood boards" />

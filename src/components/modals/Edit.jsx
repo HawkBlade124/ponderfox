@@ -1,7 +1,7 @@
 import ReactModal from "react-modal";
 import { useState, useEffect } from "react";
 
-function EditModal({ isOpen, onClose, thought, token, onSave }) {
+function EditModal({ isOpen, onClose, thought, token, onSave, onDelete }) {
   const [thoughtName, setThoughtName] = useState("");
   const [thoughtDescr, setThoughtDescr] = useState("");
   const [categories, setCategories] = useState([]);
@@ -198,6 +198,11 @@ function EditModal({ isOpen, onClose, thought, token, onSave }) {
         <button type="button" className="modalTextLink" onClick={onClose}>
           Cancel
         </button>
+        {onDelete && (
+          <button type="button" className="modalTextLink modalTextLinkDanger" onClick={onDelete}>
+            <i className="fa-regular fa-trash"></i> Delete Thought
+          </button>
+        )}
       </form>
     </ReactModal>
   );

@@ -3,6 +3,8 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import SearchBox from "../../components/SearchBox.jsx";
 import RichTextEditor from "../../components/RichTextEditor.jsx";
+import DeleteModal from "../../components/modals/Delete.jsx";
+import EditThoughtInfoModal from "../../components/modals/EditThoughtInfo.jsx";
 import axios from "axios";
 import DOMPurify from "dompurify";
 
@@ -48,6 +50,8 @@ function Thought() {
   const [error, setError] = useState("");
   const [hoveredId, setHoveredId] = useState(null);
   const [activeTab, setActiveTab] = useState("main");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const [pendingAttachments, setPendingAttachments] = useState([]); // [{ url, name, type }]
   const [uploading, setUploading] = useState(false);
@@ -436,8 +440,56 @@ function Thought() {
     }
   };
 
+  // ---------- Delete thought ----------
+  const deleteThought = async () => {
+    try {
+      const res = await fetch(`${apiBase}/thoughts/${ThoughtID}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        navigate("/dashboard");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to delete thought");
+      }
+    } catch (err) {
+      console.error("Delete thought error:", err);
+      setError("An error occurred while deleting.");
+    }
+  };
+
+  // ---------- Edit thought name/description ----------
+  const editThoughtInfo = async (newName, newDescr) => {
+    try {
+      const res = await fetch(`${apiBase}/thoughts/${ThoughtID}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ThoughtName: newName, ThoughtDescr: newDescr }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setThoughtDescription(newDescr);
+        if (newName !== ThoughtName) {
+          navigate(`/thought/${encodeURIComponent(newName)}`, { replace: true });
+        }
+      } else {
+        setError(data.error || "Failed to update thought");
+      }
+    } catch (err) {
+      console.error("Edit thought error:", err);
+      setError("An error occurred while saving.");
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden thoughtPageFadeIn">
       <div id="headBar" className="lg:hidden flex items-center justify-between p-4">
         <Link to="/dashboard" className="mobileBackBtn flex items-center justify-center">
           <i className="fa-solid fa-arrow-left"></i>
@@ -728,8 +780,31 @@ function Thought() {
               <button type="button" onClick={addLists} className="modalInlineAddBtn"><i className="fa-solid fa-plus"></i></button>
             </div>
           </section>
+
+          <div className="flex justify-end mt-2">
+            <i
+              className="fa-solid fa-cog sidebarSettingsCog cursor-pointer"
+              title="Thought settings"
+              onClick={() => setShowSettingsModal(true)}
+            ></i>
+          </div>
         </div>
       </div>
+
+      <EditThoughtInfoModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        thoughtName={ThoughtName}
+        thoughtDescr={ThoughtDescription}
+        onSave={editThoughtInfo}
+        onDelete={() => { setShowSettingsModal(false); setShowDeleteModal(true); }}
+      />
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        itemName={ThoughtName}
+        onConfirm={deleteThought}
+      />
     </div>
   );
 }

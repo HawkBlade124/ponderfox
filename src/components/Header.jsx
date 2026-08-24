@@ -69,14 +69,20 @@ function Header() {
           </div>
         </div>
       </div>
-      {mobileMenu &&
+      {
       // Rendered as a sibling of .mobileHeader (not nested inside it) because
       // .mobileHeader's backdrop-blur establishes a containing block for
       // position:fixed descendants in Chromium, which traps the overlay
       // inside that small pill instead of the viewport.
-      <div id="flyoutMenu">
+      //
+      // Always mounted (rather than conditional on mobileMenu) so the
+      // open/close transitions on .bodyOverlay and .mobileFlyoutPanel can
+      // actually animate — a conditionally-mounted element has no "before"
+      // state for the browser to transition from/to.
+      }
+      <div id="flyoutMenu" className={mobileMenu ? "flyoutMenuOpen" : ""}>
         <div className="bodyOverlay" onClick={closeMobileMenu}></div>
-        <div className="userSpace">
+        <div className="mobileFlyoutPanel">
           <div className="flyoutNavHead">
             <Link to="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
               <img src={logo} alt="Ponderfox Logo" className="h-6 w-auto" />
@@ -101,7 +107,6 @@ function Header() {
           )}
         </div>
       </div>
-      }
     </header>
   );
 }
