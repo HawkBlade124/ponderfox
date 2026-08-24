@@ -1,0 +1,121 @@
+.legalRoot {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 180px 24px 100px;
+}
+
+@media (max-width: 860px) {
+  .legalRoot {
+    padding: 140px 20px 80px;
+  }
+}
+.legalKicker {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.legalTitle {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin: 0 0 10px;
+  line-height: 1.15;
+}
+.legalUpdated {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+  margin: 0 0 40px;
+}
+.legalIntro {
+  font-size: 17px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 40px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.legalSection {
+  margin: 0 0 36px;
+}
+.legalSectionTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.legalSectionNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.legalSection p {
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0 0 14px;
+}
+.legalSection p:last-child {
+  margin-bottom: 0;
+}
+.legalSection ul {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.legalSection li {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+}
+.legalSection strong {
+  color: #fff;
+}
+.legalSection a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.legalContactBox {
+  margin-top: 50px;
+  padding: 24px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  text-align: center;
+}
+.legalContactBox p {
+  margin: 0 0 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+.legalContactBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+.legalContactBtn:hover {
+  background: color-mix(in srgb, var(--accent) 85%, black);
+}
+.legalCrossLink {
+  margin-top: 14px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}

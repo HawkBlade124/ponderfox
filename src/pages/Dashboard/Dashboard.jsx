@@ -12,6 +12,7 @@ import TopProfileTile from "../../components/TopProfileTile.jsx";
 import SearchBox from "../../components/SearchBox.jsx";
 import { getTierColor } from "../../utils/tier.js";
 import { buildApiUrl } from "../../utils/api.js";
+import { formatRelativeTime } from "../../utils/format.js";
 
 function Dashboard() {
 
@@ -66,7 +67,6 @@ function Dashboard() {
     () => localStorage.getItem("thoughtGridSize") || "medium"
   );
   const [brainDumpSearch, setBrainDumpSearch] = useState("");
-  const [quickAccessSearch, setQuickAccessSearch] = useState("");
   const [recentSearch, setRecentSearch] = useState("");
   const [listsSearch, setListsSearch] = useState("");
   const [moodBoardsSearch, setMoodBoardsSearch] = useState("");
@@ -99,6 +99,13 @@ function Dashboard() {
   const displayThoughts = GroupName ? listThoughts : Thoughts;
   const updateThoughts = GroupName ? setListThoughts : setThoughts;
 
+  // A thought fresh off the "New Thought" modal (or any other partial object)
+  // may be missing DateCreated/Pinned until the next full refetch — Date/Number
+  // conversions on undefined yield NaN, and a NaN-returning comparator makes
+  // Array.prototype.sort's ordering unreliable. Coerce to safe fallbacks so a
+  // stray partial record can't scramble the whole list's order.
+  const dateValue = (thought) => new Date(thought.DateCreated).getTime() || 0;
+
   const sortThoughts = (list) => {
     const compare = (a, b) => {
       switch (sortBy) {
@@ -107,17 +114,17 @@ function Dashboard() {
         case "name-desc":
           return b.ThoughtName.localeCompare(a.ThoughtName);
         case "date-asc":
-          return new Date(a.DateCreated) - new Date(b.DateCreated);
+          return dateValue(a) - dateValue(b);
         case "favorites":
-          return Number(b.Favorite) - Number(a.Favorite);
+          return Number(Boolean(b.Favorite)) - Number(Boolean(a.Favorite));
         case "date-desc":
         default:
-          return new Date(b.DateCreated) - new Date(a.DateCreated);
+          return dateValue(b) - dateValue(a);
       }
     };
 
     return [...list].sort((a, b) => {
-      const pinDiff = Number(b.Pinned) - Number(a.Pinned);
+      const pinDiff = Number(Boolean(b.Pinned)) - Number(Boolean(a.Pinned));
       return pinDiff !== 0 ? pinDiff : compare(a, b);
     });
   };
@@ -134,10 +141,7 @@ function Dashboard() {
 
   const DASH_PREVIEW_LIMIT = 3;
 
-  const pinnedThoughts = [...Thoughts].filter((f) => f.Pinned).sort((a, b) => new Date(b.DateCreated) - new Date(a.DateCreated));
-  const searchedPinnedThoughts = pinnedThoughts.filter((f) => matchesSearch(f, quickAccessSearch)).slice(0, DASH_PREVIEW_LIMIT);
-
-  const recentThoughts = [...Thoughts].sort((a, b) => new Date(b.DateCreated) - new Date(a.DateCreated));
+  const recentThoughts = [...Thoughts].sort((a, b) => dateValue(b) - dateValue(a));
   const searchedRecentThoughts = recentThoughts.filter((f) => matchesSearch(f, recentSearch)).slice(0, DASH_PREVIEW_LIMIT);
 
   const searchedListsOverview = listsOverview
@@ -567,8 +571,18 @@ if (!user) return null;
                         <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-xl cursor-pointer fa-regular fa-circle-info"/>
                       </div>
                     </div>
-                    <div className="thoughtName">{f.ThoughtName}</div>
-                    <div className="text-lg">{f.ThoughtDescr}</div>
+                    <div className="flex items-center justify-center gap-2 w-full">
+                      <div className="thoughtName">{f.ThoughtName}</div>
+                      {f.VoiceUsed && (
+                        <span className="voiceUsedBadge" title="Voice note added">
+                          <i className="fa-solid fa-microphone-lines"></i>
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="text-lg">{f.ThoughtDescr}</div>
+                      <div className="thoughtMeta text-xs text-slate-400">{formatRelativeTime(f.DateCreated)}</div>
+                    </div>
                     <div className="thoughtFoot flex items-center justify-end w-full mt-5">
                       <div className="thoughtFunctions flex items-center justify-end w-full gap-1">
                         <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-xl fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>
@@ -608,9 +622,17 @@ if (!user) return null;
                   <Link key={i} to={`/thought/${encodeURIComponent(f.ThoughtName)}`} className="thoughtRow w-full flex items-center gap-4">
                     <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`text-lg cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[var(--accent)]" : "fa-regular fa-thumbtack-angle"}`}></i>
                     <div className="flex-1 min-w-0">
-                      <div className="thoughtName truncate">{f.ThoughtName}</div>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="thoughtName truncate">{f.ThoughtName}</div>
+                        {f.VoiceUsed && (
+                          <span className="voiceUsedBadge" title="Voice note added">
+                            <i className="fa-solid fa-microphone-lines"></i>
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-slate-400 truncate">{f.ThoughtDescr}</div>
                     </div>
+                    <span className="thoughtMeta text-xs text-slate-500 shrink-0">{formatRelativeTime(f.DateCreated)}</span>
                     <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); favoriteThought(f.ThoughtID, !f.Favorite); }} className={`text-lg cursor-pointer ${f.Favorite ? "fa-solid fa-heart text-red-500" : "fa-regular fa-heart"}`}/>
                     <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="text-lg cursor-pointer fa-regular fa-circle-info"/>
                     <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); editSingleThought(f); }} className="text-lg fa-solid fa-cog cursor-pointer hover:text-blue-200"></i>
@@ -625,7 +647,7 @@ if (!user) return null;
       </section>
 
       {!GroupName && (
-      <div id="dashGrid" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-5">
+      <div id="dashGrid" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mt-5">
         <section className="dashBody">
           <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-clock-rotate-left text-[var(--accent)]"></i> Recent</h2>
           {Thoughts.length > DASH_PREVIEW_LIMIT && (
@@ -649,39 +671,14 @@ if (!user) return null;
               {searchedRecentThoughts.map((f) => (
                 <Link key={f.ThoughtID} to={`/thought/${encodeURIComponent(f.ThoughtName)}`} className="thoughtRow thoughtRowCompact flex items-center gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="thoughtName truncate">{f.ThoughtName}</div>
-                    <div className="text-xs text-slate-400 truncate">{f.ThoughtDescr}</div>
-                  </div>
-                  <i className="fa-regular fa-chevron-right text-xs text-slate-500"></i>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-        <section className="dashBody">
-          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-bolt text-[var(--accent)]"></i> Quick Access</h2>
-          {pinnedThoughts.length > DASH_PREVIEW_LIMIT && (
-            <div className="dashSearchInput dashSearchInputFull mt-2">
-              <i className="fa-regular fa-magnifying-glass"></i>
-              <input type="text" value={quickAccessSearch} onChange={(e) => setQuickAccessSearch(e.target.value)} placeholder="Search pinned" />
-            </div>
-          )}
-          {pinnedThoughts.length === 0 ? (
-            <div className="emptyState emptyStateSmall">
-              <EmptyStateArt size={48} className="emptyStateArt" />
-              <p>No pinned thoughts</p>
-            </div>
-          ) : searchedPinnedThoughts.length === 0 ? (
-            <div className="emptyState emptyStateSmall">
-              <EmptyStateArt size={48} className="emptyStateArt" />
-              <p>No matches</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2 mt-2">
-              {searchedPinnedThoughts.map((f) => (
-                <Link key={f.ThoughtID} to={`/thought/${encodeURIComponent(f.ThoughtName)}`} className="thoughtRow thoughtRowCompact flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="thoughtName truncate">{f.ThoughtName}</div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="thoughtName truncate">{f.ThoughtName}</div>
+                      {f.VoiceUsed && (
+                        <span className="voiceUsedBadge voiceUsedBadgeSmall" title="Voice note added">
+                          <i className="fa-solid fa-microphone-lines"></i>
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-slate-400 truncate">{f.ThoughtDescr}</div>
                   </div>
                   <i className="fa-regular fa-chevron-right text-xs text-slate-500"></i>

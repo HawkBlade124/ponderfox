@@ -25,6 +25,7 @@ const navGroups = [
       { pathname: "/thoughts", to: "/thoughts", tab: null, label: "Thoughts", icon: "fa-regular fa-thought-bubble" },
       { pathname: "/prompts", to: "/prompts", tab: null, label: "Prompts", icon: "fa-regular fa-microphone-stand" },
       { pathname: "/mood-boards", to: "/mood-boards", tab: null, label: "Mood Boards", icon: "fa-regular fa-game-board" },
+      { pathname: "/voice", to: "/voice", tab: null, label: "Voice", icon: "fa-regular fa-microphone-lines" },
     ],
   },
   {

@@ -24,6 +24,9 @@ import Timers from "./pages/Timers/Timers";
 import MoodBoards from "./pages/MoodBoards/MoodBoards";
 import MoodBoardDetail from "./pages/MoodBoards/MoodBoardDetail";
 import Insights from "./pages/Insights/Insights";
+import Voice from "./pages/Voice/Voice";
+import Privacy from "./pages/Privacy/Privacy";
+import Terms from "./pages/Terms/Terms";
 import { useLocation } from "react-router-dom";
 
 function App() {
@@ -47,6 +50,7 @@ function App() {
     "/timers",
     "/mood-boards",
     "/insights",
+    "/voice",
   ];
 
   const hideLayout =
@@ -85,6 +89,9 @@ function App() {
         <Route path="/mood-boards" element={<MoodBoards />} />
         <Route path="/mood-boards/:moodBoardId" element={<MoodBoardDetail />} />
         <Route path="/insights" element={<Insights />} />
+        <Route path="/voice" element={<Voice />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
       </Routes>
       {!hideLayout && <Footer />}
     </>

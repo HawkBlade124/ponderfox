@@ -27,6 +27,11 @@ function Footer(){
                         <Link to="/register">Register</Link>
                         <Link to="/settings">Account</Link>
                     </div>
+                    <div className="footCol flex flex-col">
+                        <h2 className="text-2xl font-bold">Legal</h2>
+                        <Link to="/privacy">Privacy Policy</Link>
+                        <Link to="/terms">Terms of Use</Link>
+                    </div>
                 </div>
             </footer>
         </>

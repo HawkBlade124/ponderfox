@@ -1171,6 +1171,129 @@ height:90vh
 .thoughtRowCompact .thoughtName{
 	font-size:13px;
 }
+.thoughtItem{
+	position:relative;
+}
+.voiceUsedBadge{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	width:20px;
+	height:20px;
+	border-radius:999px;
+	background:color-mix(in srgb, var(--accent) 20%, transparent);
+	color:var(--accent);
+	font-size:10px;
+	flex-shrink:0;
+}
+.voiceUsedBadgeSmall{
+	width:16px;
+	height:16px;
+	font-size:8px;
+}
+.voiceUnsupportedNote{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	margin-top:14px;
+	padding:10px 14px;
+	border-radius:10px;
+	background:color-mix(in srgb, #f5a623 12%, transparent);
+	border:1px solid color-mix(in srgb, #f5a623 35%, transparent);
+	color:#f5c069;
+	font-size:13px;
+}
+.voiceDictationPanel{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+	margin-top:10px;
+	padding:12px;
+	border-radius:14px;
+	background:#0b0e17;
+	border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.voiceDictationPanelOverlay{
+	position:absolute;
+	inset:8px;
+	margin-top:0;
+	z-index:10;
+	overflow-y:auto;
+	color:#cdd6e8;
+}
+.voiceDictationStatus{
+	display:flex;
+	align-items:center;
+	gap:6px;
+	font-size:12px;
+	font-weight:600;
+	color:var(--accent);
+}
+.voiceDictationText{
+	font-size:13px;
+	line-height:1.4;
+	color:#cdd6e8;
+	max-height:90px;
+	overflow-y:auto;
+}
+.voiceDictationPlaceholder{
+	color:#5b6472;
+	font-style:italic;
+}
+.voiceDictationError{
+	font-size:12px;
+	color:#ff8a7a;
+}
+.voiceDictationActions{
+	display:flex;
+	gap:6px;
+	margin-top:auto;
+}
+.voiceDictationBtn{
+	flex:1;
+	background:#10131c;
+	color:#cdd6e8;
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+	border-radius:8px;
+	padding:6px 8px;
+	font-size:12px;
+	cursor:pointer;
+	transition:background 0.15s ease;
+}
+.voiceDictationBtn:hover{
+	background:color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.voiceDictationBtn:disabled{
+	opacity:0.5;
+	cursor:not-allowed;
+}
+.voiceDictationBtnPrimary{
+	background:color-mix(in srgb, var(--accent) 24%, transparent);
+	color:#fff;
+	border-color:color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.voiceDictationBtnPrimary:hover{
+	background:color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.voiceDictationSuccess{
+	display:flex;
+	align-items:center;
+	gap:6px;
+	margin-top:8px;
+	font-size:12px;
+	color:#7ee0a8;
+}
+.voiceDictationSuccessOverlay{
+	position:absolute;
+	left:10px;
+	right:10px;
+	bottom:10px;
+	background:#0b0e17;
+	border:1px solid color-mix(in srgb, #7ee0a8 40%, transparent);
+	border-radius:10px;
+	padding:6px 10px;
+	margin-top:0;
+}
 .emptyState{
 	display:flex;
 	flex-direction:column;
@@ -1988,7 +2111,7 @@ height:90vh
 }
 @media (min-width:640px){
 	#footWrap{
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 }
 footer{

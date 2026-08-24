@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { buildApiUrl } from "../../utils/api.js";
@@ -16,8 +16,9 @@ function Welcome() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [skipping, setSkipping] = useState(false);
+  const [checkingExistingThoughts, setCheckingExistingThoughts] = useState(true);
 
-  const completeOnboarding = async () => {
+  const completeOnboarding = useCallback(async () => {
     const res = await fetch(`${buildApiUrl()}/me/onboarding-complete`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
@@ -27,7 +28,7 @@ function Welcome() {
       setUser(data.user);
       localStorage.setItem("user", JSON.stringify(data.user));
     }
-  };
+  }, [token, setUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -87,7 +88,37 @@ function Welcome() {
     if (user.HasOnboarded) navigate("/dashboard", { replace: true });
   }, [user, navigate]);
 
-  if (loading || !user || user.HasOnboarded) return null;
+  useEffect(() => {
+    if (!user || !token || user.HasOnboarded) {
+      if (user?.HasOnboarded) setCheckingExistingThoughts(false);
+      return;
+    }
+
+    let cancelled = false;
+    const checkExistingThoughts = async () => {
+      try {
+        const res = await fetch(`${buildApiUrl()}/thoughts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+
+        const thoughts = await res.json();
+        if (Array.isArray(thoughts) && thoughts.length > 0) {
+          await completeOnboarding();
+          if (!cancelled) navigate("/dashboard", { replace: true });
+        }
+      } catch (err) {
+        console.error("Error checking existing thoughts:", err);
+      } finally {
+        if (!cancelled) setCheckingExistingThoughts(false);
+      }
+    };
+
+    checkExistingThoughts();
+    return () => { cancelled = true; };
+  }, [user, token, navigate, completeOnboarding]);
+
+  if (loading || !user || user.HasOnboarded || checkingExistingThoughts) return null;
 
   return (
     <div className="rightScreen w-full min-h-screen flex items-center justify-center p-6">

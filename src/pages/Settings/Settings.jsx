@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAccentColor } from "../../context/AccentColorContext.jsx";
@@ -640,6 +641,26 @@ function Settings() {
                       Save Changes
                     </button>
                   </div>
+                </div>
+              </section>
+
+              <section className="dashBody settingsSection mt-5">
+                <h2 className="settingsSectionTitle">Legal</h2>
+                <p className="settingsSectionSubtitle">Where to find our policies.</p>
+
+                <div className="settingsPreferenceRow">
+                  <div>
+                    <div className="settingsPreferenceLabel">Privacy Policy</div>
+                    <div className="settingsPreferenceHint">What we collect and how we use it.</div>
+                  </div>
+                  <Link to="/privacy" className="modalButtons modalButtonsSecondary">View</Link>
+                </div>
+                <div className="settingsPreferenceRow">
+                  <div>
+                    <div className="settingsPreferenceLabel">Terms of Use</div>
+                    <div className="settingsPreferenceHint">The rules for using Ponderfox.</div>
+                  </div>
+                  <Link to="/terms" className="modalButtons modalButtonsSecondary">View</Link>
                 </div>
               </section>
             </>
