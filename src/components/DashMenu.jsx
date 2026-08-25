@@ -2,9 +2,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getTierColor } from "../utils/tier.js";
-import { buildApiUrl } from "../utils/api.js";
 import { getInitials } from "../utils/user.js";
-import { formatBytes } from "../utils/format.js";
 import logoMark from "../assets/ponder-fox-verticle.png";
 
 const menuItems = [
@@ -51,7 +49,7 @@ const navGroups = [
 ];
 
 function DashMenu() {
-  const { user, token, logout } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -59,7 +57,6 @@ function DashMenu() {
     setMobileMenu((prev) => !prev);
   };
 
-  const [storageBytes, setStorageBytes] = useState(null);
   const [openGroups, setOpenGroups] = useState(() => {
     const initial = new Set();
     navGroups.forEach((group) => {
@@ -82,21 +79,15 @@ function DashMenu() {
     });
   };
 
+  // Lock the page underneath while the mobile flyout is open, so the
+  // backdrop can't be scrolled behind it.
   useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-
-    fetch(`${buildApiUrl()}/me/storage`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled && data.success) setStorageBytes(data.bytes);
-      })
-      .catch(() => {});
-
+    if (!mobileMenu) return;
+    document.body.style.overflow = "hidden";
     return () => {
-      cancelled = true;
+      document.body.style.overflow = "";
     };
-  }, [token]);
+  }, [mobileMenu]);
 
   const isActive = (to) => location.pathname.startsWith(to);
   const activeTab = new URLSearchParams(location.search).get("tab");
@@ -168,7 +159,7 @@ function DashMenu() {
                     <span className="sidebarLinkLabel">{group.label}</span>
                     <i className={`fa-regular fa-chevron-right sidebarLinkChevron ${open ? "sidebarLinkChevronOpen" : ""}`}></i>
                   </div>
-                  {open && (
+                  <div className={`sidebarSubNavWrap ${open ? "sidebarSubNavOpen" : ""}`}>
                     <div className="sidebarSubNav">
                       {group.children.map((child) => (
                         <Link key={child.to} to={child.to} className={`sidebarSubLink ${isChildActive(child) ? "sidebarSubLinkActive" : ""}`}>
@@ -177,7 +168,7 @@ function DashMenu() {
                         </Link>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
@@ -200,13 +191,10 @@ function DashMenu() {
 
           {user && (
             <div className="sidebarFooter">
-              <div className="sidebarStorageInfo">
-                <div className="sidebarStorageLabel"><i className="fa-regular fa-hard-drive"></i> Storage used</div>
-                <div className="sidebarStorageValue">
-                  {storageBytes === null ? "…" : formatBytes(storageBytes)}
-                </div>
-              </div>
-              <i className="fa-regular fa-arrow-right-from-bracket sidebarLogoutIcon" title="Logout" onClick={logout}></i>
+              <button type="button" className="sidebarLink sidebarLogoutButton" onClick={logout}>
+                <span className="sidebarLinkIcon"><i className="fa-regular fa-arrow-right-from-bracket"></i></span>
+                <span className="sidebarLinkLabel">Log Out</span>
+              </button>
             </div>
           )}
         </div>

@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { getInitials } from "../utils/user.js";
 
 function TopProfileTile() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   if (!user) return null;
 
@@ -21,7 +21,6 @@ function TopProfileTile() {
           <i className="fa-solid fa-arrow-up"></i> Upgrade
         </Link>
       )}
-      <i className="fa-regular fa-arrow-right-from-bracket topProfileLogout" title="Logout" onClick={logout}></i>
     </div>
   );
 }

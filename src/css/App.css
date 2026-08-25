@@ -923,11 +923,21 @@ height:90vh
 .sidebarLinkChevronOpen{
 	transform:rotate(90deg);
 }
+.sidebarSubNavWrap{
+	display:grid;
+	grid-template-rows:0fr;
+	transition:grid-template-rows 0.25s ease;
+}
+.sidebarSubNavWrap.sidebarSubNavOpen{
+	grid-template-rows:1fr;
+}
 .sidebarSubNav{
 	display:flex;
 	flex-direction:column;
 	gap:2px;
 	padding:2px 0 4px 16px;
+	overflow:hidden;
+	min-height:0;
 }
 .sidebarSubLink{
 	display:flex;
@@ -955,7 +965,6 @@ height:90vh
 	align-items:center;
 	gap:10px;
 	padding:14px 16px;
-	border-top:1px solid rgba(255,255,255,0.1);
 }
 .sidebarAvatar{
 	width:36px;
@@ -970,34 +979,12 @@ height:90vh
 	font-weight:700;
 	color:#fff;
 }
-.sidebarStorageInfo{
-	flex:1;
-	min-width:0;
-}
-.sidebarStorageLabel{
-	display:flex;
-	align-items:center;
-	gap:6px;
-	font-size:11px;
-	color:rgba(230,235,245,0.5);
-	white-space:nowrap;
-}
-.sidebarStorageValue{
-	font-size:13px;
-	font-weight:600;
-	color:#fff;
-	white-space:nowrap;
-	overflow:hidden;
-	text-overflow:ellipsis;
-}
-.sidebarLogoutIcon{
-	color:rgba(230,235,245,0.5);
-	cursor:pointer;
-	transition:color 0.15s ease;
-	flex-shrink:0;
-}
-.sidebarLogoutIcon:hover{
-	color:#ff8a7a;
+.sidebarLogoutButton{
+	width:100%;
+	background:none;
+	border:none;
+	font:inherit;
+	text-align:left;
 }
 .topProfileTile{
 	display:flex;
@@ -1637,6 +1624,188 @@ height:90vh
 	font-size:12px;
 	color:#5b6472;
 	margin-top:3px;
+}
+.settingsProfileTier{
+	display:flex;
+	flex-direction:column;
+	align-items:flex-end;
+	gap:6px;
+	flex-shrink:0;
+}
+.settingsProfileTierPrice{
+	font-size:12px;
+	color:#7c8699;
+}
+.planSidebar{
+	width:100%;
+	max-width:280px;
+	flex-shrink:0;
+	padding:24px 0 24px 24px;
+}
+.planCard{
+	background:#10131c;
+	border:1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+	border-radius:20px;
+	overflow:hidden;
+	display:flex;
+	flex-direction:column;
+}
+.planCardHeader{
+	position:relative;
+	padding:34px 20px 26px;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+}
+.planCardBadge{
+	position:absolute;
+	top:-11px;
+	left:50%;
+	transform:translateX(-50%);
+	background:#0b0e17;
+	font-size:10px;
+	font-weight:800;
+	letter-spacing:0.06em;
+	padding:6px 14px;
+	border-radius:999px;
+	white-space:nowrap;
+	box-shadow:0 4px 12px rgba(0,0,0,0.35);
+}
+.planCardIcon{
+	font-size:44px;
+	color:#fff;
+	filter:drop-shadow(0 6px 14px rgba(0,0,0,0.25));
+}
+.planCardBody{
+	padding:20px 20px 22px;
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	text-align:center;
+}
+.planCardName{
+	font-size:26px;
+	font-weight:800;
+	color:#fff;
+}
+.planCardPrice{
+	font-size:14px;
+	color:#9aa4b8;
+	margin-top:2px;
+}
+.planCardPriceUnit{
+	font-size:12px;
+	color:#5b6472;
+}
+.planCardCta{
+	width:100%;
+	margin-top:18px;
+	border:none;
+	border-radius:999px;
+	padding:14px 20px;
+	color:#fff;
+	font-weight:800;
+	font-size:15px;
+	cursor:pointer;
+	box-shadow:0 10px 22px rgba(0,0,0,0.28);
+	transition:filter 0.15s ease, transform 0.15s ease;
+}
+.planCardCta:hover{
+	filter:brightness(1.07);
+}
+.planCardCta:active{
+	transform:scale(0.98);
+}
+.planCardCta:disabled{
+	opacity:0.7;
+	cursor:not-allowed;
+}
+.planCardMaxTierNote{
+	margin-top:18px;
+	font-size:13px;
+	color:#9aa4b8;
+	font-weight:700;
+}
+.planCardDivider{
+	width:100%;
+	height:0;
+	border-top:1px solid rgba(255,255,255,0.08);
+	margin:18px 0;
+}
+.planCardFeatureList{
+	list-style:none;
+	padding:0;
+	margin:0;
+	display:flex;
+	flex-direction:column;
+	gap:10px;
+	width:100%;
+	text-align:left;
+}
+.planCardFeatureItem{
+	font-size:13px;
+	color:#c7d3e0;
+	display:flex;
+	gap:8px;
+	align-items:flex-start;
+}
+.planCardCheckDot{
+	width:16px;
+	height:16px;
+	border-radius:50%;
+	background:color-mix(in srgb, var(--accent) 20%, transparent);
+	color:var(--accent);
+	font-size:9px;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	flex-shrink:0;
+	margin-top:2px;
+}
+.planCardFeatureItemLocked{
+	color:#5b6472;
+}
+.planCardLockDot{
+	width:16px;
+	height:16px;
+	border-radius:50%;
+	background:rgba(255,255,255,0.06);
+	color:#5b6472;
+	font-size:8px;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	flex-shrink:0;
+	margin-top:2px;
+}
+.planCardFooter{
+	width:100%;
+	text-align:center;
+}
+.planCardFooterLabel{
+	font-size:11px;
+	color:#5b6472;
+	text-transform:uppercase;
+	letter-spacing:0.04em;
+}
+.planCardStatus{
+	font-size:13px;
+	color:#c7d3e0;
+	font-weight:600;
+	margin-top:2px;
+}
+.planCardBillingLink{
+	display:inline-block;
+	margin-top:10px;
+	background:none;
+	border:none;
+	color:var(--accent);
+	font-size:12px;
+	font-weight:600;
+	cursor:pointer;
+	text-decoration:underline;
+	padding:0;
+	font-family:inherit;
 }
 .settingsTabBar{
 	display:flex;
@@ -2464,6 +2633,7 @@ footer{
 /* ---- Cards / panels ---- */
 [data-theme="light"] .dashBody,
 [data-theme="light"] .statTile,
+[data-theme="light"] .planCard,
 [data-theme="light"] .adminFilterBar,
 [data-theme="light"] .adminTable thead{
 	background:#ffffff;
@@ -2490,6 +2660,7 @@ footer{
 [data-theme="light"] .statTileValue,
 [data-theme="light"] .settingsProfileName,
 [data-theme="light"] .settingsSectionTitle,
+[data-theme="light"] .planCardName,
 [data-theme="light"] .modalTitle{
 	color:#0f172a;
 }
@@ -2497,6 +2668,8 @@ footer{
 [data-theme="light"] .searchResultTitle,
 [data-theme="light"] .settingsPreferenceLabel,
 [data-theme="light"] .timerName,
+[data-theme="light"] .planCardFeatureItem,
+[data-theme="light"] .planCardStatus,
 [data-theme="light"] .dashBreadcrumb span{
 	color:#1e293b;
 }
@@ -2536,6 +2709,12 @@ footer{
 [data-theme="light"] .adminFilterField label,
 [data-theme="light"] .adminTable th,
 [data-theme="light"] .settingsProfileEmail,
+[data-theme="light"] .settingsProfileTierPrice,
+[data-theme="light"] .planCardPrice,
+[data-theme="light"] .planCardPriceUnit,
+[data-theme="light"] .planCardMaxTierNote,
+[data-theme="light"] .planCardFooterLabel,
+[data-theme="light"] .planCardFeatureItemLocked,
 [data-theme="light"] .settingsSectionSubtitle,
 [data-theme="light"] .settingsTab,
 [data-theme="light"] .thoughtTab,
@@ -2644,8 +2823,12 @@ footer{
 [data-theme="light"] .settingsFieldSection,
 [data-theme="light"] .settingsFieldRow,
 [data-theme="light"] .settingsPreferenceRow,
+[data-theme="light"] .planCardDivider,
 [data-theme="light"] .modalDivider{
 	border-color:rgba(15,23,42,0.08);
+}
+[data-theme="light"] .planCardLockDot{
+	background:rgba(15,23,42,0.06);
 }
 [data-theme="light"] .adminFilterClear{
 	background:rgba(15,23,42,0.04);

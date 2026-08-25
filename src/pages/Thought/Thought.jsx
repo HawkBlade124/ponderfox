@@ -38,6 +38,7 @@ function Thought() {
   );
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [searchError, setSearchError] = useState("");
   const [ThoughtDescription, setThoughtDescription] = useState("");
 
   const [addCat, setCat] = useState("");
@@ -232,6 +233,7 @@ function Thought() {
 
     if (!term.trim()) {
       setSearchResults([]);
+      setSearchError("");
       return;
     }
 
@@ -240,9 +242,16 @@ function Thought() {
         `${apiBase}/search?q=${encodeURIComponent(term)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (res.data.success) setSearchResults(res.data.messages || []);
+      if (res.data.success) {
+        setSearchResults(res.data.messages || []);
+        setSearchError("");
+      }
     } catch (err) {
       console.error("Search error:", err);
+      if (err.response?.status === 403) {
+        setSearchResults([]);
+        setSearchError(err.response.data?.error || "Thought search requires the Thinker plan or higher.");
+      }
     }
   };
 
@@ -521,7 +530,11 @@ function Thought() {
 
             {search.trim() ? (
               <div className="searchResults mt-4">
-                {searchResults.length === 0 ? (
+                {searchError ? (
+                  <p className="modalEmptyNote">
+                    {searchError} <Link to="/pricing">See plans</Link>
+                  </p>
+                ) : searchResults.length === 0 ? (
                   <p className="modalEmptyNote">
                     No matches for &quot;{search}&quot;. Try a different word or phrase.
                   </p>

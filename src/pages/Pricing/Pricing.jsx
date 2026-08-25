@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { PRICING_TIERS } from "../../data/pricing";
 import { useCheckout } from "../../hooks/useCheckout.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { buildApiUrl } from "../../utils/api.js";
 import "../../css/Pricing.css";
 
 const PRICING_FAQS = [
@@ -19,14 +21,26 @@ const PRICING_FAQS = [
   },
 ];
 
-function CheckoutResultBanner({ searchParams, onDismiss }) {
+// `subscriptionConfirmed` reflects an actual GET /api/subscription read
+// (see the effect below), never the mere presence of ?success=true — Stripe
+// redirects here the instant checkout completes, but the Tier update lands
+// a moment later via webhook, so the URL alone can't tell us the
+// subscription is really active yet.
+function CheckoutResultBanner({ searchParams, onDismiss, subscriptionConfirmed }) {
   if (searchParams.get("success")) {
     return (
       <div className="pricingResultBanner pricingResultBannerSuccess" onClick={onDismiss}>
-        <i className="fa-solid fa-circle-check"></i>
+        <i className={subscriptionConfirmed ? "fa-solid fa-circle-check" : "fa-solid fa-circle-notch fa-spin"}></i>
         <div>
-          <strong>You're all set.</strong> Your subscription is active — head to{" "}
-          <Link to="/settings">Settings</Link> to manage billing anytime.
+          {subscriptionConfirmed ? (
+            <>
+              <strong>You're all set.</strong> Your subscription is active — head to <Link to="/settings">Settings</Link> to manage billing anytime.
+            </>
+          ) : (
+            <>
+              <strong>Payment received.</strong> We're confirming your upgrade — check <Link to="/settings">Settings</Link> in a moment to see your new plan.
+            </>
+          )}
         </div>
       </div>
     );
@@ -47,7 +61,42 @@ function CheckoutResultBanner({ searchParams, onDismiss }) {
 function Pricing() {
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
-  const { startCheckout, loadingPlan } = useCheckout();
+  const { startCheckout, loadingPlan, error: checkoutError } = useCheckout();
+  const { refreshUser, token } = useAuth();
+  const [subscriptionConfirmed, setSubscriptionConfirmed] = useState(false);
+
+  // The success banner isn't allowed to claim the subscription is active
+  // just because the URL says success=true — checkout completing and the
+  // webhook actually updating the DB are two different moments. This polls
+  // the same GET /api/subscription Settings uses (not local/URL state)
+  // until it reports a paid tier, riding out the webhook's lag with one
+  // retry rather than indefinitely.
+  useEffect(() => {
+    if (!searchParams.get("success") || !token) return;
+    let cancelled = false;
+
+    const checkSubscription = async () => {
+      try {
+        const res = await fetch(`${buildApiUrl()}/subscription`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.success && data.tier && data.tier !== "Free Thinker") {
+          setSubscriptionConfirmed(true);
+          refreshUser();
+        }
+      } catch (err) {
+        console.error("Error confirming subscription:", err);
+      }
+    };
+
+    checkSubscription();
+    const retry = setTimeout(checkSubscription, 3000);
+    return () => {
+      cancelled = true;
+      clearTimeout(retry);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, token]);
 
   const dismissCheckoutBanner = () => {
     setSearchParams((prev) => {
@@ -72,7 +121,14 @@ function Pricing() {
         </div>
       </section>
 
-      <CheckoutResultBanner searchParams={searchParams} onDismiss={dismissCheckoutBanner} />
+      <CheckoutResultBanner searchParams={searchParams} onDismiss={dismissCheckoutBanner} subscriptionConfirmed={subscriptionConfirmed} />
+
+      {checkoutError && (
+        <div className="pricingResultBanner pricingResultBannerCanceled">
+          <i className="fa-regular fa-circle-exclamation"></i>
+          <div>{checkoutError}</div>
+        </div>
+      )}
 
       <section className="pricingPageGridSection">
         <div className="pricingPageGrid justify-between w-full">

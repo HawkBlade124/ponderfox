@@ -6,12 +6,13 @@ import { ACCENT_PRESETS } from "../../utils/accentColors.js";
 import { useState, useEffect, useRef } from "react";
 import ReactModal from "react-modal";
 import DashMenu from "../../components/DashMenu.jsx";
+import SettingsPlanCard from "../../components/SettingsPlanCard.jsx";
 import DeleteModal from "../../components/modals/Delete.jsx";
 import { buildApiUrl } from "../../utils/api.js";
 import { getTierColor } from "../../utils/tier.js";
 import { useCheckout } from "../../hooks/useCheckout.js";
 import { PRICING_TIERS } from "../../data/pricing.js";
-import { formatBytes } from "../../utils/format.js";
+import { formatBytes, formatDate } from "../../utils/format.js";
 import PasswordStrength from "../../components/PasswordStrength.jsx";
 
 function getInitials(name) {
@@ -93,7 +94,7 @@ function Settings() {
     setAccentSaving(null);
   };
 
-  const { startCheckout, loadingPlan } = useCheckout();
+  const { startCheckout, changePlan, loadingPlan, error: checkoutError } = useCheckout();
 
   const [activeTab, setActiveTab] = useState("account");
 
@@ -101,8 +102,13 @@ function Settings() {
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingError, setBillingError] = useState("");
   const [portalLoading, setPortalLoading] = useState(false);
+  // Loaded as soon as we have a token (not gated to the Billing tab) since
+  // the plan sidebar shows subscription status on every tab. Depends only
+  // on `token` — including `billing`/`billingLoading` here would re-fire
+  // this effect every time the fetch itself finishes (success OR failure),
+  // turning any persistent error into an infinite retry loop.
   useEffect(() => {
-    if (activeTab !== "billing" || !token || billing || billingLoading) return;
+    if (!token) return;
 
     setBillingLoading(true);
     setBillingError("");
@@ -120,7 +126,47 @@ function Settings() {
         setBillingError("Couldn't reach the server. Please try again.");
       })
       .finally(() => setBillingLoading(false));
-  }, [activeTab, token, billing, billingLoading]);
+  }, [token]);
+
+  const [subscription, setSubscription] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState("");
+
+  // The single source of truth for tier/status/renewal/cancellation shown
+  // on this page — always a fresh read of /api/subscription (which itself
+  // reads the DB row the Stripe webhook keeps in sync), never inferred
+  // from AuthContext's cached `user.Tier` or from a checkout redirect.
+  const fetchSubscription = () => {
+    if (!token) return;
+    setSubscriptionLoading(true);
+    setSubscriptionError("");
+    return fetch(`${buildApiUrl()}/subscription`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSubscription(data);
+        } else {
+          setSubscriptionError(data.error || "Failed to load subscription");
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading subscription:", err);
+        setSubscriptionError("Couldn't reach the server. Please try again.");
+      })
+      .finally(() => setSubscriptionLoading(false));
+  };
+
+  // Loaded as soon as we have a token (not gated to the Billing tab) since
+  // the plan sidebar shows subscription status on every tab. Depends only
+  // on `token` for the same reason as the billing effect above — including
+  // subscription/subscriptionLoading would turn a persistent failure into
+  // an infinite retry loop. Later manual re-fetches go through the Refresh
+  // button, which calls fetchSubscription() directly.
+  useEffect(() => {
+    if (!token) return;
+    fetchSubscription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const openBillingPortal = async () => {
     setPortalLoading(true);
@@ -149,7 +195,7 @@ function Settings() {
   const [usageError, setUsageError] = useState("");
 
   useEffect(() => {
-    if (activeTab !== "usage" || !token || usage || usageLoading) return;
+    if (activeTab !== "usage" || !token || usage) return;
 
     setUsageLoading(true);
     setUsageError("");
@@ -167,7 +213,7 @@ function Settings() {
         setUsageError("Couldn't reach the server. Please try again.");
       })
       .finally(() => setUsageLoading(false));
-  }, [activeTab, token, usage, usageLoading]);
+  }, [activeTab, token, usage]);
 
   const [imagesToDelete, setImagesToDelete] = useState([]);
   const [showDeleteImageModal, setShowDeleteImageModal] = useState(false);
@@ -518,6 +564,26 @@ function Settings() {
 
   if (!user) return null;
 
+  // Tier displayed/gated on here always comes from the freshly-fetched
+  // subscription record, not user.Tier — see fetchSubscription above.
+  const subscriptionTier = subscription?.tier;
+  const currentTierIndex = PRICING_TIERS.findIndex((tier) => tier.title === subscriptionTier);
+  const isMaxTier = subscriptionTier === PRICING_TIERS[PRICING_TIERS.length - 1].title;
+  const isFree = subscriptionTier === "Free Thinker";
+  const upgradeTiers = currentTierIndex >= 0 ? PRICING_TIERS.slice(currentTierIndex + 1) : PRICING_TIERS.filter((tier) => tier.plan);
+
+  // A free user has no subscription to modify, so picking a plan has to go
+  // through Checkout to collect a card. Anyone already on a paid plan
+  // already has a card on file — changePlan swaps the price on their
+  // existing subscription in place instead of trying to start a second one.
+  const choosePlan = (plan) => {
+    if (isFree) {
+      startCheckout(plan);
+    } else {
+      changePlan(plan, fetchSubscription);
+    }
+  };
+
   return (
     <div id="dashboard" className="w-full">
       <div id="dashWrap" className="flex w-full">
@@ -558,111 +624,120 @@ function Settings() {
 
           {activeTab === "account" && (
             <>
-              <section className="dashBody settingsProfileBanner mt-5">
-                <div className="settingsAvatar">{getInitials(user.Username)}</div>
-                <div className="settingsProfileMeta">
-                  <div className="settingsProfileName">Hi there, {user.FirstName?.trim() || getFirstName(user.Username)}</div>
-                  <div className="settingsProfileEmail">{user.Email}</div>
-                  {getMemberSinceYear(user.DateCreated) && (
-                    <div className="settingsProfileMemberSince">You have been a member since {getMemberSinceYear(user.DateCreated)}</div>
-                  )}
-                </div>
-                <span
-                  id="tierName"
-                  style={{ color: getTierColor(user.Tier), backgroundColor: `${getTierColor(user.Tier)}80` }}
-                >
-                  {user.Tier}
-                </span>
-              </section>
-
-              <section className="dashBody mt-5">
-                <div className="settingsFieldSection">
-                  <h2 className="settingsSectionTitle">Profile Information</h2>
-                  <p className="settingsSectionSubtitle">Update your name, username, and email address.</p>
-
-                  <div className="settingsFieldRow">
-                    <label htmlFor="settingsUsername">Username</label>
-                    <div className="settingsFieldControl">
-                      <input
-                        id="settingsUsername"
-                        className="modalFieldInput"
-                        type="text"
-                        value={profileUsername}
-                        onChange={(e) => setProfileUsername(e.target.value)}
-                      />
+            <div className="settingsCardFlex flex">
+              <SettingsPlanCard
+                subscription={subscription}
+                subscriptionLoading={subscriptionLoading}
+                subscriptionError={subscriptionError}
+                onJumpToBilling={() => setActiveTab("billing")}
+                choosePlan={choosePlan}
+                loadingPlan={loadingPlan}
+                checkoutError={checkoutError}
+                openBillingPortal={openBillingPortal}
+                portalLoading={portalLoading}
+              />
+                <div className="profileSection flex flex-col gap-5 w-full">
+                  <section className="dashBody settingsProfileBanner mt-5">
+                    <div className="settingsAvatar">{getInitials(user.Username)}</div>
+                    <div className="settingsProfileMeta">
+                      <div className="settingsProfileName">Hi there, {user.FirstName?.trim() || getFirstName(user.Username)}</div>
+                      <div className="settingsProfileEmail">{user.Email}</div>
+                      {getMemberSinceYear(user.DateCreated) && (
+                        <div className="settingsProfileMemberSince">You have been a member since {getMemberSinceYear(user.DateCreated)}</div>
+                      )}
                     </div>
-                  </div>
-                  <div className="settingsFieldRow">
-                    <label htmlFor="settingsFirstName">First name</label>
-                    <div className="settingsFieldControl">
-                      <input
-                        id="settingsFirstName"
-                        className="modalFieldInput"
-                        type="text"
-                        value={profileFirstName}
-                        onChange={(e) => setProfileFirstName(e.target.value)}
-                        placeholder="Your first name"
-                        maxLength={100}
-                      />
-                    </div>
-                  </div>
-                  <div className="settingsFieldRow">
-                    <label htmlFor="settingsLastName">Last name</label>
-                    <div className="settingsFieldControl">
-                      <input
-                        id="settingsLastName"
-                        className="modalFieldInput"
-                        type="text"
-                        value={profileLastName}
-                        onChange={(e) => setProfileLastName(e.target.value)}
-                        placeholder="Your last name"
-                        maxLength={100}
-                      />
-                    </div>
-                  </div>
-                  <div className="settingsFieldRow">
-                    <label htmlFor="settingsEmail">Email</label>
-                    <div className="settingsFieldControl">
-                      <input
-                        id="settingsEmail"
-                        className="modalFieldInput"
-                        type="email"
-                        value={profileEmail}
-                        onChange={(e) => setProfileEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                  </section>
 
-                  <div className="settingsSectionFooter">
-                    <span className={`text-sm ${profileError ? "text-red-400" : "text-slate-400"}`}>
-                      {profileError || (profileSaved ? "Saved" : "")}
-                    </span>
-                    <button className="modalPrimaryButton" style={{ width: "auto" }} onClick={openProfileModal}>
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              </section>
+                  <section className="dashBody mt-5">
+                    <div className="settingsFieldSection">
+                      <h2 className="settingsSectionTitle">Profile Information</h2>
+                      <p className="settingsSectionSubtitle">Update your name, username, and email address.</p>
 
-              <section className="dashBody settingsSection mt-5">
-                <h2 className="settingsSectionTitle">Legal</h2>
-                <p className="settingsSectionSubtitle">Where to find our policies.</p>
+                      <div className="settingsFieldRow">
+                        <label htmlFor="settingsUsername">Username</label>
+                        <div className="settingsFieldControl">
+                          <input
+                            id="settingsUsername"
+                            className="modalFieldInput"
+                            type="text"
+                            value={profileUsername}
+                            onChange={(e) => setProfileUsername(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="settingsFieldRow">
+                        <label htmlFor="settingsFirstName">First name</label>
+                        <div className="settingsFieldControl">
+                          <input
+                            id="settingsFirstName"
+                            className="modalFieldInput"
+                            type="text"
+                            value={profileFirstName}
+                            onChange={(e) => setProfileFirstName(e.target.value)}
+                            placeholder="Your first name"
+                            maxLength={100}
+                          />
+                        </div>
+                      </div>
+                      <div className="settingsFieldRow">
+                        <label htmlFor="settingsLastName">Last name</label>
+                        <div className="settingsFieldControl">
+                          <input
+                            id="settingsLastName"
+                            className="modalFieldInput"
+                            type="text"
+                            value={profileLastName}
+                            onChange={(e) => setProfileLastName(e.target.value)}
+                            placeholder="Your last name"
+                            maxLength={100}
+                          />
+                        </div>
+                      </div>
+                      <div className="settingsFieldRow">
+                        <label htmlFor="settingsEmail">Email</label>
+                        <div className="settingsFieldControl">
+                          <input
+                            id="settingsEmail"
+                            className="modalFieldInput"
+                            type="email"
+                            value={profileEmail}
+                            onChange={(e) => setProfileEmail(e.target.value)}
+                          />
+                        </div>
+                      </div>
 
-                <div className="settingsPreferenceRow">
-                  <div>
-                    <div className="settingsPreferenceLabel">Privacy Policy</div>
-                    <div className="settingsPreferenceHint">What we collect and how we use it.</div>
-                  </div>
-                  <Link to="/privacy" className="modalButtons modalButtonsSecondary">View</Link>
+                      <div className="settingsSectionFooter">
+                        <span className={`text-sm ${profileError ? "text-red-400" : "text-slate-400"}`}>
+                          {profileError || (profileSaved ? "Saved" : "")}
+                        </span>
+                        <button className="modalPrimaryButton" style={{ width: "auto" }} onClick={openProfileModal}>
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="dashBody settingsSection mt-5">
+                    <h2 className="settingsSectionTitle">Legal</h2>
+                    <p className="settingsSectionSubtitle">Where to find our policies.</p>
+
+                    <div className="settingsPreferenceRow">
+                      <div>
+                        <div className="settingsPreferenceLabel">Privacy Policy</div>
+                        <div className="settingsPreferenceHint">What we collect and how we use it.</div>
+                      </div>
+                      <Link to="/privacy" className="modalButtons modalButtonsSecondary">View</Link>
+                    </div>
+                    <div className="settingsPreferenceRow">
+                      <div>
+                        <div className="settingsPreferenceLabel">Terms of Use</div>
+                        <div className="settingsPreferenceHint">The rules for using Ponderfox.</div>
+                      </div>
+                      <Link to="/terms" className="modalButtons modalButtonsSecondary">View</Link>
+                    </div>
+                  </section>
                 </div>
-                <div className="settingsPreferenceRow">
-                  <div>
-                    <div className="settingsPreferenceLabel">Terms of Use</div>
-                    <div className="settingsPreferenceHint">The rules for using Ponderfox.</div>
-                  </div>
-                  <Link to="/terms" className="modalButtons modalButtonsSecondary">View</Link>
-                </div>
-              </section>
+              </div>
             </>
           )}
 
@@ -917,50 +992,91 @@ function Settings() {
           {activeTab === "billing" && (
             <section className="dashBody mt-5">
               <div className="settingsFieldSection">
-                <h2 className="settingsSectionTitle">Billing &amp; Subscription</h2>
-                <p className="settingsSectionSubtitle">Your plan, billing address, and card on file.</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="settingsSectionTitle">Billing &amp; Subscription</h2>
+                    <p className="settingsSectionSubtitle">Your plan, billing address, and card on file.</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="modalButtons modalButtonsSecondary"
+                    style={{ width: "auto" }}
+                    onClick={fetchSubscription}
+                    disabled={subscriptionLoading}
+                    title="Re-fetch your subscription from the server"
+                  >
+                    <i className={`fa-regular fa-arrows-rotate ${subscriptionLoading ? "fa-spin" : ""}`}></i> Refresh
+                  </button>
+                </div>
 
-                {billingLoading && !billing ? (
-                  <p className="text-sm text-slate-400 mt-4">Loading billing information…</p>
+                {subscriptionLoading && !subscription ? (
+                  <p className="text-sm text-slate-400 mt-4">Loading subscription information…</p>
                 ) : (
                   <>
                     <div className="settingsPreferenceRow">
                       <div>
                         <div className="settingsPreferenceLabel">Current plan</div>
                         <div className="settingsPreferenceHint">
-                          {billing?.status ? `Subscription status: ${billing.status}` : "No active subscription"}
+                          {subscription?.status ? `Subscription status: ${subscription.status}` : "No active subscription"}
                         </div>
                       </div>
                       <span
                         id="tierName"
-                        style={{ color: getTierColor(user.Tier), backgroundColor: `${getTierColor(user.Tier)}80` }}
+                        style={{ color: getTierColor(subscriptionTier), backgroundColor: `${getTierColor(subscriptionTier)}80` }}
                       >
-                        {user.Tier}
+                        {subscriptionTier}
                       </span>
                     </div>
 
-                    {user.Tier === "Free Thinker" ? (
+                    {!isFree && subscription?.currentPeriodEnd && (
+                      <div className="settingsPreferenceRow">
+                        <div>
+                          <div className="settingsPreferenceLabel">
+                            {subscription.cancelAtPeriodEnd ? "Cancels on" : "Renews on"}
+                          </div>
+                          <div className="settingsPreferenceHint">
+                            {subscription.cancelAtPeriodEnd
+                              ? "Your plan reverts to Free Thinker after this date."
+                              : "Your card will be charged automatically."}
+                          </div>
+                        </div>
+                        <span className="text-sm font-semibold text-slate-200">
+                          {formatDate(subscription.currentPeriodEnd)}
+                        </span>
+                      </div>
+                    )}
+
+                    {!isMaxTier && (
                       <div className="settingsPreferenceRow">
                         <div>
                           <div className="settingsPreferenceLabel">Upgrade</div>
                           <div className="settingsPreferenceHint">Get more folders, history, and search.</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {PRICING_TIERS.filter((tier) => tier.plan).map((tier) => (
+                          {upgradeTiers.map((tier) => (
                             <button
                               key={tier.plan}
                               type="button"
                               className="modalPrimaryButton"
                               style={{ width: "auto" }}
                               disabled={loadingPlan === tier.plan}
-                              onClick={() => startCheckout(tier.plan)}
+                              onClick={() => choosePlan(tier.plan)}
                             >
-                              {loadingPlan === tier.plan ? "Redirecting…" : `Choose ${tier.title}`}
+                              {loadingPlan === tier.plan
+                                ? isFree
+                                  ? "Redirecting…"
+                                  : "Updating…"
+                                : isFree
+                                ? `Choose ${tier.title}`
+                                : `Switch to ${tier.title}`}
                             </button>
                           ))}
                         </div>
+                        {checkoutError && <p className="text-red-400 text-sm mt-2">{checkoutError}</p>}
                       </div>
-                    ) : (
+                    )}
+
+                    {!isFree && (
                       <div className="settingsPreferenceRow">
                         <div>
                           <div className="settingsPreferenceLabel">Manage billing</div>
@@ -982,7 +1098,9 @@ function Settings() {
                       <div>
                         <div className="settingsPreferenceLabel">Payment method</div>
                         <div className="settingsPreferenceHint">
-                          {billing?.card
+                          {billingLoading && !billing
+                            ? "Loading…"
+                            : billing?.card
                             ? `${billing.card.brand.charAt(0).toUpperCase()}${billing.card.brand.slice(1)} •••• ${billing.card.last4} — expires ${billing.card.expMonth}/${billing.card.expYear}`
                             : "No payment method on file yet."}
                         </div>
@@ -991,6 +1109,7 @@ function Settings() {
                   </>
                 )}
 
+                {subscriptionError && <p className="text-red-400 text-sm mt-2">{subscriptionError}</p>}
                 {billingError && <p className="text-red-400 text-sm mt-2">{billingError}</p>}
               </div>
             </section>

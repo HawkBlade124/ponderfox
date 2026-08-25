@@ -6,6 +6,11 @@ export function formatBytes(bytes) {
   return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
 }
 
+export function formatDate(dateInput) {
+  if (!dateInput) return "";
+  return new Date(dateInput).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+}
+
 export function formatRelativeTime(dateInput) {
   const seconds = Math.floor((Date.now() - new Date(dateInput).getTime()) / 1000);
   if (seconds < 60) return "Just now";

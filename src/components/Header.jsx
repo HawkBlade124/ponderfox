@@ -17,6 +17,17 @@ function Header() {
   useEffect(() => {
     setMobileMenu(false);
   }, [location]);
+
+  // Lock the page underneath while the mobile flyout is open, so the
+  // backdrop can't be scrolled behind it.
+  useEffect(() => {
+    if (!mobileMenu) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenu]);
+
   if (loading) {
     return null;
   }

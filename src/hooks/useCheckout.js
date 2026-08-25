@@ -45,8 +45,39 @@ export function useCheckout() {
     }
   };
 
+  // For a user who already has an active subscription: swaps the price on
+  // it directly (server charges/credits the prorated difference against
+  // the card on file) instead of routing back through Checkout, which
+  // would try to start a second subscription. No redirect, so the caller
+  // passes `onSuccess` to re-fetch subscription state once this resolves.
+  const changePlan = async (plan, onSuccess) => {
+    if (!plan || !token) return;
+
+    setError("");
+    setLoadingPlan(plan);
+    try {
+      const res = await fetch(`${buildApiUrl()}/billing/change-plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setError(data.error || "Couldn't change your plan. Please try again.");
+        return;
+      }
+      onSuccess?.();
+    } catch (err) {
+      console.error("Change plan error:", err);
+      setError("Couldn't reach the server. Please try again.");
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
   return {
     startCheckout,
+    changePlan,
     loadingPlan,
     error,
   };

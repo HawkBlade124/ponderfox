@@ -57,6 +57,69 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeCustomerId" VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeSubscriptionId" VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeSubscriptionStatus" VARCHAR(50);
 
+-- Populated from the customer.discount.* webhooks (see /api/webhook). Null
+-- fields mean "no active discount" — the customer.discount.deleted handler
+-- clears all four rather than leaving stale values behind.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeCouponId" VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "DiscountPercentOff" NUMERIC(5,2);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "DiscountAmountOff" INT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "DiscountEnd" TIMESTAMPTZ;
+
+-- Subscriptions live in their own table rather than flattened onto users,
+-- because a user can end up with more than one Stripe subscription (a
+-- double-clicked "Upgrade", a retried checkout) and a flat set of columns
+-- on users has no way to represent that — it just silently gets
+-- overwritten by whichever webhook wrote last. Stripe stays the source of
+-- truth for subscription details; this table only caches the
+-- identifiers/state PonderFox actually reads on every request (GET
+-- /api/subscription, requireTier). See upsertSubscription() in server.js.
+CREATE TABLE IF NOT EXISTS subscriptions (
+  "StripeSubscriptionId" VARCHAR(255) PRIMARY KEY,
+  "UserID" INT NOT NULL REFERENCES users("UserID") ON DELETE CASCADE,
+  "StripeCustomerId" VARCHAR(255) NOT NULL,
+  "StripePriceId" VARCHAR(255),
+  "Status" VARCHAR(50) NOT NULL,
+  "CurrentPeriodEnd" TIMESTAMPTZ,
+  "CancelAtPeriodEnd" BOOLEAN NOT NULL DEFAULT FALSE,
+  "DateCreated" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "UpdatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions ("UserID");
+
+-- The entitlement invariant, enforced by the database rather than trusted
+-- to application code: at most one of a user's subscriptions may be in a
+-- state that grants access at any moment. An INSERT/UPDATE that would
+-- create a second concurrently-active row for the same user fails here
+-- with a unique_violation; upsertSubscription() reacts to that by
+-- canceling the newer Stripe subscription instead of tracking both, so a
+-- duplicate checkout can't leave someone paying twice for the same plan.
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_subscriptions_active_user
+  ON subscriptions ("UserID")
+  WHERE "Status" IN ('active', 'trialing');
+
+-- One-time backfill: carry over anything already cached on users from the
+-- older flat-column design before those columns are dropped below.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'users' AND column_name = 'StripeSubscriptionId'
+  ) THEN
+    INSERT INTO subscriptions
+      ("StripeSubscriptionId", "UserID", "StripeCustomerId", "StripePriceId", "Status", "CurrentPeriodEnd", "CancelAtPeriodEnd")
+    SELECT "StripeSubscriptionId", "UserID", "StripeCustomerId", "StripePriceId", COALESCE("StripeSubscriptionStatus", 'active'), "CurrentPeriodEnd", "CancelAtPeriodEnd"
+    FROM users
+    WHERE "StripeSubscriptionId" IS NOT NULL
+    ON CONFLICT ("StripeSubscriptionId") DO NOTHING;
+  END IF;
+END $$;
+
+ALTER TABLE users DROP COLUMN IF EXISTS "StripeSubscriptionId";
+ALTER TABLE users DROP COLUMN IF EXISTS "StripeSubscriptionStatus";
+ALTER TABLE users DROP COLUMN IF EXISTS "StripePriceId";
+ALTER TABLE users DROP COLUMN IF EXISTS "CurrentPeriodEnd";
+ALTER TABLE users DROP COLUMN IF EXISTS "CancelAtPeriodEnd";
+
 CREATE TABLE IF NOT EXISTS thoughts (
   "ThoughtID" SERIAL PRIMARY KEY,
   "UserID" INT NOT NULL REFERENCES users("UserID") ON DELETE CASCADE,

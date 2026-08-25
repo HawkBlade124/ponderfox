@@ -102,8 +102,23 @@ const logout = () => {
 
   const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
+  // Re-pulls the user record from the server and updates both state and the
+  // localStorage snapshot. Needed after anything that changes the account
+  // out-of-band from a normal form submit — e.g. a Stripe webhook updating
+  // Tier after checkout completes.
+  const refreshUser = async () => {
+    if (!token) return;
+    try {
+      const res = await axios.get(`${apiBase}/me`, { headers: { Authorization: `Bearer ${token}` } });
+      setUser(res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
+    } catch (err) {
+      console.error("Refresh user error:", err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, Thoughts, setThoughts, token, setToken, login, logout, authHeader, loading, setUser, todayActiveSeconds }}>
+    <AuthContext.Provider value={{ user, Thoughts, setThoughts, token, setToken, login, logout, authHeader, loading, setUser, refreshUser, todayActiveSeconds }}>
       {children}
     </AuthContext.Provider>
   );
