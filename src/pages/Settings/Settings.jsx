@@ -1101,7 +1101,7 @@ function Settings() {
                           {billingLoading && !billing
                             ? "Loading…"
                             : billing?.card
-                            ? `${billing.card.brand.charAt(0).toUpperCase()}${billing.card.brand.slice(1)} •••• ${billing.card.last4} — expires ${billing.card.expMonth}/${billing.card.expYear}`
+                            ? `${billing.card.brand.charAt(0).toUpperCase()}${billing.card.brand.slice(1)} •••• ${billing.card.last4}, expires ${billing.card.expMonth}/${billing.card.expYear}`
                             : "No payment method on file yet."}
                         </div>
                       </div>
@@ -1135,7 +1135,7 @@ function Settings() {
                         </div>
                       </div>
                       <span className="text-sm font-semibold text-slate-200">
-                        {usage ? formatBytes(usage.images.bytes) : "—"}
+                        {usage ? formatBytes(usage.images.bytes) : "0 B"}
                       </span>
                     </div>
 

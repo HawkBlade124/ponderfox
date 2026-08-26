@@ -7,74 +7,51 @@ import { PRICING_TIERS } from "../../data/pricing";
 import { useCheckout } from "../../hooks/useCheckout.js";
 import "../../css/Home.css";
 
-const WHO_CARDS = [
+const EVERYDAY_MOMENTS = [
   {
-    icon: "whoIconSquare",
-    title: "Overthinkers",
+    icon: "fa-regular fa-arrows-rotate",
+    title: "When it won't stop replaying",
     text: "You replay the same conversation five times before bed. Give it somewhere to go instead.",
   },
   {
-    icon: "whoIconCircle",
-    title: "Decision-makers",
-    text: "Weighing a big choice? Talk it out loud, on the page, before you commit to anything.",
+    icon: "fa-regular fa-scale-balanced",
+    title: "When you're weighing something big",
+    text: "Talk it out loud, on the page, before you commit to anything.",
   },
   {
-    icon: "whoIconDiamond",
-    title: "Journalers",
-    text: "Already writing things down? PonderFox gives your entries somewhere to go next.",
-  },
-  {
-    icon: "whoIconRounded",
-    title: "Anyone who needs to vent",
-    text: "Some thoughts just need saying, not fixing. No advice, no algorithm — just space.",
+    icon: "fa-regular fa-book",
+    title: "When you're already writing it down",
+    text: "PonderFox gives your entries somewhere to go next.",
   },
 ];
 
-const FEATURES = [
+const WHAT_IT_IS_ITEMS = [
   {
-    num: "01",
-    heading: "Write it down",
-    headingClass: "featureHeading1",
-    text: "Start a new thought whenever something's rattling around your head. No blank-page pressure — just start typing.",
-    label: "New Thought",
+    title: "Write it down",
+    text: "Start a thought whenever something's on your mind. No blank page, no sign-up flow to fight through first.",
+    points: ["No prompts to follow", "No blank-page pressure", "Just start typing"],
   },
   {
-    num: "02",
-    heading: "Talk it through",
-    headingClass: "featureHeading2",
-    text: "Respond to yourself, ask the follow-up question, and think out loud in a conversation with your own thought — never an AI.",
-    label: "Thought Thread",
-    reversed: true,
+    title: "Talk it through",
+    text: "Respond to yourself and ask the follow-up question. It's a conversation with your own thought, never anything else.",
+    points: ["Every reply is entirely your own", "No suggestions, no autocomplete", "Just your thinking, worked out loud"],
   },
   {
-    num: "03",
-    heading: "File it away",
-    headingClass: "featureHeading3",
+    title: "File it away",
     text: "Sort thoughts into folders as you go, so nothing gets lost in an endless scroll of half-finished ideas.",
-    label: "Folders",
+    points: ["Drag any thought into a folder", "Search across everything you've written", "Nothing buried, nothing forgotten"],
   },
   {
-    num: "04",
-    heading: "Look back",
-    headingClass: "featureHeading4",
-    text: "Revisit old thoughts whenever you want and see how your thinking — and you — have changed.",
-    label: "Thought History",
-    reversed: true,
+    title: "Look back",
+    text: "Revisit old thoughts whenever you want and see how your thinking, and you, have changed.",
+    points: ["Your full history, always there", "Revisit reminders if you want them", "Watch your own thinking evolve"],
   },
 ];
-
-
-function PlaceholderPanel({ label }) {
-  return (
-    <div className="placeholderPanel">
-      <span className="placeholderLabel">{label}</span>
-    </div>
-  );
-}
 
 function Home() {
   const rootRef = useRef(null);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
+  const [openWhatItIsIndex, setOpenWhatItIsIndex] = useState(1);
   const { startCheckout, loadingPlan } = useCheckout();
 
   useEffect(() => {
@@ -101,41 +78,94 @@ function Home() {
       <section className="heroSection">
         <div className="heroImageWrap">
           <img src={heroImg} alt="" className="heroImage" />
+          <div className="heroImageScrim"></div>
         </div>
         <div className="heroInner">
           <div className="heroTextCol flex flex-col items-center justify-center gap-6 w-100">
-            <p className="heroKicker">organize your thoughts, your way</p>
             <h1 className="heroTitle">
-              No AI here,
+              Your thoughts have a lot to say.
               <br />
-              <span className="heroTitleAccent">and there never will be.</span>
+              <span className="heroTitleAccent">Give them somewhere to go.</span>
             </h1>
-            <p className="heroSubtitle">
-              PonderFox is an app that helps you talk things out with yourself. Create a thought and chat with it as if you were thinking.
-            </p>
             <div className="heroActions">
               <Link to="/register" className="heroCtaBtn">
                 Get Started
                 <span className="heroCtaArrow"><i className="fa-solid fa-arrow-right"></i></span>
               </Link>
-              <Link to="/about" className="heroCtaGhost">Learn More</Link>
             </div>
           </div>
         </div>
-
       </section>
 
       {/* PRODUCT VISUAL / ABOUT */}
       <section className="productVisualSection" data-reveal>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
+        <div className="whatItIsHead">
           <p className="sectionKicker">what it is</p>
-          <h2 className="sectionTitle" style={{ margin: "0 auto" }}>
+          <h2 className="sectionTitle" style={{ margin: "0 auto 20px" }}>
             A place to think out loud, on your own terms
           </h2>
+          <p className="whatItIsSubtitle">
+            Every thought gets its own space. Write it, talk it through, and come back to it whenever you want.
+          </p>
         </div>
-        <div className="productVisualCard">
-          <PlaceholderPanel label="App Screenshot" />
+
+        <div className="whatItIsGrid">
+          <div className="whatItIsAccordion">
+            {WHAT_IT_IS_ITEMS.map((item, index) => {
+              const isOpen = openWhatItIsIndex === index;
+              return (
+                <div className={`whatItIsRow ${isOpen ? "whatItIsRowOpen" : ""}`} key={item.title}>
+                  <button
+                    type="button"
+                    className="whatItIsRowHead"
+                    onClick={() => setOpenWhatItIsIndex(isOpen ? -1 : index)}
+                    aria-expanded={isOpen}
+                  >
+                    <span className="whatItIsRowTitle">{item.title}</span>
+                    <span className="whatItIsRowIcon">
+                      <i className={isOpen ? "fa-solid fa-xmark" : "fa-solid fa-plus"}></i>
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="whatItIsRowBody">
+                      <p className="whatItIsRowText">{item.text}</p>
+                      <ul className="whatItIsRowPoints">
+                        {item.points.map((point) => (
+                          <li key={point}>
+                            <i className="fa-solid fa-check"></i> {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="whatItIsVisual">
+            <div className="whatItIsVisualTabs">
+              <span className="whatItIsTab whatItIsTabActive">Thought</span>
+              <span className="whatItIsTab">Folders</span>
+              <span className="whatItIsTab">History</span>
+            </div>
+            <div className="whatItIsVisualBody">
+              <div className="whatItIsBubble whatItIsBubbleSelf">
+                <span className="whatItIsBubbleLine" style={{ width: "88%" }}></span>
+                <span className="whatItIsBubbleLine" style={{ width: "62%" }}></span>
+              </div>
+              <div className="whatItIsBubble whatItIsBubbleReply">
+                <span className="whatItIsBubbleLine" style={{ width: "70%" }}></span>
+                <span className="whatItIsBubbleLine" style={{ width: "94%" }}></span>
+                <span className="whatItIsBubbleLine" style={{ width: "40%" }}></span>
+              </div>
+              <div className="whatItIsBubble whatItIsBubbleSelf">
+                <span className="whatItIsBubbleLine" style={{ width: "55%" }}></span>
+              </div>
+            </div>
+          </div>
         </div>
+
                 <div class="custom-shape-divider-bottom-1786486476">
             <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
                 <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
@@ -145,76 +175,236 @@ function Home() {
         </div>
       </section>
 
-      {/* WHO IT'S FOR */}
+      {/* FOR EVERYONE */}
       <section className="whoSection" data-reveal>
         <div className="whoInner">
-          <p className="sectionKicker">who it's for</p>
-          <h2 className="sectionTitle">You don't need a diagnosis to need to think</h2>
           <div className="whoGrid">
-            {WHO_CARDS.map((card) => (
-              <div className="whoCard" key={card.title}>
-                <div className={`whoIcon ${card.icon}`}></div>
-                <h3 className="whoCardTitle">{card.title}</h3>
-                <p className="whoCardText">{card.text}</p>
+            <div className="whoTextCol">
+              <p className="sectionKicker">for everyone</p>
+              <h2 className="sectionTitle" style={{ margin: "0 0 20px" }}>Made for however your mind works</h2>
+              <p className="whoSubtitle">
+                Whatever's on your mind and however it shows up, there's space for it here.
+              </p>
+              <Link to="/register" className="whoCtaBtn">Get Started</Link>
+
+              <div className="whoList">
+                {EVERYDAY_MOMENTS.map((item) => (
+                  <div className="whoListRow" key={item.title}>
+                    <div className="whoListIcon"><i className={item.icon}></i></div>
+                    <div>
+                      <h3 className="whoListTitle">{item.title}</h3>
+                      <p className="whoListText">{item.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="whoVisual">
+              <div className="whoVisualGlowBlue"></div>
+              <div className="whoVisualGlowGray"></div>
+              <div className="whoVisualLabel">Thought Thread</div>
+              <div className="whoVisualBody">
+                <div className="whoBubble whoBubbleSelf">I keep replaying that conversation with my manager.</div>
+                <div className="whoBubble whoBubbleReply">What part keeps coming back?</div>
+                <div className="whoBubble whoBubbleSelf">The part where I didn't say what I meant.</div>
+                <div className="whoTypingIndicator"><span></span><span></span><span></span></div>
+              </div>
+              <div className="whoVisualInput">
+                <span>What would you say now?</span>
+                <span className="whoVisualSendBtn"><i className="fa-solid fa-arrow-up"></i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="featuresSection" data-reveal>
+        <div className="featureSectionHead">
+          <p className="sectionKicker featuresKicker" style={{ textAlign: "center" }}>how it works</p>
+          <h2 className="sectionTitle featuresTitle" style={{ margin: "0 auto 16px", textAlign: "center", maxWidth: "100%" }}>
+            Three steps, and you're already thinking out loud
+          </h2>
+          <p className="howItWorksSubtitle">No download, no setup. Just open a thought and start typing, from your phone or your laptop.</p>
+        </div>
+
+        <div className="howItWorksGrid">
+          <div className="howItWorksCard">
+            <div className="howItWorksMock">
+              <div className="howItWorksMockHead">
+                <span>New Thought</span>
+                <span className="howItWorksMockDot"></span>
+              </div>
+              <div className="howItWorksMockBody">
+                <span className="whatItIsBubbleLine" style={{ width: "92%" }}></span>
+                <span className="whatItIsBubbleLine" style={{ width: "78%" }}></span>
+                <span className="whatItIsBubbleLine" style={{ width: "85%" }}></span>
+                <span className="whatItIsBubbleLine" style={{ width: "48%" }}></span>
+              </div>
+            </div>
+            <span className="howItWorksStepBadge">STEP 01</span>
+            <h3 className="howItWorksCardTitle">Start a thought</h3>
+            <p className="howItWorksCardText">Write down whatever's on your mind. No blank-page pressure, no prompts to follow.</p>
+          </div>
+
+          <div className="howItWorksCard">
+            <div className="howItWorksMock howItWorksMockChat">
+              <div className="whatItIsBubble whatItIsBubbleSelf">
+                <span className="whatItIsBubbleLine" style={{ width: "80%" }}></span>
+                <span className="whatItIsBubbleLine" style={{ width: "55%" }}></span>
+              </div>
+              <div className="whatItIsBubble whatItIsBubbleReply">
+                <span className="whatItIsBubbleLine" style={{ width: "70%" }}></span>
+              </div>
+              <div className="whatItIsBubble whatItIsBubbleSelf">
+                <span className="whatItIsBubbleLine" style={{ width: "60%" }}></span>
+              </div>
+            </div>
+            <span className="howItWorksStepBadge">STEP 02</span>
+            <h3 className="howItWorksCardTitle">Talk it through</h3>
+            <p className="howItWorksCardText">Respond to yourself and ask the follow-up question. It's a conversation with your own thought, never anything else.</p>
+          </div>
+
+          <div className="howItWorksCard">
+            <div className="howItWorksMock">
+              <div className="howItWorksMockList">
+                <div className="howItWorksMockListRow">
+                  <span className="howItWorksMockListIcon"><i className="fa-regular fa-folder"></i></span>
+                  <div className="howItWorksMockListLines">
+                    <span className="whatItIsBubbleLine" style={{ width: "75%" }}></span>
+                    <span className="whatItIsBubbleLine" style={{ width: "40%" }}></span>
+                  </div>
+                </div>
+                <div className="howItWorksMockListRow">
+                  <span className="howItWorksMockListIcon"><i className="fa-regular fa-folder"></i></span>
+                  <div className="howItWorksMockListLines">
+                    <span className="whatItIsBubbleLine" style={{ width: "60%" }}></span>
+                    <span className="whatItIsBubbleLine" style={{ width: "35%" }}></span>
+                  </div>
+                </div>
+                <div className="howItWorksMockListRow">
+                  <span className="howItWorksMockListIcon"><i className="fa-regular fa-folder"></i></span>
+                  <div className="howItWorksMockListLines">
+                    <span className="whatItIsBubbleLine" style={{ width: "82%" }}></span>
+                    <span className="whatItIsBubbleLine" style={{ width: "30%" }}></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <span className="howItWorksStepBadge">STEP 03</span>
+            <h3 className="howItWorksCardTitle">Come back to it</h3>
+            <p className="howItWorksCardText">File it away, then revisit it anytime and see how your thinking has changed.</p>
+          </div>
+        </div>
+
+        <div className="howItWorksCtaWrap">
+          <Link to="/register" className="howItWorksCta">
+            Get Started <i className="fa-solid fa-arrow-right"></i>
+          </Link>
+        </div>
+      </section>
+
+      {/* SHOWCASE */}
+      <section className="gallerySection" data-reveal>
+        <p className="sectionKicker" style={{ textAlign: "center" }}>up close</p>
+        <h2 className="sectionTitle" style={{ margin: "0 auto 72px", textAlign: "center", maxWidth: "100%" }}>
+          What using PonderFox actually looks like
+        </h2>
+
+        <div className="showcaseRow">
+          <div className="showcaseText">
+            <h3 className="showcaseTitle">Every thought, sorted your way</h3>
+            <p className="showcaseCopy">
+              Drop a thought into a folder, tag it, pin it, or leave it exactly where it landed. Sort by mood, by project, by whatever makes sense to you today, and move things around anytime. Nothing is ever locked into place.
+            </p>
+          </div>
+          <div className="showcaseFolderGrid">
+            {[
+              { icon: "fa-solid fa-heart", name: "Feelings" },
+              { icon: "fa-solid fa-briefcase", name: "Work" },
+              { icon: "fa-solid fa-users", name: "People" },
+              { icon: "fa-solid fa-compass", name: "Big decisions" },
+              { icon: "fa-solid fa-moon", name: "Late night" },
+              { icon: "fa-solid fa-seedling", name: "Ideas" },
+            ].map((folder) => (
+              <div className="showcaseFolderTile" key={folder.name}>
+                <span className="showcaseFolderIcon"><i className={folder.icon}></i></span>
+                <span className="showcaseFolderName">{folder.name}</span>
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* MID CTA */}
-      <section className="midCtaSection" data-reveal>
-        <div className="custom-shape-divider-top-1786485915">
-          <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M1200 120L0 16.48 0 0 1200 0 1200 120z" className="shape-fill"></path>
-          </svg>
-        </div>
-        <div className="midCtaBox">
-          <div>
-            <h3 className="midCtaTitle">Ready to think it through?</h3>
-            <p className="midCtaSubtitle">Your first thought is free — no card required.</p>
+        <div className="showcaseRow showcaseRowReversed">
+          <div className="showcaseCompare">
+            <div className="showcaseCompareCard">
+              <span className="showcaseCompareLabel">2 weeks ago</span>
+              <span className="whatItIsBubbleLine" style={{ width: "85%" }}></span>
+              <span className="whatItIsBubbleLine" style={{ width: "60%" }}></span>
+            </div>
+            <span className="showcaseCompareArrow"><i className="fa-solid fa-arrow-right"></i></span>
+            <div className="showcaseCompareCard showcaseCompareCardAfter">
+              <span className="showcaseCompareLabel">Today</span>
+              <span className="whatItIsBubbleLine" style={{ width: "90%" }}></span>
+              <span className="whatItIsBubbleLine" style={{ width: "70%" }}></span>
+              <span className="whatItIsBubbleLine" style={{ width: "80%" }}></span>
+              <span className="whatItIsBubbleLine" style={{ width: "45%" }}></span>
+            </div>
           </div>
-          <Link to="/register" className="midCtaBtn">Start a Thought</Link>
+          <div className="showcaseText">
+            <h3 className="showcaseTitle">Come back and add to it</h3>
+            <p className="showcaseCopy">
+              Nothing is final the moment you hit send. Reopen any thought and keep the conversation going. Revisit reminders nudge you back when one's gone quiet for a while.
+            </p>
+          </div>
         </div>
-        <div class="custom-shape-divider-bottom-1786486393">
-            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <path d="M1200 120L0 16.48 0 0 1200 0 1200 120z" class="shape-fill"></path>
-            </svg>
-        </div>
-      </section>
 
-      {/* FEATURES */}
-      <section className="featuresSection" data-reveal>
-        <div className="featureSectionHead">
-          <p className="sectionKicker featuresKicker">how it works, in detail</p>
-          <h2 className="sectionTitle featuresTitle">Everything you need, nothing you don't</h2>
-        </div>
-        <div className="featureList">
-          {FEATURES.map((feature) => (
-            <div className="featureRow" key={feature.num}>
-              <div className={feature.reversed ? "featureVisual featureVisualReversed" : "featureVisual"}>
-                <PlaceholderPanel label={feature.label} />
-              </div>
-              <div className={feature.reversed ? "featureTextReversed" : ""}>
-                <p className="featureNum">{feature.num}</p>
-                <h3 className={`featureHeading ${feature.headingClass}`}>{feature.heading}</h3>
-                <p className="featureText">{feature.text}</p>
+        <div className="showcaseHighlight">
+          <div className="showcaseText">
+            <h3 className="showcaseTitle">Nothing to set up first</h3>
+            <p className="showcaseCopy">
+              There's no calendar to book and no template to fill out. Open a new thought and start typing. It's saved the moment you stop.
+            </p>
+          </div>
+          <div className="showcaseStatusCard">
+            <div className="showcaseStatusHead">Today</div>
+            <div className="showcaseStatusRow">
+              <span className="showcaseStatusDot"><i className="fa-solid fa-pen"></i></span>
+              <div>
+                <span className="showcaseStatusTitle">Thought started</span>
+                <span className="showcaseStatusTime">12:04 PM</span>
               </div>
             </div>
-          ))}
+            <div className="showcaseStatusRow">
+              <span className="showcaseStatusDot showcaseStatusDotDone"><i className="fa-solid fa-check"></i></span>
+              <div>
+                <span className="showcaseStatusTitle">Autosaved</span>
+                <span className="showcaseStatusTime">Just now</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
 
-      {/* GALLERY */}
-      <section className="gallerySection" data-reveal>
-        <p className="sectionKicker" style={{ textAlign: "center" }}>see it in action</p>
-        <h2 className="sectionTitle" style={{ margin: "0 auto 56px", textAlign: "center", maxWidth: "100%" }}>
-          A closer look at PonderFox
-        </h2>
-        <div className="galleryGrid">
-          <div className="galleryItem"><PlaceholderPanel label="Home View" /></div>
-          <div className="galleryItem"><PlaceholderPanel label="Thought View" /></div>
-          <div className="galleryItem"><PlaceholderPanel label="Folder View" /></div>
+        <div className="showcaseRow showcaseRowReversed">
+          <div className="showcaseVoice">
+            <div className="showcaseVoiceMic"><i className="fa-solid fa-microphone"></i></div>
+            <div className="showcaseVoiceWave">
+              {[40, 70, 100, 55, 85, 35, 65, 90, 45].map((height, i) => (
+                <span key={i} style={{ height: `${height}%`, animationDelay: `${i * 0.08}s` }}></span>
+              ))}
+            </div>
+            <div className="showcaseVoiceText">
+              <span className="whatItIsBubbleLine" style={{ width: "92%" }}></span>
+              <span className="whatItIsBubbleLine" style={{ width: "68%" }}></span>
+            </div>
+          </div>
+          <div className="showcaseText">
+            <h3 className="showcaseTitle">Or just say it out loud</h3>
+            <p className="showcaseCopy">
+              Talk instead of type when your hands are busy or your thoughts move faster than you can write. Every word gets captured, ready to read back later.
+            </p>
+          </div>
         </div>
       </section>
 

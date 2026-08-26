@@ -8,11 +8,22 @@ function Header() {
   const [searchMessages, setSearchMessages] = useState('');
   const [searchResults, setSearchResults] = useState([])
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const closeMobileMenu = () =>{
     setMobileMenu(false);
   }
   const location = useLocation();
+
+  // Transparent while at the top (so it can sit over a hero image), solid
+  // once scrolled past it — otherwise light nav text has nothing behind it
+  // to stay legible against once the page's own content scrolls underneath.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     setMobileMenu(false);
@@ -34,24 +45,21 @@ function Header() {
 
   return (
     <header className="grid items-center pl-6 pr-6">
-      <div className="desktopHeader flex gap-10 justify-between items-center absolute top-6 left-0 right-0 z-[100] box-border bg-[#001233]/80 backdrop-blur-md border border-white/10 shadow-[0_20px_45px_-20px_rgba(0,0,0,0.7)] py-3 pr-3 pl-6 w-[92%] max-w-7xl m-auto rounded-full">
-        <Link to="/" className="logo shrink-0">
+      <div
+        className={`desktopHeader grid grid-cols-3 items-center fixed top-0 left-0 right-0 z-[100] box-border w-full py-6 px-10 transition-colors duration-300 ${
+          scrolled ? "bg-[#001233]/90 backdrop-blur-md border-b border-white/10 shadow-[0_20px_45px_-20px_rgba(0,0,0,0.7)]" : "bg-transparent border-b border-transparent"
+        }`}
+      >
+        <div className="userSpace flex items-center gap-8 justify-self-start">
+          <Link to="/" className="text-white/80 hover:text-white text-sm font-medium transition">Home</Link>
+          <Link to="/about" className="text-white/80 hover:text-white text-sm font-medium transition">About</Link>
+          <Link to="/pricing" className="text-white/80 hover:text-white text-sm font-medium transition">Pricing</Link>
+          <Link to="/contact" className="text-white/80 hover:text-white text-sm font-medium transition">Contact</Link>
+        </div>
+        <Link to="/" className="logo shrink-0 justify-self-center">
           <img src={logo} alt="Ponderfox Logo" className="h-7 w-auto" />
         </Link>
-        <div id="middleNav">
-          <div className="userSpace max-w-3xl flex items-center gap-8">
-            <Link to="/" className="text-white/80 hover:text-white text-sm font-medium transition">Home</Link>
-            <Link to="/about" className="text-white/80 hover:text-white text-sm font-medium transition">About</Link>
-            <Link to="/pricing" className="text-white/80 hover:text-white text-sm font-medium transition">Pricing</Link>
-            <Link to="/contact" className="text-white/80 hover:text-white text-sm font-medium transition">Contact</Link>
-          </div>
-          <div className="hamburger cursor-pointer">
-            <div className="top-bar"></div>
-            <div className="middle-bar"></div>
-            <div className="bottom-bar"></div>
-          </div>
-        </div>
-        <div id="rightSide" className="flex items-center gap-4">
+        <div id="rightSide" className="flex items-center gap-4 justify-self-end">
             {user ? (
               <>
                 <Link to="/dashboard" className="text-white/80 hover:text-white text-sm font-medium transition">{user.Username}</Link>

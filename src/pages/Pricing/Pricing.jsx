@@ -9,7 +9,7 @@ import "../../css/Pricing.css";
 const PRICING_FAQS = [
   {
     q: "Is there a free plan?",
-    a: "Yes. The Free plan gives you unlimited thoughts, three folders, and 30 days of history — no credit card required.",
+    a: "Yes. The Free plan gives you unlimited thoughts, three folders, and 30 days of history. No credit card required.",
   },
   {
     q: "Can I cancel anytime?",
@@ -34,11 +34,11 @@ function CheckoutResultBanner({ searchParams, onDismiss, subscriptionConfirmed }
         <div>
           {subscriptionConfirmed ? (
             <>
-              <strong>You're all set.</strong> Your subscription is active — head to <Link to="/settings">Settings</Link> to manage billing anytime.
+              <strong>You're all set.</strong> Your subscription is active. Head to <Link to="/settings">Settings</Link> to manage billing anytime.
             </>
           ) : (
             <>
-              <strong>Payment received.</strong> We're confirming your upgrade — check <Link to="/settings">Settings</Link> in a moment to see your new plan.
+              <strong>Payment received.</strong> We're confirming your upgrade. Check <Link to="/settings">Settings</Link> in a moment to see your new plan.
             </>
           )}
         </div>
@@ -50,7 +50,7 @@ function CheckoutResultBanner({ searchParams, onDismiss, subscriptionConfirmed }
     return (
       <div className="pricingResultBanner pricingResultBannerCanceled"  onClick={onDismiss}>
         <i className="fa-regular fa-circle-xmark"></i>
-        <div>Checkout was canceled — no charge was made. Pick a plan below whenever you're ready.</div>
+        <div>Checkout was canceled. No charge was made. Pick a plan below whenever you're ready.</div>
       </div>
     );
   }

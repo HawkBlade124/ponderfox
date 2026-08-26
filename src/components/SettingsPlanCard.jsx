@@ -65,7 +65,7 @@ function SettingsPlanCard({
   } else if (!isFree && status) {
     statusLabel = "Subscription status";
     const statusText = status.charAt(0).toUpperCase() + status.slice(1);
-    statusLine = renewalDate ? `${statusText} — renews ${renewalDate}` : statusText;
+    statusLine = renewalDate ? `${statusText}, renews ${renewalDate}` : statusText;
   }
 
   return (
