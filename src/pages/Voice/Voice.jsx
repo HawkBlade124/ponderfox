@@ -193,12 +193,13 @@ function Voice() {
               : f
           )
         );
-      } else {
-        setError(data.error || "Failed to update Thought");
+        return { success: true };
       }
+
+      return { success: false, error: data.error || "Failed to update Thought" };
     } catch (err) {
       console.error("Edit error:", err);
-      setError("An error occurred while editing.");
+      return { success: false, error: "An error occurred while editing." };
     }
   };
 
@@ -221,7 +222,7 @@ function Voice() {
     }
   };
 
-  const addThought = async (ThoughtName, ThoughtDescr) => {
+  const addThought = async (ThoughtName, ThoughtDescr, VoiceUsed = false) => {
 
     if (!ThoughtName.trim() || !ThoughtDescr.trim()) {
       return { success: false, error: "Thought name and description are both required." };
@@ -243,7 +244,25 @@ function Voice() {
       const data = await res.json();
 
       if (res.ok) {
-        setThoughts((prev) => [...prev, data.newThought]);
+        let newThought = data.newThought;
+
+        if (VoiceUsed) {
+          try {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/thoughts/${newThought.ThoughtID}/voice-used`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ VoiceUsed: true }),
+            });
+            newThought = { ...newThought, VoiceUsed: true };
+          } catch (err) {
+            console.error("Error marking voice used:", err);
+          }
+        }
+
+        setThoughts((prev) => [...prev, newThought]);
         return { success: true };
       } else {
         return { success: false, error: data.message || data.error || "Unauthorized or invalid entry." };
@@ -473,9 +492,9 @@ function Voice() {
     <div id="dashboard" className="w-full">
       <EditModal isOpen={showEditModal} onClose={() => setShowEditModal(false)} thought={selectedThought} onSave={editThought} onDelete={() => { setShowEditModal(false); deleteThoughtModal(selectedThought); }} />
       <DeleteModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} thought={selectedThought} onConfirm={() => deleteThought(selectedThought.ThoughtID)} />
-      <AddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onConfirm={(ThoughtName, ThoughtDescr) => addThought(ThoughtName, ThoughtDescr)} />
+      <AddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onConfirm={(ThoughtName, ThoughtDescr, VoiceUsed) => addThought(ThoughtName, ThoughtDescr, VoiceUsed)} />
       <AddFolderModal isOpen={showAddFolderModal} onClose={() => setShowAddFolderModal(false)} onConfirm={(folderName) => addFolder(folderName)} />
-      <InfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} thought={selectedThought} />
+      <InfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} thought={selectedThought} token={token} onSave={editThought} onDelete={() => { setShowInfoModal(false); deleteThoughtModal(selectedThought); }} />
       <div id="dashWrap" className="flex w-full">
         <DashMenu />
         <div className="rightScreen w-full p-6 ml">

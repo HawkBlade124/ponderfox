@@ -15,9 +15,16 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS "LastName" VARCHAR(100) NOT NULL DEFA
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "RevisitEnabled" BOOLEAN NOT NULL DEFAULT TRUE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "RevisitThresholdDays" INT NOT NULL DEFAULT 14;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "AccentColor" VARCHAR(7) NOT NULL DEFAULT '#438eef';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "FontFamily" VARCHAR(150) NOT NULL DEFAULT 'system-ui, Avenir, Helvetica, Arial, sans-serif';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "NewsletterEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "WeeklyDigestEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "DailyDigestEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Login treats "Username"/"Email" case-insensitively, so uniqueness must
+-- be enforced the same way here — otherwise "Bob" and "bob" could both
+-- register and login-by-identifier would match two rows non-deterministically.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_lower ON users (LOWER("Username"));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower ON users (LOWER("Email"));
 
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   "PasswordResetTokenID" SERIAL PRIMARY KEY,
@@ -54,8 +61,6 @@ ALTER TABLE users ALTER COLUMN "Tier" SET DEFAULT 'Free Thinker';
 ALTER TABLE users ADD CONSTRAINT "users_Tier_check" CHECK ("Tier" IN ('Free Thinker', 'Thinker', 'Deep Thinker'));
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeCustomerId" VARCHAR(255);
-ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeSubscriptionId" VARCHAR(255);
-ALTER TABLE users ADD COLUMN IF NOT EXISTS "StripeSubscriptionStatus" VARCHAR(50);
 
 -- Populated from the customer.discount.* webhooks (see /api/webhook). Null
 -- fields mean "no active discount" — the customer.discount.deleted handler

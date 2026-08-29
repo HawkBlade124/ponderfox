@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import CookieNotice from "../../components/CookieNotice";
 import heroImg from "../../assets/hero.jpg";
 import { PRICING_TIERS } from "../../data/pricing";
 import { useCheckout } from "../../hooks/useCheckout.js";
@@ -461,6 +462,7 @@ function Home() {
       </section>
 
       <Footer />
+      <CookieNotice />
     </div>
   );
 }

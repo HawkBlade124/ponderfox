@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
+import logo from "../assets/ponder-fox.png";
 
 function AuthLayout({ headline, subtext, children }) {
   return (
-    <div className="relative min-h-screen w-full grid lg:grid-cols-2 bg-[#1d293d]">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#1d293d] px-4 py-16">
       <Link
         to="/"
         aria-label="Back to home"
@@ -12,48 +13,15 @@ function AuthLayout({ headline, subtext, children }) {
         Home
       </Link>
 
-      {/* LEFT: form */}
-      <div className="flex items-center justify-center p-8 sm:p-12">
-        <div className="w-full max-w-sm flex flex-col gap-8">
-          <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-white">
-            <i className="fa-solid fa-thought-bubble text-[#438eef]"></i>
-            Ponderfox
+      <div className="w-full max-w-sm flex flex-col gap-8">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <Link to="/">
+            <img src={logo} alt="Ponderfox" className="h-14 w-auto" />
           </Link>
-          {children}
+          <h2 className="text-2xl font-bold text-white leading-snug">{headline}</h2>
+          <p className="text-slate-400 text-sm">{subtext}</p>
         </div>
-      </div>
-
-      {/* RIGHT: promo panel */}
-      <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-[#438eef] to-[#1d4ed8] items-center justify-center p-12">
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10"></div>
-        <div className="absolute -bottom-32 -left-10 w-80 h-80 rounded-full bg-white/10"></div>
-
-        <div className="relative z-10 max-w-md flex flex-col items-center text-center gap-6">
-          <h2 className="text-3xl font-bold text-white leading-snug">{headline}</h2>
-          <p className="text-white/80 text-sm">{subtext}</p>
-
-          <div className="mt-4 flex flex-col gap-4 w-full">
-            <div className="bg-white rounded-2xl p-5 shadow-xl flex items-center gap-4 text-left">
-              <div className="w-11 h-11 rounded-xl bg-[#438eef]/10 flex items-center justify-center shrink-0">
-                <i className="fa-solid fa-thought-bubble text-[#438eef] text-xl"></i>
-              </div>
-              <div>
-                <div className="text-slate-900 font-semibold">Your Thoughts</div>
-                <div className="text-slate-400 text-sm">All in one place</div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-5 shadow-xl flex items-center gap-4 text-left">
-              <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-                <i className="fa-solid fa-tags text-emerald-500 text-xl"></i>
-              </div>
-              <div>
-                <div className="text-slate-900 font-semibold">Categories & Tags</div>
-                <div className="text-slate-400 text-sm">Find anything, fast</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {children}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import DeleteModal from "../../components/modals/Delete.jsx";
 import EditThoughtInfoModal from "../../components/modals/EditThoughtInfo.jsx";
 import axios from "axios";
 import DOMPurify from "dompurify";
+import { useSpeechDictation } from "../../hooks/useSpeechDictation.js";
 
 function buildApiUrl() {
   const raw = (import.meta.env.VITE_API_URL || window.location.origin).trim();
@@ -31,6 +32,9 @@ function Thought() {
   const [message, setMessage] = useState("");
   const [messageText, setMessageText] = useState("");
   const editorRef = useRef(null);
+  const dictation = useSpeechDictation();
+  const [showDictation, setShowDictation] = useState(false);
+  const dictationText = `${dictation.transcript} ${dictation.interim}`.trim();
   const [messages, setMessages] = useState([]);
   const [h1Visible, setH1Visible] = useState(true);
   const [reminderHidden, setReminderHidden] = useState(
@@ -57,10 +61,13 @@ function Thought() {
   const [pendingAttachments, setPendingAttachments] = useState([]); // [{ url, name, type }]
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
   const sentMessagesRef = useRef(null);
   const MAX_ATTACHMENTS = 5;
 
-  const { token, loading } = useAuth();
+  const { user, token, loading } = useAuth();
+  const canAttachFiles = user?.Tier !== "Free Thinker";
   const navigate = useNavigate();
   const { ThoughtName } = useParams();
   const apiBase = buildApiUrl();
@@ -116,9 +123,12 @@ function Thought() {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelected = async (e) => {
-    const files = Array.from(e.target.files || []);
-    e.target.value = ""; // allow re-selecting the same file(s) later
+  const triggerImageSelect = () => {
+    imageInputRef.current?.click();
+  };
+
+  const uploadFiles = async (fileList) => {
+    const files = Array.from(fileList || []);
     if (files.length === 0) return;
 
     const remainingSlots = MAX_ATTACHMENTS - pendingAttachments.length;
@@ -166,8 +176,46 @@ function Thought() {
     }
   };
 
+  const handleFileSelected = (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = ""; // allow re-selecting the same file(s) later
+    uploadFiles(files);
+  };
+
+  const handleImageSelected = (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    uploadFiles(files);
+  };
+
   const removePendingAttachment = (url) => {
     setPendingAttachments((prev) => prev.filter((a) => a.url !== url));
+  };
+
+  // ---------- Drag & drop images ----------
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    if (Array.from(e.dataTransfer.items || []).some((item) => item.kind === "file")) {
+      setIsDraggingImage(true);
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsDraggingImage(false);
+  };
+
+  const handleImageDrop = (e) => {
+    e.preventDefault();
+    setIsDraggingImage(false);
+
+    const files = Array.from(e.dataTransfer.files || []).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) {
+      setError("Only images can be dropped here.");
+      return;
+    }
+    uploadFiles(files);
   };
 
   // ---------- Enter message ----------
@@ -180,6 +228,7 @@ function Thought() {
     setMessage("");
     setMessageText("");
     editorRef.current?.clear();
+    resetDictation();
     setPendingAttachments([]);
     setH1Visible(false);
     if (localStorage.getItem(REMINDER_DISMISSED_KEY) !== "true") {
@@ -200,6 +249,27 @@ function Thought() {
       console.error("Error saving message:", err.response?.data || err.message);
       setError("Could not save your message.");
     }
+  };
+
+  const resetDictation = () => {
+    dictation.reset();
+    setShowDictation(false);
+  };
+
+  const toggleDictationPanel = () => {
+    if (showDictation) {
+      resetDictation();
+      return;
+    }
+    setShowDictation(true);
+    dictation.start();
+  };
+
+  const insertDictation = () => {
+    if (!dictationText) return;
+    dictation.stop();
+    editorRef.current?.insertText(`${dictationText} `);
+    resetDictation();
   };
 
   // ---------- Delete message ----------
@@ -577,7 +647,13 @@ function Thought() {
         </div>
 
         {/* MAIN AREA */}
-        <div id="mainSection" className={`dashBody flex flex-col w-full min-h-0 chatInput justify-between ${activeTab === "main" ? "flex" : "hidden"} lg:flex`}>
+        <div
+          id="mainSection"
+          className={`dashBody flex flex-col w-full min-h-0 chatInput justify-between ${activeTab === "main" ? "flex" : "hidden"} lg:flex ${isDraggingImage ? "mainSectionDropActive" : ""}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleImageDrop}
+        >
           <div className="thoughtInfoHead flex items-center gap-4">
             <Link to="/dashboard" className="backtodashbtn hidden lg:flex items-center justify-center">
               <i className="fa-solid fa-arrow-left"></i>
@@ -674,9 +750,25 @@ function Thought() {
             </div>
           )}
 
-          {pendingAttachments.length > 0 && (
+          {pendingAttachments.some((a) => a.type?.startsWith("image/")) && (
             <div className="flex flex-wrap gap-2 mb-2">
-              {pendingAttachments.map((att) => (
+              {pendingAttachments.filter((a) => a.type?.startsWith("image/")).map((att) => (
+                <div key={att.url} className="pendingImagePreview">
+                  <img src={att.url} alt={att.name} />
+                  <div
+                    className="pendingImagePreviewRemove"
+                    onClick={() => removePendingAttachment(att.url)}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {pendingAttachments.some((a) => !a.type?.startsWith("image/")) && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {pendingAttachments.filter((a) => !a.type?.startsWith("image/")).map((att) => (
                 <div
                   key={att.url}
                   className="modalChip"
@@ -693,27 +785,37 @@ function Thought() {
             </div>
           )}
 
-          <div className="sendWrapper w-full flex gap-3">
-            <div id="fileInput">
-              <input
-                type="file"
-                id="attachFile"
-                ref={fileInputRef}
-                onChange={handleFileSelected}
-                accept="image/png,image/jpeg,image/gif,image/webp,application/pdf,text/plain"
-                multiple
-                style={{ display: "none" }}
-              />
-              <button
-                className="fileUploadButton"
-                type="button"
-                onClick={triggerFileSelect}
-                disabled={uploading || pendingAttachments.length >= MAX_ATTACHMENTS}
-              >
-                {uploading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-regular fa-paperclip"></i>}
-              </button>
+          {showDictation && (
+            <div className="voiceDictationPanel" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+              <div className="voiceDictationStatus">
+                {dictation.listening ? (
+                  <><i className="fa-solid fa-waveform-lines fa-fade"></i> Listening…</>
+                ) : (
+                  <><i className="fa-regular fa-pause"></i> Paused</>
+                )}
+              </div>
+              <p className="voiceDictationText">
+                {dictationText || <span className="voiceDictationPlaceholder">Say something…</span>}
+              </p>
+              {dictation.error && <p className="voiceDictationError">{dictation.error}</p>}
+              <div className="voiceDictationActions">
+                <button type="button" className="voiceDictationBtn" onClick={() => (dictation.listening ? dictation.stop() : dictation.start())}>
+                  {dictation.listening ? "Pause" : "Resume"}
+                </button>
+                <button type="button" className="voiceDictationBtn" onClick={resetDictation}>Cancel</button>
+                <button
+                  type="button"
+                  className="voiceDictationBtn voiceDictationBtnPrimary"
+                  onClick={insertDictation}
+                  disabled={!dictationText}
+                >
+                  Insert
+                </button>
+              </div>
             </div>
+          )}
 
+          <div className="sendWrapper w-full flex gap-3">
             <RichTextEditor
               ref={editorRef}
               placeholder="A Penny For Your Thoughts?"
@@ -723,6 +825,57 @@ function Thought() {
               }}
               onSubmit={enteredMessage}
             />
+
+            <div id="fileInput">
+              <input
+                type="file"
+                id="attachFile"
+                ref={fileInputRef}
+                onChange={handleFileSelected}
+                accept="application/pdf,text/plain"
+                multiple
+                style={{ display: "none" }}
+              />
+              <button
+                className="fileUploadButton"
+                type="button"
+                onClick={triggerFileSelect}
+                disabled={!canAttachFiles || uploading || pendingAttachments.length >= MAX_ATTACHMENTS}
+                title={canAttachFiles ? "Attach a file" : "Upgrade to Thinker to attach files"}
+              >
+                {uploading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-regular fa-paperclip"></i>}
+              </button>
+            </div>
+
+            <div id="imageInput">
+              <input
+                type="file"
+                id="attachImage"
+                ref={imageInputRef}
+                onChange={handleImageSelected}
+                accept="image/png,image/jpeg,image/gif,image/webp"
+                multiple
+                style={{ display: "none" }}
+              />
+              <button
+                className="fileUploadButton"
+                type="button"
+                onClick={triggerImageSelect}
+                disabled={uploading || pendingAttachments.length >= MAX_ATTACHMENTS}
+                title="Upload an image"
+              >
+                <i className="fa-regular fa-image"></i>
+              </button>
+            </div>
+
+            <button
+              className="fileUploadButton"
+              type="button"
+              onClick={toggleDictationPanel}
+              title={dictation.supported ? "Dictate your message" : "Voice dictation isn't supported in this browser"}
+            >
+              <i className={showDictation && dictation.listening ? "fa-solid fa-microphone-lines text-[var(--accent)] fa-fade" : "fa-regular fa-microphone-lines"}></i>
+            </button>
 
             <button onClick={enteredMessage} id="sendChat" className="send" disabled={!messageText.trim() || uploading}>
               <i className="fa-solid fa-paper-plane"></i>

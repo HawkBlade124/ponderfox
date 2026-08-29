@@ -3,11 +3,14 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { useAccentColor } from "../../context/AccentColorContext.jsx";
 import { ACCENT_PRESETS } from "../../utils/accentColors.js";
+import { useFont } from "../../context/FontContext.jsx";
+import { FONT_PRESETS } from "../../utils/fonts.js";
 import { useState, useEffect, useRef } from "react";
 import ReactModal from "react-modal";
 import DashMenu from "../../components/DashMenu.jsx";
 import SettingsPlanCard from "../../components/SettingsPlanCard.jsx";
 import DeleteModal from "../../components/modals/Delete.jsx";
+import LogoutConfirmModal from "../../components/modals/LogoutConfirm.jsx";
 import { buildApiUrl } from "../../utils/api.js";
 import { getTierColor } from "../../utils/tier.js";
 import { useCheckout } from "../../hooks/useCheckout.js";
@@ -92,6 +95,21 @@ function Settings() {
       setAccentError(result.error || "Failed to save accent color");
     }
     setAccentSaving(null);
+  };
+
+  const { fontFamily, setFontFamily } = useFont();
+  const [fontSaving, setFontSaving] = useState(null);
+  const [fontError, setFontError] = useState("");
+
+  const chooseFontFamily = async (value) => {
+    if (value === fontFamily) return;
+    setFontError("");
+    setFontSaving(value);
+    const result = await setFontFamily(value);
+    if (!result.success) {
+      setFontError(result.error || "Failed to save font");
+    }
+    setFontSaving(null);
   };
 
   const { startCheckout, changePlan, loadingPlan, error: checkoutError } = useCheckout();
@@ -218,6 +236,7 @@ function Settings() {
   const [imagesToDelete, setImagesToDelete] = useState([]);
   const [showDeleteImageModal, setShowDeleteImageModal] = useState(false);
   const [selectedImageUrls, setSelectedImageUrls] = useState(new Set());
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const confirmDeleteImage = (image) => {
     setImagesToDelete([image]);
@@ -602,7 +621,7 @@ function Settings() {
                     <div className="topProfileName">{user.Username}</div>
                     <div className="topProfileEmail">{user.Email}</div>
                   </div>
-                  <i className="fa-regular fa-arrow-right-from-bracket topProfileLogout" title="Logout" onClick={logout}></i>
+                  <i className="fa-regular fa-arrow-right-from-bracket topProfileLogout" title="Logout" onClick={() => setShowLogoutConfirm(true)}></i>
                 </div>
               )}
             </div>
@@ -810,7 +829,7 @@ function Settings() {
                     <div className="settingsPreferenceLabel">Log out</div>
                     <div className="settingsPreferenceHint">End your session on this device.</div>
                   </div>
-                  <button className="modalButtons modalButtonsSecondary" onClick={logout}>Log Out</button>
+                  <button className="modalButtons modalButtonsSecondary" onClick={() => setShowLogoutConfirm(true)}>Log Out</button>
                 </div>
                 <div className="settingsPreferenceRow">
                   <div>
@@ -886,6 +905,29 @@ function Settings() {
                   </div>
                 </div>
                 {accentError && <p className="text-red-400 text-sm">{accentError}</p>}
+
+                <div className="settingsPreferenceRow">
+                  <div>
+                    <div className="settingsPreferenceLabel">Font</div>
+                    <div className="settingsPreferenceHint">Choose the typeface Ponderfox uses across your account.</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="sortSelect"
+                      value={fontFamily}
+                      disabled={fontSaving !== null}
+                      onChange={(e) => chooseFontFamily(e.target.value)}
+                    >
+                      {FONT_PRESETS.map((preset) => (
+                        <option key={preset.value} value={preset.value} style={{ fontFamily: preset.value }}>
+                          {preset.name}
+                        </option>
+                      ))}
+                    </select>
+                    {fontSaving !== null && <i className="fa-regular fa-spinner-third fa-spin text-slate-400"></i>}
+                  </div>
+                </div>
+                {fontError && <p className="text-red-400 text-sm">{fontError}</p>}
               </div>
             </section>
           )}
@@ -1215,6 +1257,12 @@ function Settings() {
             title={imagesToDelete.length === 1 ? "Delete Image?" : "Delete Images?"}
             confirmLabel={imagesToDelete.length === 1 ? "Delete Image" : `Delete ${imagesToDelete.length} Images`}
             onConfirm={deleteImages}
+          />
+
+          <LogoutConfirmModal
+            isOpen={showLogoutConfirm}
+            onClose={() => setShowLogoutConfirm(false)}
+            onConfirm={logout}
           />
 
           {notificationsSaved && (

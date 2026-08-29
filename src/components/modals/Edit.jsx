@@ -8,12 +8,14 @@ function EditModal({ isOpen, onClose, thought, token, onSave, onDelete }) {
   const [tags, setTags] = useState([]);
   const [addCat, setAddCat] = useState("");
   const [addTag, setAddTag] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!thought) return;
 
     setThoughtName(thought.ThoughtName || "");
     setThoughtDescr(thought.ThoughtDescr || "");
+    setError("");
 
     // preload categories/tags for this thought
     const fetchData = async () => {
@@ -54,12 +56,65 @@ function EditModal({ isOpen, onClose, thought, token, onSave, onDelete }) {
     setAddTag("");
   };
 
+  // remove a category - only calls the API if it was already persisted
+  // (has a CategoryID); one just added this session simply drops from state
+  const handleRemoveCategory = async (index, categoryId) => {
+    if (categoryId) {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories/${categoryId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || "Failed to remove category");
+          return;
+        }
+      } catch (err) {
+        console.error("Error removing category:", err);
+        setError("An error occurred while removing the category.");
+        return;
+      }
+    }
+    setCategories((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveTag = async (index, tagId) => {
+    if (tagId) {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tags/${tagId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || "Failed to remove tag");
+          return;
+        }
+      } catch (err) {
+        console.error("Error removing tag:", err);
+        setError("An error occurred while removing the tag.");
+        return;
+      }
+    }
+    setTags((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleClose = () => {
+    setError("");
+    onClose();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!thought) return;
 
     try {
-      await onSave(thought.ThoughtID, thoughtName, thoughtDescr);
+      const result = await onSave(thought.ThoughtID, thoughtName, thoughtDescr);
+      if (result?.success === false) {
+        setError(result.error || "Something went wrong. Please try again.");
+        return;
+      }
 
       for (const cat of categories) {
         if (!cat.CategoryID) {
@@ -97,7 +152,7 @@ function EditModal({ isOpen, onClose, thought, token, onSave, onDelete }) {
       console.error("Error updating thought:", err);
     }
 
-    onClose();
+    handleClose();
   };
 
   if (!thought) return null;
@@ -106,11 +161,11 @@ function EditModal({ isOpen, onClose, thought, token, onSave, onDelete }) {
     <ReactModal
       className="modal"
       isOpen={isOpen}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
       ariaHideApp={false}
       contentLabel="Edit Thought"
     >
-      <i className="fa-solid fa-xmark modalClose" onClick={onClose}></i>
+      <i className="fa-solid fa-xmark modalClose" onClick={handleClose}></i>
 
       <div className="modalHeader">
         <div className="modalIconBadge">
@@ -150,7 +205,10 @@ function EditModal({ isOpen, onClose, thought, token, onSave, onDelete }) {
           {categories.length > 0 && (
             <div className="modalChipRow">
               {categories.map((c, i) => (
-                <span key={i} className="modalChip">{c.CategoryName}</span>
+                <span key={i} className="modalChip modalChipRemovable">
+                  {c.CategoryName}
+                  <i className="fa-solid fa-xmark" onClick={() => handleRemoveCategory(i, c.CategoryID)}></i>
+                </span>
               ))}
             </div>
           )}
@@ -173,7 +231,10 @@ function EditModal({ isOpen, onClose, thought, token, onSave, onDelete }) {
           {tags.length > 0 && (
             <div className="modalChipRow">
               {tags.map((t, i) => (
-                <span key={i} className="modalChip">{t.TagName}</span>
+                <span key={i} className="modalChip modalChipRemovable">
+                  {t.TagName}
+                  <i className="fa-solid fa-xmark" onClick={() => handleRemoveTag(i, t.TagID)}></i>
+                </span>
               ))}
             </div>
           )}
@@ -191,11 +252,13 @@ function EditModal({ isOpen, onClose, thought, token, onSave, onDelete }) {
           </div>
         </div>
 
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+
         <button type="submit" className="modalPrimaryButton">
           Save All Changes
         </button>
         <hr className="modalDivider" />
-        <button type="button" className="modalTextLink" onClick={onClose}>
+        <button type="button" className="modalTextLink" onClick={handleClose}>
           Cancel
         </button>
         {onDelete && (

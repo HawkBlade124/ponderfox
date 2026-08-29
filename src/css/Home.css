@@ -41,7 +41,7 @@ html {
   background: linear-gradient(135deg, #0466c8 0%, #023e7d 55%, #001233 100%);
   position: relative;
   overflow: hidden;
-  min-height: 640px;
+  min-height: 780px;
   display: flex;
   align-items: center;
   padding-top: 140px;
@@ -73,13 +73,8 @@ html {
 .heroImageScrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 18, 51, 0.75) 0%,
-    rgba(0, 18, 51, 0.1) 26%,
-    rgba(0, 18, 51, 0.1) 55%,
-    rgba(0, 18, 51, 0.65) 100%
-  );
+  background: #000;
+  opacity: 0.6;
 }
 
 .heroInner {
@@ -99,6 +94,17 @@ html {
   width:100%
 }
 
+@keyframes heroSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .heroTitle {
   font-family: "Fraunces", serif;
   font-weight: 500;
@@ -108,6 +114,8 @@ html {
   color: #e9eef5;
   margin: 0 auto 32px;
   max-width: 1620px;
+  animation: heroSlideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.5s;
 }
 
 .heroTitleAccent {
@@ -122,6 +130,8 @@ html {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
+  animation: heroSlideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.6s;
 }
 
 .heroCtaBtn {

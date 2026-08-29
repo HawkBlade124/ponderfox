@@ -3,12 +3,14 @@ import { useAuth } from "../context/AuthContext";
 import { useState, useCallback, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import logo from "../assets/ponder-fox.png";
+import LogoutConfirmModal from "./modals/LogoutConfirm";
 function Header() {
   const { user, logout, loading } = useAuth();
   const [searchMessages, setSearchMessages] = useState('');
   const [searchResults, setSearchResults] = useState([])
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const closeMobileMenu = () =>{
     setMobileMenu(false);
@@ -56,14 +58,14 @@ function Header() {
           <Link to="/pricing" className="text-white/80 hover:text-white text-sm font-medium transition">Pricing</Link>
           <Link to="/contact" className="text-white/80 hover:text-white text-sm font-medium transition">Contact</Link>
         </div>
-        <Link to="/" className="logo shrink-0 justify-self-center">
-          <img src={logo} alt="Ponderfox Logo" className="h-7 w-auto" />
+        <Link to="/" className="logo justify-self-center">
+          <img src={logo} alt="Ponderfox Logo" className="h-20 w-auto" />
         </Link>
         <div id="rightSide" className="flex items-center gap-4 justify-self-end">
             {user ? (
               <>
                 <Link to="/dashboard" className="text-white/80 hover:text-white text-sm font-medium transition">{user.Username}</Link>
-                <span onClick={logout} className="text-white/80 hover:text-white text-sm font-medium transition cursor-pointer">Logout</span>
+                <span onClick={() => setShowLogoutConfirm(true)} className="text-white/80 hover:text-white text-sm font-medium transition cursor-pointer">Logout</span>
               </>
             ) : (
               <>
@@ -88,17 +90,6 @@ function Header() {
           </div>
         </div>
       </div>
-      {
-      // Rendered as a sibling of .mobileHeader (not nested inside it) because
-      // .mobileHeader's backdrop-blur establishes a containing block for
-      // position:fixed descendants in Chromium, which traps the overlay
-      // inside that small pill instead of the viewport.
-      //
-      // Always mounted (rather than conditional on mobileMenu) so the
-      // open/close transitions on .bodyOverlay and .mobileFlyoutPanel can
-      // actually animate — a conditionally-mounted element has no "before"
-      // state for the browser to transition from/to.
-      }
       <div id="flyoutMenu" className={mobileMenu ? "flyoutMenuOpen" : ""}>
         <div className="bodyOverlay" onClick={closeMobileMenu}></div>
         <div className="mobileFlyoutPanel">
@@ -116,7 +107,7 @@ function Header() {
           {user ? (
             <>
               <Link to="/dashboard">{user.Username}</Link>
-              <span onClick={logout} className="cursor-pointer">Logout</span>
+              <span onClick={() => setShowLogoutConfirm(true)} className="cursor-pointer">Logout</span>
             </>
           ) : (
             <>
@@ -126,6 +117,12 @@ function Header() {
           )}
         </div>
       </div>
+
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={logout}
+      />
     </header>
   );
 }

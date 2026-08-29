@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { getTierColor } from "../utils/tier.js";
 import { getInitials } from "../utils/user.js";
 import logoMark from "../assets/ponder-fox-verticle.png";
+import LogoutConfirmModal from "./modals/LogoutConfirm.jsx";
 
 const menuItems = [
   { to: "/dashboard", label: "Dashboard", icon: "fa-regular fa-home" },
@@ -53,6 +54,7 @@ function DashMenu() {
   const location = useLocation();
 
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const closeMobileMenu = () => {
     setMobileMenu((prev) => !prev);
   };
@@ -191,7 +193,7 @@ function DashMenu() {
 
           {user && (
             <div className="sidebarFooter">
-              <button type="button" className="sidebarLink sidebarLogoutButton" onClick={logout}>
+              <button type="button" className="sidebarLink sidebarLogoutButton" onClick={() => setShowLogoutConfirm(true)}>
                 <span className="sidebarLinkIcon"><i className="fa-regular fa-arrow-right-from-bracket"></i></span>
                 <span className="sidebarLinkLabel">Log Out</span>
               </button>
@@ -200,6 +202,12 @@ function DashMenu() {
         </div>
       </div>
       <div id="dashOverlay" className={`lg:hidden w-full h-full ${mobileMenu ? "dashOverlayOpen" : ""}`} onClick={closeMobileMenu}></div>
+
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={logout}
+      />
     </>
   );
 }

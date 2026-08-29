@@ -67,17 +67,10 @@ function Login() {
     <AuthLayout
       headline={
         <>
-          Welcome back! Please sign in to your{" "}
-          <span className="underline decoration-white/60">Ponderfox</span> account
+          Welcome back! Please sign in to your account
         </>
       }
-      subtext="Capture every thought, organize it your way, and find it again in seconds."
     >
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-white">Sign In</h1>
-        <p className="text-sm text-slate-400">Welcome back! Please enter your details.</p>
-      </div>
-
       <form className="flex flex-col gap-5" onSubmit={handleLogin}>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="identifier" className="text-sm font-medium text-slate-300">

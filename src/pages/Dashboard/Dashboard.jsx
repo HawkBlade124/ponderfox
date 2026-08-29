@@ -179,12 +179,13 @@ const editThought = async (ThoughtId, newName, newDescr) => {
             : f
         )
       );
-    } else {
-      setError(data.error || "Failed to update Thought");
+      return { success: true };
     }
+
+    return { success: false, error: data.error || "Failed to update Thought" };
   } catch (err) {
     console.error("Edit error:", err);
-    setError("An error occurred while editing.");
+    return { success: false, error: "An error occurred while editing." };
   }
 };
 
@@ -207,7 +208,7 @@ const deleteThought = async (ThoughtId) => {
   }
 };
 
-const addThought = async (ThoughtName, ThoughtDescr) => {
+const addThought = async (ThoughtName, ThoughtDescr, VoiceUsed = false) => {
 
   if (!ThoughtName.trim() || !ThoughtDescr.trim()) {
     return { success: false, error: "Thought name and description are both required." };
@@ -230,7 +231,25 @@ const addThought = async (ThoughtName, ThoughtDescr) => {
     const data = await res.json();
 
     if (res.ok) {
-      updateThoughts((prev) => [...prev, data.newThought]);
+      let newThought = data.newThought;
+
+      if (VoiceUsed) {
+        try {
+          await fetch(`${import.meta.env.VITE_API_URL}/api/thoughts/${newThought.ThoughtID}/voice-used`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ VoiceUsed: true }),
+          });
+          newThought = { ...newThought, VoiceUsed: true };
+        } catch (err) {
+          console.error("Error marking voice used:", err);
+        }
+      }
+
+      updateThoughts((prev) => [...prev, newThought]);
 
       if (GroupType) {
         const { apiSegment, bodyKey } = groupMeta[GroupType];
@@ -441,9 +460,9 @@ if (!user) return null;
     <div id="dashboard" className="w-full">
       <EditModal  isOpen={showEditModal}  onClose={() => setShowEditModal(false)} thought={selectedThought}  onSave={editThought} onDelete={() => { setShowEditModal(false); deleteThoughtModal(selectedThought); }}/>
       <DeleteModal  isOpen={showDeleteModal}  onClose={() => setShowDeleteModal(false)} thought={selectedThought}  onConfirm={() => deleteThought(selectedThought.ThoughtID)}/>
-     <AddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onConfirm={(ThoughtName, ThoughtDescr) => addThought(ThoughtName, ThoughtDescr)}/>
+     <AddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onConfirm={(ThoughtName, ThoughtDescr, VoiceUsed) => addThought(ThoughtName, ThoughtDescr, VoiceUsed)}/>
     <AddFolderModal isOpen={showAddFolderModal} onClose={() => setShowAddFolderModal(false)} onConfirm={(folderName) => addFolder(folderName)}/>
-    <InfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} thought={selectedThought}/>
+    <InfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} thought={selectedThought} token={token} onSave={editThought} onDelete={() => { setShowInfoModal(false); deleteThoughtModal(selectedThought); }}/>
       <div id="dashWrap" className="flex w-full">
         <DashMenu />
       <div className="rightScreen w-full p-6 ml">
@@ -478,8 +497,8 @@ if (!user) return null;
       <section className="dashBody w-full">
         <div className="flex flex-col gap-3">
         <div className="flex items-center flex-wrap gap-2 justify-between lg:justify-between">
-          <h2 className="text-2xl flex items-center gap-2">
-            <i className={`fa-regular ${groupIcon} text-[var(--accent)]`}></i>
+          <h2 className="text-2xl flex items-center gap-3">
+            <span className="dashCardIcon"><i className={`fa-regular ${groupIcon}`}></i></span>
             {GroupName || "Your Brain Dump"}
           </h2>
           <div className="flex items-center flex-wrap gap-2 w-full lg:w-auto">
@@ -541,7 +560,7 @@ if (!user) return null;
           {searchedFolders.length > 0 && (
             <div className="w-full">
               <h3 className="dashGroupLabel"><i className="fa-solid fa-folder"></i> Folders</h3>
-              <div className={`grid ${gridSizeClasses[gridSize]} gap-6 w-full text-3xl place-items-center`}>
+              <div className={`grid ${gridSizeClasses[gridSize]} thoughtsGrid-${gridSize} gap-6 w-full text-3xl place-items-center`}>
                 {searchedFolders.map((l) => (
                   <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem folderItem w-full flex flex-col items-center justify-between no-underline">
                     <div className="flex justify-between w-full">
@@ -557,7 +576,7 @@ if (!user) return null;
           {searchedThoughts.length > 0 && (
             <div className="w-full">
               <h3 className="dashGroupLabel mt-15"><i className="fa-solid fa-brain"></i> Thoughts</h3>
-              <div className={`grid ${gridSizeClasses[gridSize]} gap-6 w-full text-3xl place-items-center`}>
+              <div className={`grid ${gridSizeClasses[gridSize]} thoughtsGrid-${gridSize} gap-6 w-full text-3xl place-items-center`}>
                 {searchedThoughts.map((f, i) => (
                   <Link
                     key={i}
@@ -638,7 +657,7 @@ if (!user) return null;
       {!GroupName && (
       <div id="dashGrid" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mt-5">
         <section className="dashBody">
-          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-clock-rotate-left text-[var(--accent)]"></i> Recent</h2>
+          <h2 className="text-lg flex items-center gap-3"><span className="dashCardIcon dashCardIconSm"><i className="fa-regular fa-clock-rotate-left"></i></span> Recent</h2>
           {Thoughts.length > DASH_PREVIEW_LIMIT && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>
@@ -677,7 +696,7 @@ if (!user) return null;
           )}
         </section>
         <section className="dashBody">
-          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-list-tree text-[var(--accent)]"></i> Lists</h2>
+          <h2 className="text-lg flex items-center gap-3"><span className="dashCardIcon dashCardIconSm"><i className="fa-regular fa-list-tree"></i></span> Lists</h2>
           {listsOverview.length > 0 && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>
@@ -709,7 +728,7 @@ if (!user) return null;
           )}
         </section>
         <section className="dashBody">
-          <h2 className="text-lg flex items-center gap-2"><i className="fa-regular fa-images text-[var(--accent)]"></i> Mood Boards</h2>
+          <h2 className="text-lg flex items-center gap-3"><span className="dashCardIcon dashCardIconSm"><i className="fa-regular fa-images"></i></span> Mood Boards</h2>
           {moodBoards.length > 0 && (
             <div className="dashSearchInput dashSearchInputFull mt-2">
               <i className="fa-regular fa-magnifying-glass"></i>

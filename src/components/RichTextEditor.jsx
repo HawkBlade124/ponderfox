@@ -64,6 +64,7 @@ const RichTextEditor = forwardRef(function RichTextEditor(
   useImperativeHandle(ref, () => ({
     clear: () => editor?.commands.clearContent(),
     focus: () => editor?.commands.focus(),
+    insertText: (text) => editor?.chain().focus().insertContent(text).run(),
   }));
 
   if (!editor) return null;
