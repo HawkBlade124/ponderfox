@@ -11,11 +11,14 @@ import DashMenu from "../../components/DashMenu.jsx";
 import SettingsPlanCard from "../../components/SettingsPlanCard.jsx";
 import DeleteModal from "../../components/modals/Delete.jsx";
 import LogoutConfirmModal from "../../components/modals/LogoutConfirm.jsx";
+import TwoFactorSetupModal from "../../components/modals/TwoFactorSetup.jsx";
+import TwoFactorDisableModal from "../../components/modals/TwoFactorDisable.jsx";
+import TwoFactorRegenerateBackupCodesModal from "../../components/modals/TwoFactorRegenerateBackupCodes.jsx";
 import { buildApiUrl } from "../../utils/api.js";
 import { getTierColor } from "../../utils/tier.js";
 import { useCheckout } from "../../hooks/useCheckout.js";
 import { PRICING_TIERS } from "../../data/pricing.js";
-import { formatBytes, formatDate } from "../../utils/format.js";
+import { formatBytes, formatDate, formatRelativeTime } from "../../utils/format.js";
 import PasswordStrength from "../../components/PasswordStrength.jsx";
 
 function getInitials(name) {
@@ -237,6 +240,61 @@ function Settings() {
   const [showDeleteImageModal, setShowDeleteImageModal] = useState(false);
   const [selectedImageUrls, setSelectedImageUrls] = useState(new Set());
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showTwoFactorSetup, setShowTwoFactorSetup] = useState(false);
+  const [showTwoFactorDisable, setShowTwoFactorDisable] = useState(false);
+  const [showTwoFactorRegenerate, setShowTwoFactorRegenerate] = useState(false);
+
+  const [sessions, setSessions] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsError, setSessionsError] = useState("");
+  const [revokingSessionId, setRevokingSessionId] = useState(null);
+
+  const fetchSessions = () => {
+    if (!token) return;
+    setSessionsLoading(true);
+    setSessionsError("");
+    fetch(`${buildApiUrl()}/sessions`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSessions(data.sessions);
+        } else {
+          setSessionsError(data.error || "Failed to load devices");
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading sessions:", err);
+        setSessionsError("Couldn't reach the server. Please try again.");
+      })
+      .finally(() => setSessionsLoading(false));
+  };
+
+  useEffect(() => {
+    fetchSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  const revokeSession = async (sessionId) => {
+    setRevokingSessionId(sessionId);
+    setSessionsError("");
+    try {
+      const res = await fetch(`${buildApiUrl()}/sessions/${sessionId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSessions((prev) => prev.filter((s) => s.sessionId !== sessionId));
+      } else {
+        setSessionsError(data.error || "Failed to log out that device");
+      }
+    } catch (err) {
+      console.error("Error revoking session:", err);
+      setSessionsError("Couldn't reach the server. Please try again.");
+    } finally {
+      setRevokingSessionId(null);
+    }
+  };
 
   const confirmDeleteImage = (image) => {
     setImagesToDelete([image]);
@@ -820,6 +878,94 @@ function Settings() {
                 </div>
               </section>
 
+              <section className="dashBody mt-5">
+                <div className="settingsFieldSection">
+                  <h2 className="settingsSectionTitle">Two-Factor Authentication</h2>
+                  <p className="settingsSectionSubtitle">Require a code from an authenticator app when signing in, on top of your password.</p>
+
+                  <div className="settingsPreferenceRow">
+                    <div>
+                      <div className="settingsPreferenceLabel">
+                        {user.TwoFactorEnabled ? "Two-factor authentication is on" : "Two-factor authentication is off"}
+                      </div>
+                      <div className="settingsPreferenceHint">
+                        {user.TwoFactorEnabled
+                          ? "You'll need a code from your authenticator app each time you sign in."
+                          : "Add an extra layer of security to your account."}
+                      </div>
+                    </div>
+                    {user.TwoFactorEnabled ? (
+                      <button className="modalButtons modalButtonsSecondary" onClick={() => setShowTwoFactorDisable(true)}>Disable</button>
+                    ) : (
+                      <button className="modalPrimaryButton" style={{ width: "auto" }} onClick={() => setShowTwoFactorSetup(true)}>Enable</button>
+                    )}
+                  </div>
+
+                  {user.TwoFactorEnabled && (
+                    <div className="settingsPreferenceRow">
+                      <div>
+                        <div className="settingsPreferenceLabel">Backup codes</div>
+                        <div className="settingsPreferenceHint">Generate a new set if you're running low or think your old ones leaked.</div>
+                      </div>
+                      <button className="modalButtons modalButtonsSecondary" onClick={() => setShowTwoFactorRegenerate(true)}>Regenerate</button>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="dashBody mt-5">
+                <div className="settingsFieldSection">
+                  <h2 className="settingsSectionTitle">Device Management</h2>
+                  <p className="settingsSectionSubtitle">Everywhere you're currently signed in. Log out any device you don't recognize.</p>
+
+                  {sessionsError && <p className="text-red-400 text-sm">{sessionsError}</p>}
+
+                  {sessionsLoading ? (
+                    <p className="modalEmptyNote mt-2">Loading devices…</p>
+                  ) : sessions.length === 0 ? (
+                    <p className="modalEmptyNote mt-2">No active sessions found.</p>
+                  ) : (
+                    <div className="adminTableWrap">
+                      <table className="adminTable">
+                        <thead>
+                          <tr>
+                            <th>Device</th>
+                            <th>Date Logged In</th>
+                            <th>IP Address</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sessions.map((session) => (
+                            <tr key={session.sessionId}>
+                              <td>
+                                {session.device}
+                                {session.isCurrent && <span className="modalChip ml-2">This device</span>}
+                              </td>
+                              <td>{formatRelativeTime(session.dateLoggedIn)}</td>
+                              <td>{session.ipAddress}</td>
+                              <td>
+                                {session.isCurrent ? (
+                                  <span className="modalEmptyNote">Current session</span>
+                                ) : (
+                                  <button
+                                    className="adminTableOpButton"
+                                    disabled={revokingSessionId === session.sessionId}
+                                    onClick={() => revokeSession(session.sessionId)}
+                                  >
+                                    {revokingSessionId === session.sessionId ? "Logging out..." : "Log Out"}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </section>
+
               <section className="dashBody settingsSection settingsDangerZone mt-5">
                 <h2 className="settingsSectionTitle settingsDangerTitle"><i className="fa-regular fa-triangle-exclamation"></i> Danger Zone</h2>
                 <p className="settingsSectionSubtitle">These actions are permanent or end your current session.</p>
@@ -1263,6 +1409,32 @@ function Settings() {
             isOpen={showLogoutConfirm}
             onClose={() => setShowLogoutConfirm(false)}
             onConfirm={logout}
+          />
+
+          <TwoFactorSetupModal
+            isOpen={showTwoFactorSetup}
+            onClose={() => setShowTwoFactorSetup(false)}
+            token={token}
+            onEnabled={() => {
+              setUser((prev) => (prev ? { ...prev, TwoFactorEnabled: true } : prev));
+              localStorage.setItem("user", JSON.stringify({ ...user, TwoFactorEnabled: true }));
+            }}
+          />
+
+          <TwoFactorDisableModal
+            isOpen={showTwoFactorDisable}
+            onClose={() => setShowTwoFactorDisable(false)}
+            token={token}
+            onDisabled={() => {
+              setUser((prev) => (prev ? { ...prev, TwoFactorEnabled: false } : prev));
+              localStorage.setItem("user", JSON.stringify({ ...user, TwoFactorEnabled: false }));
+            }}
+          />
+
+          <TwoFactorRegenerateBackupCodesModal
+            isOpen={showTwoFactorRegenerate}
+            onClose={() => setShowTwoFactorRegenerate(false)}
+            token={token}
           />
 
           {notificationsSaved && (

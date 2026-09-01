@@ -765,6 +765,40 @@ height:90vh
 	align-items:center;
 	gap:6px;
 }
+.twoFactorQrImage{
+	width:180px;
+	height:180px;
+	border-radius:12px;
+	background:#fff;
+	padding:10px;
+}
+.twoFactorManualSecret{
+	display:block;
+	width:100%;
+	background:#0b0e17;
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+	border-radius:10px;
+	padding:10px 12px;
+	font-size:13px;
+	color:#cdd6e8;
+	letter-spacing:0.04em;
+	word-break:break-all;
+}
+.backupCodeGrid{
+	display:grid;
+	grid-template-columns:1fr 1fr;
+	gap:8px;
+}
+.backupCodeItem{
+	background:#0b0e17;
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+	border-radius:8px;
+	padding:8px 10px;
+	text-align:center;
+	font-size:13px;
+	color:#e5eaf5;
+	letter-spacing:0.03em;
+}
 .modalEmptyNote{
 	font-size:13px;
 	color:#5b6472;

@@ -19,6 +19,10 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS "FontFamily" VARCHAR(150) NOT NULL DE
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "NewsletterEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "WeeklyDigestEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "DailyDigestEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "TwoFactorEnabled" BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "TwoFactorSecret" TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "TwoFactorBackupCodes" JSONB;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "GoogleID" VARCHAR(255) UNIQUE;
 
 -- Login treats "Username"/"Email" case-insensitively, so uniqueness must
 -- be enforced the same way here — otherwise "Bob" and "bob" could both
@@ -35,6 +39,26 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 );
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user ON password_reset_tokens ("UserID");
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expiry ON password_reset_tokens ("ExpiresAt");
+
+-- Tracks a session per issued access token (hashed, never the raw JWT) so
+-- Device Management can list and individually revoke them. "RevokedAt" is
+-- a soft-delete rather than DELETE, so verifyToken can tell "revoked" (row
+-- exists, blocked) apart from "issued before this table existed" (no row,
+-- grandfathered through on the JWT's own expiry) — deleting the row would
+-- make both cases look identical and silently defeat revocation.
+CREATE TABLE IF NOT EXISTS user_sessions (
+  "SessionID" SERIAL PRIMARY KEY,
+  "UserID" INT NOT NULL REFERENCES users("UserID") ON DELETE CASCADE,
+  "TokenHash" CHAR(64) NOT NULL UNIQUE,
+  "DeviceLabel" VARCHAR(255) NOT NULL,
+  "IPAddress" VARCHAR(64) NOT NULL,
+  "DateLoggedIn" TIMESTAMP NOT NULL DEFAULT NOW(),
+  "LastSeenAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+  "ExpiresAt" TIMESTAMP NOT NULL,
+  "RevokedAt" TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user ON user_sessions ("UserID");
+CREATE INDEX IF NOT EXISTS idx_user_sessions_tokenhash ON user_sessions ("TokenHash");
 
 -- Unlike the flags above, this one needs different values for existing vs.
 -- future rows (existing accounts shouldn't see onboarding on their next

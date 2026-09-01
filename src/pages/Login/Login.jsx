@@ -1,6 +1,6 @@
 // frontend/src/pages/Login.jsx
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import AuthLayout from "../../components/AuthLayout";
 
@@ -16,7 +16,29 @@ function Login() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [tempToken, setTempToken] = useState(null);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  const finishLogin = (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    // Must match the server's actual token lifetime (30d remembered, 2h
+    // otherwise — see issueLoginSuccess in server.js), or AuthContext ends
+    // up scheduling an auto-logout that's wildly out of sync with when the
+    // token itself actually stops working.
+    const REMEMBERED_MS = 30 * 24 * 60 * 60 * 1000;
+    const SESSION_MS = 2 * 60 * 60 * 1000;
+    localStorage.setItem("tokenExpiry", String(Date.now() + (rememberMe ? REMEMBERED_MS : SESSION_MS)));
+
+    setSuccess(true);
+    navigate(data.user.HasOnboarded ? "/dashboard" : "/welcome");
+    setTimeout(() => {
+      window.location.reload();
+    }, 50);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,25 +54,17 @@ function Login() {
     try {
       const res = await axios.post(
         `${apiBase}/login`,
-        { identifier: identifier.trim(), password },
+        { identifier: identifier.trim(), password, rememberMe },
         { headers: { "Content-Type": "application/json" } }
       );
 
-      if (res.data?.success) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        if (rememberMe) {
-          localStorage.removeItem("tokenExpiry");
-        } else {
-          const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-          localStorage.setItem("tokenExpiry", String(Date.now() + ONE_WEEK_MS));
-        }
+      if (res.data?.twoFactorRequired) {
+        setTempToken(res.data.tempToken);
+        return;
+      }
 
-        setSuccess(true);
-        navigate(res.data.user.HasOnboarded ? "/dashboard" : "/welcome");
-        setTimeout(() => {
-          window.location.reload();
-        }, 50);
+      if (res.data?.success) {
+        finishLogin(res.data);
         return;
       }
 
@@ -62,6 +76,152 @@ function Login() {
       );
     }
   };
+
+  const handleGoogleCredential = async (response) => {
+    setError("");
+    const apiBase = buildApiUrl();
+    try {
+      const res = await axios.post(
+        `${apiBase}/login/google`,
+        { credential: response.credential, rememberMe },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (res.data?.twoFactorRequired) {
+        setTempToken(res.data.tempToken);
+        return;
+      }
+
+      if (res.data?.success) {
+        finishLogin(res.data);
+        return;
+      }
+
+      setError(res.data?.message || "Google sign-in failed.");
+    } catch (err) {
+      console.error("Google sign-in error:", err);
+      setError(err.response?.data?.message || err.message || "Google sign-in failed.");
+    }
+  };
+
+  // Google Identity Services' callback is registered once with the script
+  // and never re-created on our end, so it can't close over fresh state —
+  // routing it through a ref that's reassigned every render is what keeps
+  // it seeing the latest rememberMe/finishLogin instead of the mount-time
+  // ones.
+  const handleGoogleCredentialRef = useRef(handleGoogleCredential);
+  handleGoogleCredentialRef.current = handleGoogleCredential;
+
+  useEffect(() => {
+    if (tempToken) return; // the button's container isn't mounted on the 2FA screen
+
+    const initializeGoogleButton = () => {
+      if (!window.google?.accounts?.id) return;
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: (response) => handleGoogleCredentialRef.current(response),
+      });
+      const container = document.getElementById("googleSignInButton");
+      if (container) {
+        window.google.accounts.id.renderButton(container, {
+          theme: "filled_black",
+          size: "large",
+          width: 336,
+          text: "continue_with",
+        });
+      }
+    };
+
+    if (window.google?.accounts?.id) {
+      initializeGoogleButton();
+      return;
+    }
+
+    let script = document.getElementById("google-identity-script");
+    if (!script) {
+      script = document.createElement("script");
+      script.id = "google-identity-script";
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+    script.addEventListener("load", initializeGoogleButton);
+    return () => script.removeEventListener("load", initializeGoogleButton);
+  }, [tempToken]);
+
+  const handleTwoFactorSubmit = async (e) => {
+    e.preventDefault();
+    if (!twoFactorCode.trim()) return;
+    setError("");
+    setSubmitting(true);
+
+    const apiBase = buildApiUrl();
+    try {
+      const res = await axios.post(
+        `${apiBase}/login/2fa`,
+        { tempToken, code: twoFactorCode.trim() },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (res.data?.success) {
+        finishLogin(res.data);
+        return;
+      }
+
+      setError(res.data?.message || "Invalid code.");
+    } catch (err) {
+      console.error("2FA login error:", err);
+      setError(err.response?.data?.message || err.message || "Invalid code.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (tempToken) {
+    return (
+      <AuthLayout headline={<>Enter your verification code</>}>
+        <form className="flex flex-col gap-5" onSubmit={handleTwoFactorSubmit}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="twoFactorCode" className="text-sm font-medium text-slate-300">
+              6-digit code or backup code
+            </label>
+            <input
+              id="twoFactorCode"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              className="rounded-lg border border-slate-700 bg-slate-800/60 h-11 px-4 !text-white placeholder:!text-slate-500 outline-none focus:border-[#438eef] focus:ring-2 focus:ring-[#438eef]/20 transition"
+              placeholder="123456"
+              value={twoFactorCode}
+              onChange={(e) => { setTwoFactorCode(e.target.value); setError(""); }}
+              autoFocus
+              required
+            />
+            <p className="text-xs text-slate-500">Open your authenticator app, or enter one of your backup codes.</p>
+          </div>
+
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="bg-[#438eef] hover:bg-[#2f7ae0] transition text-white font-semibold h-11 rounded-lg cursor-pointer disabled:opacity-60"
+          >
+            {submitting ? "Verifying..." : "Verify"}
+          </button>
+
+          <button
+            type="button"
+            className="text-center text-sm text-slate-400 hover:text-white"
+            onClick={() => { setTempToken(null); setTwoFactorCode(""); setError(""); }}
+          >
+            Back to sign in
+          </button>
+        </form>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout
@@ -135,6 +295,14 @@ function Login() {
           Sign In
         </button>
       </form>
+
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-slate-700"></div>
+        <span className="text-xs text-slate-500">OR</span>
+        <div className="flex-1 h-px bg-slate-700"></div>
+      </div>
+
+      <div id="googleSignInButton" className="flex justify-center"></div>
 
       <p className="text-center text-sm text-slate-400">
         Don&apos;t have an account?{" "}
