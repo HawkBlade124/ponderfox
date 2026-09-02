@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import AuthLayout from "../../components/AuthLayout";
+import { useGoogleIdentityScript } from "../../hooks/useGoogleIdentityScript.js";
 
 function buildApiUrl() {
   const base = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/+$/, "");
@@ -112,43 +113,25 @@ function Login() {
   const handleGoogleCredentialRef = useRef(handleGoogleCredential);
   handleGoogleCredentialRef.current = handleGoogleCredential;
 
+  const googleScriptReady = useGoogleIdentityScript();
+
   useEffect(() => {
-    if (tempToken) return; // the button's container isn't mounted on the 2FA screen
+    if (tempToken || !googleScriptReady) return; // the button's container isn't mounted on the 2FA screen
 
-    const initializeGoogleButton = () => {
-      if (!window.google?.accounts?.id) return;
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        callback: (response) => handleGoogleCredentialRef.current(response),
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: (response) => handleGoogleCredentialRef.current(response),
+    });
+    const container = document.getElementById("googleSignInButton");
+    if (container) {
+      window.google.accounts.id.renderButton(container, {
+        theme: "filled_black",
+        size: "large",
+        width: 336,
+        text: "continue_with",
       });
-      const container = document.getElementById("googleSignInButton");
-      if (container) {
-        window.google.accounts.id.renderButton(container, {
-          theme: "filled_black",
-          size: "large",
-          width: 336,
-          text: "continue_with",
-        });
-      }
-    };
-
-    if (window.google?.accounts?.id) {
-      initializeGoogleButton();
-      return;
     }
-
-    let script = document.getElementById("google-identity-script");
-    if (!script) {
-      script = document.createElement("script");
-      script.id = "google-identity-script";
-      script.src = "https://accounts.google.com/gsi/client";
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-    script.addEventListener("load", initializeGoogleButton);
-    return () => script.removeEventListener("load", initializeGoogleButton);
-  }, [tempToken]);
+  }, [tempToken, googleScriptReady]);
 
   const handleTwoFactorSubmit = async (e) => {
     e.preventDefault();

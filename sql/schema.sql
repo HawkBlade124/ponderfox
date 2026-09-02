@@ -23,6 +23,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS "TwoFactorEnabled" BOOLEAN NOT NULL D
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "TwoFactorSecret" TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "TwoFactorBackupCodes" JSONB;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS "GoogleID" VARCHAR(255) UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "GoogleEmail" VARCHAR(255);
 
 -- Login treats "Username"/"Email" case-insensitively, so uniqueness must
 -- be enforced the same way here — otherwise "Bob" and "bob" could both

@@ -14,6 +14,8 @@ import LogoutConfirmModal from "../../components/modals/LogoutConfirm.jsx";
 import TwoFactorSetupModal from "../../components/modals/TwoFactorSetup.jsx";
 import TwoFactorDisableModal from "../../components/modals/TwoFactorDisable.jsx";
 import TwoFactorRegenerateBackupCodesModal from "../../components/modals/TwoFactorRegenerateBackupCodes.jsx";
+import GoogleUnlinkModal from "../../components/modals/GoogleUnlink.jsx";
+import { useGoogleIdentityScript } from "../../hooks/useGoogleIdentityScript.js";
 import { buildApiUrl } from "../../utils/api.js";
 import { getTierColor } from "../../utils/tier.js";
 import { useCheckout } from "../../hooks/useCheckout.js";
@@ -243,6 +245,9 @@ function Settings() {
   const [showTwoFactorSetup, setShowTwoFactorSetup] = useState(false);
   const [showTwoFactorDisable, setShowTwoFactorDisable] = useState(false);
   const [showTwoFactorRegenerate, setShowTwoFactorRegenerate] = useState(false);
+  const [showGoogleUnlink, setShowGoogleUnlink] = useState(false);
+  const [googleLinkError, setGoogleLinkError] = useState("");
+  const [googleLinking, setGoogleLinking] = useState(false);
 
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
@@ -295,6 +300,56 @@ function Settings() {
       setRevokingSessionId(null);
     }
   };
+
+  const handleGoogleLinkCredential = async (response) => {
+    setGoogleLinkError("");
+    setGoogleLinking(true);
+    try {
+      const res = await fetch(`${buildApiUrl()}/me/google/link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ credential: response.credential }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setGoogleLinkError(data.error || "Failed to connect your Google account");
+        return;
+      }
+      setUser((prev) => (prev ? { ...prev, GoogleID: true, GoogleEmail: data.googleEmail } : prev));
+      localStorage.setItem("user", JSON.stringify({ ...user, GoogleID: true, GoogleEmail: data.googleEmail }));
+    } catch (err) {
+      console.error("Google link error:", err);
+      setGoogleLinkError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setGoogleLinking(false);
+    }
+  };
+
+  // Same "latest closure via ref" pattern as Login.jsx — Google's callback
+  // is registered once and would otherwise keep calling a stale version of
+  // this handler.
+  const handleGoogleLinkCredentialRef = useRef(handleGoogleLinkCredential);
+  handleGoogleLinkCredentialRef.current = handleGoogleLinkCredential;
+
+  const googleScriptReady = useGoogleIdentityScript();
+
+  useEffect(() => {
+    if (!googleScriptReady || activeTab !== "security" || user?.GoogleID) return;
+
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: (response) => handleGoogleLinkCredentialRef.current(response),
+    });
+    const container = document.getElementById("googleConnectButton");
+    if (container) {
+      window.google.accounts.id.renderButton(container, {
+        theme: "filled_black",
+        size: "medium",
+        width: 240,
+        text: "signin_with",
+      });
+    }
+  }, [googleScriptReady, activeTab, user?.GoogleID]);
 
   const confirmDeleteImage = (image) => {
     setImagesToDelete([image]);
@@ -915,6 +970,30 @@ function Settings() {
 
               <section className="dashBody mt-5">
                 <div className="settingsFieldSection">
+                  <h2 className="settingsSectionTitle">Connected Accounts</h2>
+                  <p className="settingsSectionSubtitle">Sign in faster by connecting a Google account.</p>
+
+                  <div className="settingsPreferenceRow">
+                    <div>
+                      <div className="settingsPreferenceLabel">
+                        <i className="fa-brands fa-google mr-2"></i>
+                        {user.GoogleID ? "Google connected" : "Google"}
+                      </div>
+                      <div className="settingsPreferenceHint">
+                        {user.GoogleID ? `Connected as ${user.GoogleEmail}` : "Connect your Google account to sign in with one click."}
+                      </div>
+                    </div>
+                    {user.GoogleID ? (
+                      <button className="modalButtons modalButtonsSecondary" onClick={() => setShowGoogleUnlink(true)}>Disconnect</button>
+                    ) : (
+                      <div id="googleConnectButton">{googleLinking && <p className="modalEmptyNote">Connecting...</p>}</div>
+                    )}
+                  </div>
+                  {googleLinkError && <p className="text-red-400 text-sm">{googleLinkError}</p>}
+                </div>
+              </section>
+              <section className="dashBody mt-5">
+                <div className="settingsFieldSection">
                   <h2 className="settingsSectionTitle">Device Management</h2>
                   <p className="settingsSectionSubtitle">Everywhere you're currently signed in. Log out any device you don't recognize.</p>
 
@@ -965,6 +1044,7 @@ function Settings() {
                   )}
                 </div>
               </section>
+
 
               <section className="dashBody settingsSection settingsDangerZone mt-5">
                 <h2 className="settingsSectionTitle settingsDangerTitle"><i className="fa-regular fa-triangle-exclamation"></i> Danger Zone</h2>
@@ -1435,6 +1515,16 @@ function Settings() {
             isOpen={showTwoFactorRegenerate}
             onClose={() => setShowTwoFactorRegenerate(false)}
             token={token}
+          />
+
+          <GoogleUnlinkModal
+            isOpen={showGoogleUnlink}
+            onClose={() => setShowGoogleUnlink(false)}
+            token={token}
+            onUnlinked={() => {
+              setUser((prev) => (prev ? { ...prev, GoogleID: null, GoogleEmail: null } : prev));
+              localStorage.setItem("user", JSON.stringify({ ...user, GoogleID: null, GoogleEmail: null }));
+            }}
           />
 
           {notificationsSaved && (
