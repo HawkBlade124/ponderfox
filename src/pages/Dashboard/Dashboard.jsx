@@ -526,7 +526,7 @@ if (!user) return null;
       <div id="layoutLeft" className="w-full">
 
       <section className="dashBody dashFilterPanel w-full">
-        <div className="flex align-center justify-between">
+        <div id="filterSection" className="flex align-center justify-between">
                     <div className="dashFilterDropdownRow">
             <select className="dashFilterDropdown sortSelect" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="date-desc">Sort: Newest first</option>
@@ -571,10 +571,17 @@ if (!user) return null;
             </div>
             <form className="dashFilterSearchRow" onSubmit={(e) => e.preventDefault()}>
               <SearchBox value={brainDumpSearch} onChange={(e) => setBrainDumpSearch(e.target.value)} placeholder="Search thoughts and folders" className="dashSearchInputFull" />
-              <button type="submit" className="dashFilterSearchButton">
+                <div className="flex flex-col mt-5 gap-10 w-full">                 
+              <button type="submit" className="dashFilterSearchButton h-12 flex justify-center ">
                 <i className="fa-regular fa-magnifying-glass"></i>
                 Search
               </button>
+              <div id="mobileFilterLabel" className="dashFilterLabelGroup">
+                    {hasActiveFilters && (
+                      <button type="button"  onClick={clearAllFilters}>Clear All</button>
+                    )}
+                  </div>
+              </div>
             </form>
           </div>
         </div>
