@@ -1,6 +1,6 @@
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import EditModal from "../../components/modals/Edit.jsx";
 import DeleteModal from "../../components/modals/Delete.jsx";
 import AddModal from "../../components/modals/Add.jsx";
@@ -8,7 +8,6 @@ import AddFolderModal from "../../components/modals/AddFolder.jsx";
 import InfoModal from "../../components/modals/Info.jsx";
 import DashMenu from "../../components/DashMenu.jsx";
 import EmptyStateArt from "../../components/EmptyStateArt.jsx";
-import TopProfileTile from "../../components/TopProfileTile.jsx";
 import SearchBox from "../../components/SearchBox.jsx";
 import { getTierColor } from "../../utils/tier.js";
 import { buildApiUrl } from "../../utils/api.js";
@@ -18,6 +17,7 @@ function Dashboard() {
 
   const { user, Thoughts, setThoughts, token, loading } = useAuth();
   const { ListName, TagName, CategoryName } = useParams();
+  const navigate = useNavigate();
 
   const GroupType = ListName ? "list" : TagName ? "tag" : CategoryName ? "category" : null;
   const GroupName = ListName || TagName || CategoryName || null;
@@ -59,6 +59,8 @@ function Dashboard() {
   const [listThoughts, setListThoughts] = useState([]);
   const [listsOverview, setListsOverview] = useState([]);
   const [moodBoards, setMoodBoards] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
+  const [allTags, setAllTags] = useState([]);
   const [sortBy, setSortBy] = useState("date-desc");
   const [viewMode, setViewMode] = useState(
     () => localStorage.getItem("thoughtViewMode") || "grid"
@@ -408,6 +410,27 @@ useEffect(() => {
 useEffect(() => {
   if (loading || !token) return;
 
+  const fetchCategoriesAndTags = async () => {
+    try {
+      const [catRes, tagRes] = await Promise.all([
+        fetch(`${buildApiUrl()}/categories`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${buildApiUrl()}/tags`, { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      const catData = await catRes.json();
+      const tagData = await tagRes.json();
+      if (catData.success) setAllCategories(catData.categories);
+      if (tagData.success) setAllTags(tagData.tags);
+    } catch (err) {
+      console.error("Error fetching categories/tags:", err);
+    }
+  };
+
+  fetchCategoriesAndTags();
+}, [token, loading]);
+
+useEffect(() => {
+  if (loading || !token) return;
+
   const fetchMoodBoards = async () => {
     try {
       const res = await fetch(`${buildApiUrl()}/moodboards`, {
@@ -446,6 +469,23 @@ const addFolder = async (folderName) => {
     return { success: false, error: "Could not reach the server. Check your connection and try again." };
   }
 };
+
+const filterByCategory = (e) => {
+  const name = e.target.value;
+  navigate(name ? `/categories/${encodeURIComponent(name)}` : "/dashboard");
+};
+
+const filterByTag = (e) => {
+  const name = e.target.value;
+  navigate(name ? `/tags/${encodeURIComponent(name)}` : "/dashboard");
+};
+
+const hasActiveFilters = Boolean(brainDumpSearch.trim()) || sortBy !== "date-desc";
+const clearAllFilters = () => {
+  setBrainDumpSearch("");
+  setSortBy("date-desc");
+};
+
 if (loading) {
   return (
     <div className="flex items-center justify-center h-screen">
@@ -467,7 +507,7 @@ if (!user) return null;
         <DashMenu />
       <div className="rightScreen w-full p-6 ml">
       <div id="homeHead" className="flex flex-wrap justify-between items-center gap-3">
-        <div>
+        <div className="w-full text-center mt-5">
           <div className="dashBreadcrumb">
             Pages <i className="fa-regular fa-chevron-right text-[10px] mx-1"></i>{" "}
             {GroupName ? (
@@ -476,40 +516,36 @@ if (!user) return null;
               <span>Dashboard</span>
             )}
           </div>
-          <div className="flex items-center flex-wrap gap-4">
+          <div className="flex justify-center items-center flex-wrap gap-4 mb-15">
             <h1 className="text-2xl sm:text-3xl font-semibold text-white">{GroupName || "Your Thought Dashboard"}</h1>
-            {!GroupName && (
-              <span id="tierName" style={{ color: getTierColor(user.Tier), backgroundColor: `${getTierColor(user.Tier)}80` }}>{user.Tier}</span>
-            )}
           </div>
-        </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          {displayThoughts.length + sortedFolders.length > 1 && (
-            <SearchBox value={brainDumpSearch} onChange={(e) => setBrainDumpSearch(e.target.value)} placeholder="Search thoughts and folders" />
-          )}
-          <TopProfileTile />
         </div>
       </div>
 
       <div id="dashLayout" className="flex justify-between w-full  mt-5">
       <div id="layoutLeft" className="w-full">
 
-      <section className="dashBody w-full">
-        <div className="flex flex-col gap-3">
-        <div className="flex items-center flex-wrap gap-2 justify-between lg:justify-between">
-          <h2 className="text-2xl flex items-center gap-3">
-            <span className="dashCardIcon"><i className={`fa-regular ${groupIcon}`}></i></span>
-            {GroupName || "Your Brain Dump"}
-          </h2>
-          <div className="flex items-center flex-wrap gap-2 w-full lg:w-auto">
-          {displayThoughts.length + sortedFolders.length > 1 && (
-            <>
-            <select className="sortSelect" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="date-desc">Newest first</option>
-              <option value="date-asc">Oldest first</option>
-              <option value="name-asc">Name (A–Z)</option>
-              <option value="name-desc">Name (Z–A)</option>
-              <option value="favorites">Favorites first</option>
+      <section className="dashBody dashFilterPanel w-full">
+        <div className="flex align-center justify-between">
+                    <div className="dashFilterDropdownRow">
+            <select className="dashFilterDropdown sortSelect" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="date-desc">Sort: Newest first</option>
+              <option value="date-asc">Sort: Oldest first</option>
+              <option value="name-asc">Sort: Name (A–Z)</option>
+              <option value="name-desc">Sort: Name (Z–A)</option>
+              <option value="favorites">Sort: Favorites first</option>
+            </select>
+            <select className="dashFilterDropdown sortSelect" value={GroupType === "category" ? GroupName : ""} onChange={filterByCategory}>
+              <option value="">All Categories</option>
+              {allCategories.map((c) => (
+                <option key={c.CategoryName} value={c.CategoryName}>{c.CategoryName}</option>
+              ))}
+            </select>
+            <select className="dashFilterDropdown sortSelect" value={GroupType === "tag" ? GroupName : ""} onChange={filterByTag}>
+              <option value="">All Tags</option>
+              {allTags.map((t) => (
+                <option key={t.TagName} value={t.TagName}>{t.TagName}</option>
+              ))}
             </select>
             <div className="viewToggle flex items-center">
               <button type="button" onClick={() => changeViewMode("grid")} className={`viewToggleBtn ${viewMode === "grid" ? "viewToggleBtnActive" : ""}`} title="Grid view">
@@ -526,8 +562,32 @@ if (!user) return null;
                 <button type="button" onClick={() => changeGridSize("large")} className={`viewToggleBtn ${gridSize === "large" ? "viewToggleBtnActive" : ""}`} title="Large grid">L</button>
               </div>
             )}
-            </>
-          )}
+          </div>
+          <div className="dashFilterTopRow">
+            <div className="dashFilterLabelGroup">
+              {hasActiveFilters && (
+                <button type="button" className="dashFilterClear" onClick={clearAllFilters}>Clear All</button>
+              )}
+            </div>
+            <form className="dashFilterSearchRow" onSubmit={(e) => e.preventDefault()}>
+              <SearchBox value={brainDumpSearch} onChange={(e) => setBrainDumpSearch(e.target.value)} placeholder="Search thoughts and folders" className="dashSearchInputFull" />
+              <button type="submit" className="dashFilterSearchButton">
+                <i className="fa-regular fa-magnifying-glass"></i>
+                Search
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section className="dashBody w-full">
+        <div className="flex flex-col gap-3">
+        <div className="flex items-center flex-wrap gap-2 justify-between lg:justify-between">
+          <h2 className="text-2xl flex items-center gap-3">
+            <span className="dashCardIcon"><i className={`fa-regular ${groupIcon}`}></i></span>
+            {GroupName || "Your Brain Dump"}
+          </h2>
+          <div className="flex items-center flex-wrap gap-2 w-full lg:w-auto">
           <button type="button" className="statTile statTileAction quickActionButton" onClick={() => addThoughtModal()}>
             <div className="statTileValue text-lg">New Thought</div>
             <div className="statTileIcon"><i className="fa-regular fa-message-plus"></i></div>
@@ -560,14 +620,19 @@ if (!user) return null;
           {searchedFolders.length > 0 && (
             <div className="w-full">
               <h3 className="dashGroupLabel"><i className="fa-solid fa-folder"></i> Folders</h3>
-              <div className={`grid ${gridSizeClasses[gridSize]} thoughtsGrid-${gridSize} gap-6 w-full text-3xl place-items-center`}>
+              <div className={`grid ${gridSizeClasses[gridSize]} thoughtsGrid-${gridSize} gap-6 w-full`}>
                 {searchedFolders.map((l) => (
-                  <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem folderItem w-full flex flex-col items-center justify-between no-underline">
-                    <div className="flex justify-between w-full">
-                      <i className="folderItemIcon fa-solid fa-folder text-[var(--accent)]"></i>
+                  <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem folderItem thoughtCoverCard no-underline">
+                    <div className="thoughtCoverArt">
+                      <i className="thoughtCoverArtIcon fa-solid fa-folder"></i>
                     </div>
-                    <div className="thoughtName">{l.ListName}</div>
-                    <div className="folderItemCount text-slate-400">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
+                    <div className="thoughtCoverBody">
+                      <div className="thoughtCoverTags">
+                        <span className="thoughtCoverTag">Folder</span>
+                      </div>
+                      <div className="thoughtCoverTitle">{l.ListName}</div>
+                      <div className="thoughtCoverMeta">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -576,28 +641,43 @@ if (!user) return null;
           {searchedThoughts.length > 0 && (
             <div className="w-full">
               <h3 className="dashGroupLabel mt-15"><i className="fa-solid fa-brain"></i> Thoughts</h3>
-              <div className={`grid ${gridSizeClasses[gridSize]} thoughtsGrid-${gridSize} gap-6 w-full text-3xl place-items-center`}>
+              <div className={`grid ${gridSizeClasses[gridSize]} thoughtsGrid-${gridSize} gap-6 w-full`}>
                 {searchedThoughts.map((f, i) => (
                   <Link
                     key={i}
                     to={`/thought/${encodeURIComponent(f.ThoughtName)}`}
-                    className="thoughtItem thoughtGridItem w-full flex flex-col items-center justify-between no-underline"
+                    className="thoughtItem thoughtGridItem thoughtCoverCard no-underline"
                   >
-                    <div className="flex justify-between w-full">
-                      <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }} className={`thoughtItemIconPrimary cursor-pointer ${f.Pinned ? "fa-solid fa-thumbtack-angle text-[var(--accent)]" : "fa-regular fa-thumbtack-angle"}`}></i>
-                      <i onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }} className="thoughtItemIconPrimary cursor-pointer fa-regular fa-circle-info"/>
-                    </div>
-                    <div className="flex items-center justify-center gap-2 w-full">
-                      <div className="thoughtName">{f.ThoughtName}</div>
-                      {f.VoiceUsed && (
-                        <span className="voiceUsedBadge" title="Voice note added">
-                          <i className="fa-solid fa-microphone-lines"></i>
+                    <div className="thoughtCoverArt">
+                      <i className="thoughtCoverArtIcon fa-solid fa-thought-bubble"></i>
+                      <div className="thoughtCoverOverlay">
+                        <span
+                          className="thoughtCoverOverlayIcon"
+                          title={f.Pinned ? "Unpin" : "Pin"}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); pinThought(f.ThoughtID, !f.Pinned); }}
+                        >
+                          <i className={f.Pinned ? "fa-solid fa-thumbtack-angle" : "fa-regular fa-thumbtack-angle"}></i>
                         </span>
-                      )}
+                        <span
+                          className="thoughtCoverOverlayIcon"
+                          title="Details"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); infoThoughtModal(f); }}
+                        >
+                          <i className="fa-regular fa-circle-info"></i>
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="thoughtItemDescr">{f.ThoughtDescr}</div>
-                      <div className="thoughtMeta text-xs text-slate-400">{formatRelativeTime(f.DateCreated)}</div>
+                    <div className="thoughtCoverBody">
+                      <div className="thoughtCoverTags">
+                        {f.Pinned && <span className="thoughtCoverTag">Pinned</span>}
+                        {f.VoiceUsed && (
+                          <span className="thoughtCoverTag">
+                            <i className="fa-solid fa-microphone-lines"></i> Voice
+                          </span>
+                        )}
+                      </div>
+                      <div className="thoughtCoverTitle">{f.ThoughtName}</div>
+                      <div className="thoughtCoverMeta">{formatRelativeTime(f.DateCreated)}</div>
                     </div>
                   </Link>
                 ))}

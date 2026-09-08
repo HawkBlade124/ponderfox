@@ -9,6 +9,7 @@ import Pricing from "./pages/Pricing/Pricing";
 import Login from "./pages/Login/Login";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail/VerifyEmail";
 import Register from "./pages/Register/Register";
 import Welcome from "./pages/Welcome/Welcome";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -36,6 +37,7 @@ function App() {
     "/register",
     "/forgot-password",
     "/reset-password",
+    "/verify-email",
     "/welcome",
     "/dashboard",
     "/thoughts",
@@ -69,6 +71,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/thoughts" element={<Dashboard />} />

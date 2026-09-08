@@ -25,6 +25,18 @@ function sanitizeMessageHtml(html) {
 function messageToPlainText(html) {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+// Legacy messages predate the rich-text editor and store plain text — wrap
+// them as a paragraph so they can be loaded into RichTextEditor for editing.
+function toEditableHtml(msg) {
+  if (msg.ContentFormat === "html") return msg.Message || "";
+  return `<p>${escapeHtml(msg.Message || "")}</p>`;
+}
+
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_MOVE_CANCEL_PX = 10;
 
 const REMINDER_DISMISSED_KEY = "thoughtReminderDismissed";
 
@@ -57,6 +69,14 @@ function Thought() {
   const [activeTab, setActiveTab] = useState("main");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  const [editingId, setEditingId] = useState(null);
+  const [editDraft, setEditDraft] = useState({ html: "", text: "" });
+  const editEditorRef = useRef(null);
+  const [actionMenu, setActionMenu] = useState(null); // { messageId, x, y, flip }
+  const longPressTimerRef = useRef(null);
+  const longPressStartRef = useRef(null);
+  const longPressFiredRef = useRef(false);
 
   const [pendingAttachments, setPendingAttachments] = useState([]); // [{ url, name, type }]
   const [uploading, setUploading] = useState(false);
@@ -117,6 +137,27 @@ function Thought() {
       el.scrollTop = el.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (editingId != null) {
+      editEditorRef.current?.focus();
+    }
+  }, [editingId]);
+
+  // Close the long-press menu on outside interaction, resize, or Escape.
+  useEffect(() => {
+    if (!actionMenu) return;
+    const close = () => setActionMenu(null);
+    const onKey = (e) => e.key === "Escape" && close();
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("resize", close);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [actionMenu]);
 
   // ---------- Attachments ----------
   const triggerFileSelect = () => {
@@ -292,6 +333,81 @@ function Thought() {
       setError("An error occurred while deleting.");
     }
   };
+
+  // ---------- Edit message ----------
+  // Takes the full message (not just its id) so the draft starts in sync
+  // with what's about to be edited — otherwise switching from editing one
+  // message straight to another leaves editDraft holding the previous
+  // message's text, which an immediate Save would write onto the new one.
+  const startEdit = (msg) => {
+    setActionMenu(null);
+    setEditingId(msg.MessageID);
+    setEditDraft({ html: toEditableHtml(msg), text: messageToPlainText(toEditableHtml(msg)) });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (messageId) => {
+    if (!editDraft.text.trim()) return;
+    try {
+      const res = await axios.put(
+        `${apiBase}/messages/${messageId}`,
+        { message: editDraft.html },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success && res.data.message) {
+        setMessages((prev) =>
+          prev.map((m) => (m.MessageID === messageId ? res.data.message : m))
+        );
+      }
+      setEditingId(null);
+    } catch (err) {
+      console.error("Error editing message:", err.response?.data || err.message);
+      setError(err.response?.data?.details || err.response?.data?.error || "Could not save your edit.");
+    }
+  };
+
+  // ---------- Long-press action menu (mobile) ----------
+  // Touch devices have no hover, so the desktop edit/delete icons are
+  // unreachable there — a long-press on the bubble opens the same two
+  // actions in a small menu instead. Mouse users keep the hover icons.
+  const clearLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const openActionMenu = (messageId, point) => {
+    const menuWidth = 160;
+    const menuHeight = 96;
+    const x = Math.min(Math.max(point.x, menuWidth / 2 + 8), window.innerWidth - menuWidth / 2 - 8);
+    const flip = point.y - menuHeight - 16 < 0;
+    setActionMenu({ messageId, x, y: point.y, flip });
+  };
+
+  const beginLongPress = (messageId, point) => {
+    longPressFiredRef.current = false;
+    longPressStartRef.current = point;
+    clearLongPress();
+    longPressTimerRef.current = setTimeout(() => {
+      longPressFiredRef.current = true;
+      openActionMenu(messageId, point);
+    }, LONG_PRESS_MS);
+  };
+
+  const moveLongPress = (point) => {
+    const start = longPressStartRef.current;
+    if (!start) return;
+    if (Math.hypot(point.x - start.x, point.y - start.y) > LONG_PRESS_MOVE_CANCEL_PX) {
+      clearLongPress();
+    }
+  };
+
+  const endLongPress = () => clearLongPress();
 
   // ---------- Search ----------
   // Uses its own `searchResults` state (kept separate from `messages`) so
@@ -695,18 +811,60 @@ function Thought() {
             <div className="chatbox w-full h-full ">
               <div className="sentMessages w-full" ref={sentMessagesRef}>
                 {messages.map((msg) => (
-                  <div key={msg.MessageID} className="sentMessage flex flex-col justify-start items-start w-full">
+                  <div
+                    key={msg.MessageID}
+                    className={`sentMessage flex flex-col justify-start items-start ${editingId === msg.MessageID ? "sentMessageEditing" : ""}`}
+                    onTouchStart={(e) => {
+                      const t = e.touches[0];
+                      if (t) beginLongPress(msg.MessageID, { x: t.clientX, y: t.clientY });
+                    }}
+                    onTouchMove={(e) => {
+                      const t = e.touches[0];
+                      if (t) moveLongPress({ x: t.clientX, y: t.clientY });
+                    }}
+                    onTouchEnd={endLongPress}
+                    onTouchCancel={endLongPress}
+                    onContextMenu={(e) => {
+                      if (longPressFiredRef.current) e.preventDefault();
+                    }}
+                  >
                     <div className="flex items-start justify-between w-full" onMouseEnter={() => setHoveredId(msg.MessageID)} onMouseLeave={() => setHoveredId(null)}>
                       <span className="messageTimestamp">
                         {msg.DateSent ? new Date(msg.DateSent).toLocaleString() : ""}
                       </span>
-                      <div className={`editGroup ${hoveredId === msg.MessageID ? "editGroupVisible" : ""}`}>
-                        <div className="editGroupIcon" onClick={() => deleteMessage(msg.MessageID)}>
-                          <i className="fa-regular fa-trash-can"></i>
+                      {editingId !== msg.MessageID && (
+                        <div className={`editGroup ${hoveredId === msg.MessageID ? "editGroupVisible" : ""}`}>
+                          <div className="editGroupIcon" onClick={() => startEdit(msg)}>
+                            <i className="fa-regular fa-pen-to-square"></i>
+                          </div>
+                          <div className="editGroupIcon editGroupIconDanger" onClick={() => deleteMessage(msg.MessageID)}>
+                            <i className="fa-regular fa-trash-can"></i>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {editingId === msg.MessageID ? (
+                      <div className="messageEditBox w-full">
+                        <RichTextEditor
+                          key={msg.MessageID}
+                          ref={editEditorRef}
+                          initialContent={toEditableHtml(msg)}
+                          onChange={setEditDraft}
+                          onSubmit={() => saveEdit(msg.MessageID)}
+                        />
+                        <div className="messageEditActions">
+                          <button type="button" className="modalTextLink" onClick={cancelEdit}>Cancel</button>
+                          <button
+                            type="button"
+                            className="messageEditSaveBtn"
+                            disabled={!editDraft.text.trim()}
+                            onClick={() => saveEdit(msg.MessageID)}
+                          >
+                            Save
+                          </button>
                         </div>
                       </div>
-                    </div>
-                    {msg.Message && msg.ContentFormat === "html" ? (
+                    ) : msg.Message && msg.ContentFormat === "html" ? (
                       <div
                         className="messageString"
                         dangerouslySetInnerHTML={{ __html: sanitizeMessageHtml(msg.Message) }}
@@ -971,6 +1129,38 @@ function Thought() {
         itemName={ThoughtName}
         onConfirm={deleteThought}
       />
+
+      {actionMenu && (
+        <>
+          <div className="messageActionBackdrop" onClick={() => setActionMenu(null)}></div>
+          <div
+            className="messageActionMenu"
+            style={{
+              left: actionMenu.x,
+              top: actionMenu.y,
+              transform: actionMenu.flip ? "translate(-50%, 16px)" : "translate(-50%, calc(-100% - 16px))",
+            }}
+          >
+            <button
+              type="button"
+              className="messageActionMenuBtn"
+              onClick={() => {
+                const msg = messages.find((m) => m.MessageID === actionMenu.messageId);
+                if (msg) startEdit(msg);
+              }}
+            >
+              <i className="fa-regular fa-pen-to-square"></i> Edit
+            </button>
+            <button
+              type="button"
+              className="messageActionMenuBtn messageActionMenuBtnDanger"
+              onClick={() => { deleteMessage(actionMenu.messageId); setActionMenu(null); }}
+            >
+              <i className="fa-regular fa-trash-can"></i> Delete
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

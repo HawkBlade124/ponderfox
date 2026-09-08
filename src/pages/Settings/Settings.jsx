@@ -436,6 +436,9 @@ function Settings() {
   const [profileError, setProfileError] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
 
+  const [verifySending, setVerifySending] = useState(false);
+  const [verifyMessage, setVerifyMessage] = useState("");
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -568,11 +571,34 @@ function Settings() {
       setProfilePassword("");
       setProfileModalOpen(false);
       setProfileSaved(true);
+      setVerifyMessage("");
     } catch (err) {
       console.error("Error saving profile:", err);
       setProfileError("We couldn't reach the server. Check your connection and try again.");
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  const sendVerificationEmail = async () => {
+    setVerifySending(true);
+    setVerifyMessage("");
+    try {
+      const res = await fetch(`${buildApiUrl()}/email-verification/resend`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setVerifyMessage(data.error || "We couldn't send the verification email. Please try again.");
+        return;
+      }
+      setVerifyMessage("Verification email sent — check your inbox.");
+    } catch (err) {
+      console.error("Error sending verification email:", err);
+      setVerifyMessage("We couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setVerifySending(false);
     }
   };
 
@@ -833,9 +859,48 @@ function Settings() {
                             className="modalFieldInput"
                             type="email"
                             value={profileEmail}
-                            onChange={(e) => setProfileEmail(e.target.value)}
+                            onChange={(e) => { setProfileEmail(e.target.value); setVerifyMessage(""); }}
                           />
                         </div>
+                      </div>
+
+                      <div className="settingsPreferenceRow">
+                        <div>
+                          <div className="settingsPreferenceLabel">Email verification</div>
+                          <div className="settingsPreferenceHint">
+                            {user.EmailVerified
+                              ? "Your email address is verified."
+                              : "Verify your email address to help keep your account secure."}
+                          </div>
+                          {!user.EmailVerified && (
+                            <div className="settingsInlineLinkRow">
+                              <button
+                                type="button"
+                                className="settingsInlineLink"
+                                onClick={sendVerificationEmail}
+                                disabled={verifySending}
+                              >
+                                Resend verification email
+                              </button>
+                              {verifyMessage && <span className="settingsInlineStatus">{verifyMessage}</span>}
+                            </div>
+                          )}
+                        </div>
+                        {user.EmailVerified ? (
+                          <button type="button" className="modalPrimaryButton" style={{ width: "auto" }} disabled>
+                            <i className="fa-solid fa-check mr-2"></i>Verified
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="modalPrimaryButton"
+                            style={{ width: "auto" }}
+                            onClick={sendVerificationEmail}
+                            disabled={verifySending}
+                          >
+                            {verifySending ? "Sending…" : "Verify Now"}
+                          </button>
+                        )}
                       </div>
 
                       <div className="settingsSectionFooter">
@@ -980,7 +1045,9 @@ function Settings() {
                         {user.GoogleID ? "Google connected" : "Google"}
                       </div>
                       <div className="settingsPreferenceHint">
-                        {user.GoogleID ? `Connected as ${user.GoogleEmail}` : "Connect your Google account to sign in with one click."}
+                        {user.GoogleID
+                          ? (user.GoogleEmail ? `Connected as ${user.GoogleEmail}` : "Reconnect to refresh the linked email address.")
+                          : "Connect your Google account to sign in with one click."}
                       </div>
                     </div>
                     {user.GoogleID ? (

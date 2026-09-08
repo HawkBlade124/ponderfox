@@ -1,9 +1,10 @@
 import { useAuth } from "../context/AuthContext.jsx";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getTierColor } from "../utils/tier.js";
 import { getInitials } from "../utils/user.js";
 import logoMark from "../assets/ponder-fox-verticle.png";
+import wordmark from "../assets/ponder-fox.png";
 import LogoutConfirmModal from "./modals/LogoutConfirm.jsx";
 
 const menuItems = [
@@ -81,6 +82,33 @@ function DashMenu() {
     });
   };
 
+  // Which single dropdown (a nav group, or the user menu) is open in the
+  // desktop top nav — unlike the mobile accordion above, only one of these
+  // can be open at a time, dropdown-style.
+  const [openDesktopMenu, setOpenDesktopMenu] = useState(null);
+  const topNavRef = useRef(null);
+  const toggleDesktopMenu = (id) => {
+    setOpenDesktopMenu((prev) => (prev === id ? null : id));
+  };
+
+  useEffect(() => {
+    if (!openDesktopMenu) return;
+    const handleClickOutside = (e) => {
+      if (topNavRef.current && !topNavRef.current.contains(e.target)) {
+        setOpenDesktopMenu(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openDesktopMenu]);
+
+  // A route change (including one triggered by a dropdown link) should
+  // always close whatever dropdown was open, mobile flyout included.
+  useEffect(() => {
+    setOpenDesktopMenu(null);
+    setMobileMenu(false);
+  }, [location.pathname, location.search]);
+
   // Lock the page underneath while the mobile flyout is open, so the
   // backdrop can't be scrolled behind it.
   useEffect(() => {
@@ -101,6 +129,87 @@ function DashMenu() {
 
   return (
     <>
+      {/* ---------- Desktop top nav (>=1100px) ---------- */}
+      <div id="topNav" className="hidden lg:flex" ref={topNavRef}>
+        <Link to="/dashboard" className="topNavBrand">
+          <img src={wordmark} alt="PonderFox" className="topNavBrandImg" />
+        </Link>
+
+        <nav className="topNavLinks">
+          {menuItems.map((item) => (
+            <Link key={item.to} to={item.to} className={`topNavLink ${isActive(item.to) ? "topNavLinkActive" : ""}`}>
+              <i className={item.icon}></i>
+              {item.label}
+            </Link>
+          ))}
+
+          {navGroups.map((group) => (
+            <div key={group.id} className="topNavDropdown">
+              <button
+                type="button"
+                className={`topNavLink topNavDropdownTrigger ${isGroupActive(group) ? "topNavLinkActive" : ""}`}
+                onClick={() => toggleDesktopMenu(group.id)}
+              >
+                <i className={group.icon}></i>
+                {group.label}
+                <i className={`fa-regular fa-chevron-down topNavChevron ${openDesktopMenu === group.id ? "topNavChevronOpen" : ""}`}></i>
+              </button>
+              {openDesktopMenu === group.id && (
+                <div className="topNavDropdownMenu">
+                  {group.children.map((child) => (
+                    <Link key={child.to} to={child.to} className={`topNavDropdownItem ${isChildActive(child) ? "topNavDropdownItemActive" : ""}`}>
+                      <i className={child.icon}></i>
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </nav>
+
+        <div className="topNavRight">
+          <Link to="/insights" className={`topNavLink ${isActive("/insights") ? "topNavLinkActive" : ""}`}>
+            <i className="fa-regular fa-chart-line"></i>
+            Insights
+          </Link>
+          {user?.Tier === "Free Thinker" && (
+            <Link to="/pricing" className="topNavUpgradeButton">
+              <i className="fa-solid fa-sparkles"></i>
+              Upgrade
+            </Link>
+          )}
+          {user && (
+            <div className="topNavDropdown">
+              <button type="button" className="topNavUserTrigger" onClick={() => toggleDesktopMenu("user")}>
+                <div className="topNavAvatar">{getInitials(user.Username)}</div>
+                <span className="topNavUserName">{user.Username}</span>
+                <span
+                  className="topNavTierBadge"
+                  style={{ color: getTierColor(user.Tier), backgroundColor: `${getTierColor(user.Tier)}26` }}
+                >
+                  {user.Tier}
+                </span>
+                <i className={`fa-regular fa-chevron-down topNavChevron ${openDesktopMenu === "user" ? "topNavChevronOpen" : ""}`}></i>
+              </button>
+              {openDesktopMenu === "user" && (
+                <div className="topNavDropdownMenu topNavDropdownMenuRight">
+                  <Link to="/settings" className="topNavDropdownItem">
+                    <i className="fa-regular fa-cog"></i>
+                    Settings
+                  </Link>
+                  <button type="button" className="topNavDropdownItem topNavDropdownItemButton" onClick={() => setShowLogoutConfirm(true)}>
+                    <i className="fa-regular fa-arrow-right-from-bracket"></i>
+                    Log Out
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ---------- Mobile top bar + flyout (<1100px) ---------- */}
       {!mobileMenu && (
         <div className="lg:hidden fixed top-0 left-0 right-0 z-20 flex items-center justify-between gap-3 px-4 py-3 bg-[#0b0e17]/95 backdrop-blur border-b border-slate-800">
           <Link to="/settings" className="flex items-center gap-2 min-w-0">

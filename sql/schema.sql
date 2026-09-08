@@ -41,6 +41,39 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user ON password_reset_tokens ("UserID");
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expiry ON password_reset_tokens ("ExpiresAt");
 
+-- Same backfill-once shape as "HasOnboarded" below: an account that existed
+-- before this column did has already been trusted with its email for
+-- however long it's had one, so it's grandfathered in as verified rather
+-- than suddenly locked out of a state it was never asked to reach. Only
+-- rows created from here on (and any email change — see PATCH
+-- /api/me/profile) start out FALSE and have to go through the link.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'users' AND column_name = 'EmailVerified'
+  ) THEN
+    ALTER TABLE users ADD COLUMN "EmailVerified" BOOLEAN NOT NULL DEFAULT FALSE;
+    UPDATE users SET "EmailVerified" = TRUE;
+  END IF;
+END $$;
+
+-- Random-hash tokens (never a stateless JWT) so a verification link can be
+-- invalidated the moment it's used or superseded — same reasoning as
+-- password_reset_tokens above. "Email" pins the token to the address it was
+-- issued for, so confirming it can't silently verify a *different* address
+-- the account has since changed to (see /api/email-verification/confirm).
+CREATE TABLE IF NOT EXISTS email_verification_tokens (
+  "EmailVerificationTokenID" SERIAL PRIMARY KEY,
+  "UserID" INT NOT NULL REFERENCES users("UserID") ON DELETE CASCADE,
+  "Email" VARCHAR(255) NOT NULL,
+  "TokenHash" CHAR(64) NOT NULL UNIQUE,
+  "ExpiresAt" TIMESTAMP NOT NULL,
+  "DateCreated" TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_user ON email_verification_tokens ("UserID");
+CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_expiry ON email_verification_tokens ("ExpiresAt");
+
 -- Tracks a session per issued access token (hashed, never the raw JWT) so
 -- Device Management can list and individually revoke them. "RevokedAt" is
 -- a soft-delete rather than DELETE, so verifyToken can tell "revoked" (row

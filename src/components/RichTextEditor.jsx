@@ -24,7 +24,7 @@ function ToolbarButton({ active, disabled, onClick, icon, title }) {
 // formatting toolbar; `onSubmit` fires on Enter (Shift+Enter inserts a
 // newline instead, matching most chat apps).
 const RichTextEditor = forwardRef(function RichTextEditor(
-  { placeholder = "Type a message…", onChange, onSubmit },
+  { placeholder = "Type a message…", initialContent = "", onChange, onSubmit },
   ref
 ) {
   const editor = useEditor({
@@ -37,13 +37,13 @@ const RichTextEditor = forwardRef(function RichTextEditor(
       }),
       Placeholder.configure({ placeholder }),
     ],
-    content: "",
+    content: initialContent,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange?.({ html: editor.getHTML(), text: editor.getText() });
     },
     editorProps: {
-      attributes: { class: "richTextContent", id: "messageInput" },
+      attributes: { class: "richTextContent" },
       handleKeyDown: (_view, event) => {
         if (event.key !== "Enter" || event.shiftKey) return false;
 

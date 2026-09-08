@@ -51,10 +51,7 @@ header {
 	text-align: center;
 	width:100%;
 	display:block;
-	position: absolute;
-	left:0;
-	right:0;
-	top:0;
+	flex-shrink:0;
 	place-content: center;
 	background:color-mix(in srgb, var(--accent) 14%, transparent);
 	color:#cdd6e8;
@@ -62,7 +59,7 @@ header {
 	padding:15px 0;
 	max-width: 750px;
 	border-radius:15px;
-	margin-inline: auto;
+	margin:14px auto 0;
 }
 #reminder i{
 	cursor: pointer;
@@ -261,6 +258,37 @@ header {
 	opacity:0.4;
 	cursor:not-allowed;
 }
+/* Below ~500px the composer row (editor + attach/image/dictate/send buttons)
+   was left with almost no room to type — full desktop padding/gaps plus
+   four 36px buttons ate most of a narrow viewport's width. */
+@media (max-width:500px){
+	#thoughtBody{
+		padding:10px;
+	}
+	.chatInput{
+		padding:12px;
+	}
+	.sendWrapper{
+		gap:4px;
+		padding:6px 6px 6px 14px;
+	}
+	.fileUploadButton,
+	.send{
+		width:32px;
+		height:32px;
+	}
+	/* Safety net: on a short/narrow viewport the empty-state copy can need
+	   more height than the card has to give, and it was getting silently
+	   clipped by the page's overflow-hidden — including the composer below
+	   it, making it impossible to type. Let the card scroll instead. */
+	#mainSection{
+		overflow-y:auto;
+	}
+	.initialChatBody{
+		gap:20px;
+		margin-bottom:12px;
+	}
+}
 .MuiGrid-root{
 height:90vh
 }
@@ -276,6 +304,13 @@ height:90vh
 	margin:10px 0;
 	padding:10px 15px;
 	border-radius: 15px;
+	max-width:min(65ch, 85%);
+}
+/* While actively editing, the bubble needs real room to type in — not just
+   whatever width its old (often short) content happened to shrink-wrap to. */
+.sentMessageEditing{
+	max-width:100%;
+	width:100%;
 }
 .messageTimestamp{
 	font-size:11px;
@@ -310,8 +345,97 @@ height:90vh
 	transition:background 0.15s ease, color 0.15s ease;
 }
 .editGroupIcon:hover{
+	background:color-mix(in srgb, var(--accent) 16%, transparent);
+	color:#fff;
+}
+.editGroupIconDanger:hover{
 	background:rgba(227,72,72,0.16);
 	color:#ff8a7a;
+}
+.messageActionBackdrop{
+	position:fixed;
+	inset:0;
+	z-index:40;
+	background:transparent;
+}
+.messageActionMenu{
+	position:fixed;
+	z-index:41;
+	min-width:150px;
+	background:#0b0e17;
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+	border-radius:12px;
+	padding:6px;
+	display:flex;
+	flex-direction:column;
+	gap:2px;
+	box-shadow:0 12px 30px rgba(0,0,0,0.5);
+}
+.messageActionMenuBtn{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	text-align:left;
+	background:none;
+	border:none;
+	color:#cdd6e8;
+	font-size:13px;
+	padding:9px 12px;
+	border-radius:8px;
+	cursor:pointer;
+	transition:background 0.15s ease, color 0.15s ease;
+}
+.messageActionMenuBtn:hover,
+.messageActionMenuBtn:active{
+	background:color-mix(in srgb, var(--accent) 16%, transparent);
+	color:#fff;
+}
+.messageActionMenuBtnDanger:hover,
+.messageActionMenuBtnDanger:active{
+	background:rgba(227,72,72,0.16);
+	color:#ff8a7a;
+}
+.messageEditBox{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+	margin-top:4px;
+	background:rgba(255,255,255,0.04);
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+	border-radius:12px;
+	padding:8px 10px;
+}
+.messageEditActions{
+	display:flex;
+	align-items:center;
+	justify-content:flex-end;
+	gap:14px;
+}
+.messageEditSaveBtn{
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
+	color:#fff;
+	border:none;
+	border-radius:999px;
+	padding:6px 16px;
+	font-size:13px;
+	font-weight:600;
+	cursor:pointer;
+	transition:filter 0.15s ease, opacity 0.15s ease;
+}
+.messageEditSaveBtn:hover{
+	filter:brightness(1.06);
+}
+.messageEditSaveBtn:disabled{
+	opacity:0.4;
+	cursor:not-allowed;
+}
+
+@media (hover:none) and (pointer:coarse){
+	.sentMessage{
+		-webkit-touch-callout:none;
+		-webkit-user-select:none;
+		user-select:none;
+	}
 }
 .searchResultItem{
 	background:#0b0e17;
@@ -392,6 +516,16 @@ height:90vh
 	justify-content: space-between;
 	width:100%;
 	min-height:100vh;
+}
+#dashLayout{
+	width:100%;
+	max-width:1450px;
+	margin:0 auto;
+}
+#homeHead{
+	width:100%;
+	margin:0 auto;
+	text-align: center;
 }
 .rightScreen{
 	background:#0a0a0d;
@@ -506,6 +640,219 @@ height:90vh
 	font-size:18px;
 }
 
+/* ---- Dashboard cover cards ----
+   A modifier on top of .thoughtItem (never overriding .thoughtItem itself,
+   which MoodBoards/Prompts/Voice still use with the older icon+name+descr
+   layout) — the compound selector's specificity wins over both the base
+   .thoughtItem rules above and the mobile .folderItem/.thoughtGridItem
+   overrides further down, so this fully replaces those for cards that
+   opt in with the thoughtCoverCard class. */
+.thoughtItem.thoughtCoverCard{
+	display:flex;
+	flex-direction:column;
+	align-items:stretch;
+	justify-content:flex-start;
+	height:auto;
+	max-width:280px;
+	padding:0;
+	color:inherit;
+}
+.thoughtCoverArt{
+	position:relative;
+	height:150px;
+	flex-shrink:0;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	background:
+		radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 55%, transparent) 0%, transparent 60%),
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 35%, transparent) 0%, #0b0e17 100%);
+}
+.thoughtCoverArtIcon{
+	font-size:44px;
+	color:rgba(255,255,255,0.85);
+	filter:drop-shadow(0 6px 16px rgba(0,0,0,0.4));
+}
+.thoughtCoverOverlay{
+	position:absolute;
+	top:10px;
+	right:10px;
+	display:flex;
+	gap:6px;
+}
+.thoughtCoverOverlayIcon{
+	width:26px;
+	height:26px;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	border-radius:8px;
+	background:rgba(10,10,13,0.55);
+	backdrop-filter:blur(6px);
+	-webkit-backdrop-filter:blur(6px);
+	color:#cdd6e8;
+	font-size:12px;
+	cursor:pointer;
+	transition:background 0.15s ease, color 0.15s ease;
+}
+.thoughtCoverOverlayIcon:hover{
+	background:rgba(10,10,13,0.85);
+	color:#fff;
+}
+.thoughtCoverBody{
+	display:flex;
+	flex-direction:column;
+	gap:6px;
+	padding:14px 16px 16px;
+	min-height:0;
+}
+.thoughtCoverTags{
+	display:flex;
+	flex-wrap:wrap;
+	gap:6px;
+	min-height:18px;
+}
+.thoughtCoverTag{
+	display:inline-flex;
+	align-items:center;
+	gap:4px;
+	font-size:10px;
+	font-weight:700;
+	text-transform:uppercase;
+	letter-spacing:0.05em;
+	color:var(--accent);
+	background:color-mix(in srgb, var(--accent) 14%, transparent);
+	border-radius:5px;
+	padding:2px 7px;
+}
+.thoughtCoverTitle{
+	font-weight:700;
+	font-size:16px;
+	color:#e5eaf5;
+	display:-webkit-box;
+	-webkit-box-orient:vertical;
+	-webkit-line-clamp:2;
+	line-clamp:2;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	word-break:break-word;
+}
+.thoughtCoverMeta{
+	font-size:11px;
+	color:#5b6472;
+}
+/* Compound .thoughtItem.thoughtCoverCard selectors here (rather than just
+   .thoughtsGrid-small .thoughtItem) — otherwise these tie in specificity
+   with the base .thoughtItem.thoughtCoverCard rule above and, coming
+   earlier in the file, would lose to it regardless of grid size. */
+.thoughtsGrid-small .thoughtItem.thoughtCoverCard{
+	max-width:200px;
+}
+.thoughtsGrid-small .thoughtCoverArt{
+	height:100px;
+}
+.thoughtsGrid-small .thoughtCoverArtIcon{
+	font-size:28px;
+}
+.thoughtsGrid-small .thoughtCoverTitle{
+	font-size:13px;
+}
+.thoughtsGrid-large .thoughtItem.thoughtCoverCard{
+	max-width:360px;
+}
+.thoughtsGrid-large .thoughtCoverArt{
+	height:190px;
+}
+.thoughtsGrid-large .thoughtCoverArtIcon{
+	font-size:56px;
+}
+.thoughtsGrid-large .thoughtCoverTitle{
+	font-size:19px;
+}
+.thoughtsGrid-large .thoughtCoverMeta{
+	font-size:12px;
+}
+
+/* ---- Dashboard filter panel ---- */
+.dashFilterPanel{
+	display:flex;
+	flex-direction:column;
+	gap:14px;
+}
+.dashFilterTopRow{
+	display:flex;
+	align-items:center;
+	flex-wrap:wrap;
+	gap:12px;
+	justify-content:space-between;
+}
+.dashFilterLabelGroup{
+	display:flex;
+	align-items:center;
+	gap:14px;
+	flex-shrink:0;
+}
+.dashFilterLabel{
+	font-size:13px;
+	font-weight:700;
+	text-transform:uppercase;
+	letter-spacing:0.06em;
+	color:#cdd6e8;
+}
+.dashFilterClear{
+	background:none;
+	border:none;
+	padding:0;
+	color:var(--accent);
+	font-size:13px;
+	font-weight:600;
+	cursor:pointer;
+	text-decoration:underline;
+	text-underline-offset:2px;
+}
+.dashFilterClear:hover{
+	opacity:0.8;
+}
+.dashFilterSearchRow{
+	display:flex;
+	align-items:center;
+	gap:10px;
+	flex:1;
+	min-width:220px;
+	max-width:780px;
+	margin-left:auto;
+}
+.dashFilterSearchButton{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	flex-shrink:0;
+	padding:9px 18px;
+	border-radius:10px;
+	border:none;
+	background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
+	color:#fff;
+	font-size:12px;
+	font-weight:700;
+	letter-spacing:0.04em;
+	text-transform:uppercase;
+	cursor:pointer;
+	box-shadow:0 8px 20px color-mix(in srgb, var(--accent) 35%, transparent);
+	transition:filter 0.15s ease;
+}
+.dashFilterSearchButton:hover{
+	filter:brightness(1.06);
+}
+.dashFilterDropdownRow{
+	display:flex;
+	align-items:center;
+	flex-wrap:wrap;
+	gap:10px;
+}
+.dashFilterDropdown{
+	min-width:150px;
+}
+
 .thoughtFunctions i {
 	display:flex;
 	justify-content: center;
@@ -589,6 +936,11 @@ height:90vh
 	bottom:auto!important;
 	margin:0!important;
 	transform:translate(-50%, -50%);
+}
+@media (max-width: 460px) {
+	.ReactModal__Content.modal{
+		width:calc(100% - 32px);
+	}
 }
 .modalClose{
 	position:absolute;
@@ -1138,6 +1490,209 @@ height:90vh
 	font:inherit;
 	text-align:left;
 }
+
+/* ---- Desktop top nav (replaces the left sidebar at >=1101px — see the
+   min-width:1101px query below that hides #mobileMenu/#dashOverlay) ---- */
+#topNav{
+	align-items:center;
+	justify-content:space-between;
+	gap:20px;
+	width:100%;
+	padding:10px 24px;
+	background-color:#0a0a0d;
+	background-image:
+		linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 100%),
+		linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 60%);
+	backdrop-filter: blur(24px) saturate(160%);
+	-webkit-backdrop-filter: blur(24px) saturate(160%);
+	border-bottom:1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+	position:sticky;
+	top:0;
+	z-index:20;
+}
+.topNavBrand{
+	display:flex;
+	align-items:center;
+	flex-shrink:0;
+}
+.topNavBrandImg{
+	height:28px;
+	width:auto;
+	display:block;
+}
+.topNavLinks{
+	display:flex;
+	align-items:center;
+	gap:4px;
+	flex:1;
+	min-width:0;
+}
+.topNavLink{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding:9px 14px;
+	border-radius:12px;
+	color:rgba(230,235,245,0.75);
+	text-decoration:none;
+	font-size:14px;
+	font-weight:500;
+	background:none;
+	border:none;
+	cursor:pointer;
+	font:inherit;
+	white-space:nowrap;
+	transition:background 0.15s ease, color 0.15s ease;
+}
+.topNavLink:hover{
+	background:rgba(255,255,255,0.08);
+	color:#fff;
+}
+.topNavLinkActive{
+	background:rgba(255,255,255,0.14);
+	color:#fff;
+	font-weight:700;
+}
+.topNavDropdown{
+	position:relative;
+}
+.topNavChevron{
+	font-size:10px;
+	color:rgba(230,235,245,0.45);
+	margin-left:2px;
+	transition:transform 0.15s ease;
+}
+.topNavChevronOpen{
+	transform:rotate(180deg);
+}
+.topNavDropdownMenu{
+	position:absolute;
+	top:calc(100% + 8px);
+	left:0;
+	min-width:210px;
+	display:flex;
+	flex-direction:column;
+	gap:2px;
+	padding:6px;
+	background:#111113;
+	border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+	border-radius:14px;
+	box-shadow:0 20px 45px rgba(0,0,0,0.5);
+	z-index:30;
+}
+.topNavDropdownMenuRight{
+	left:auto;
+	right:0;
+}
+.topNavDropdownItem{
+	display:flex;
+	align-items:center;
+	gap:10px;
+	width:100%;
+	padding:9px 12px;
+	border-radius:9px;
+	color:rgba(230,235,245,0.75);
+	text-decoration:none;
+	font-size:13px;
+	background:none;
+	border:none;
+	text-align:left;
+	cursor:pointer;
+	font:inherit;
+	transition:background 0.15s ease, color 0.15s ease;
+}
+.topNavDropdownItem:hover{
+	background:rgba(255,255,255,0.08);
+	color:#fff;
+}
+.topNavDropdownItemActive{
+	background:color-mix(in srgb, var(--accent) 22%, transparent);
+	color:#fff;
+	font-weight:600;
+}
+.topNavDropdownItemButton{
+	color:#ff8a7a;
+}
+.topNavDropdownItemButton:hover{
+	background:rgba(227,72,72,0.14);
+	color:#ff8a7a;
+}
+.topNavRight{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	flex-shrink:0;
+}
+.topNavUpgradeButton{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding:9px 14px;
+	border-radius:12px;
+	background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
+	color:#fff;
+	text-decoration:none;
+	font-size:14px;
+	font-weight:700;
+	box-shadow:0 8px 20px color-mix(in srgb, var(--accent) 35%, transparent);
+	transition:filter 0.15s ease;
+}
+.topNavUpgradeButton:hover{
+	filter:brightness(1.06);
+	color:#fff;
+}
+.topNavUserTrigger{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding:6px 10px 6px 6px;
+	border-radius:14px;
+	background:rgba(255,255,255,0.06);
+	border:1px solid transparent;
+	cursor:pointer;
+	transition:background 0.15s ease, border-color 0.15s ease;
+}
+.topNavUserTrigger:hover{
+	background:rgba(255,255,255,0.1);
+	border-color:color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.topNavAvatar{
+	width:30px;
+	height:30px;
+	flex-shrink:0;
+	border-radius:10px;
+	background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, white) 0%, var(--accent) 100%);
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	font-size:12px;
+	font-weight:700;
+	color:#fff;
+}
+.topNavUserName{
+	font-size:13px;
+	font-weight:600;
+	color:#fff;
+	max-width:120px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}
+.topNavTierBadge{
+	font-size:11px;
+	font-weight:700;
+	padding:2px 8px;
+	border-radius:999px;
+}
+@media screen and (min-width:1101px){
+	#dashWrap{
+		flex-direction:column;
+	}
+	#dashWrap #mobileMenu,
+	#dashWrap #dashOverlay{
+		display:none;
+	}
+}
 .topProfileTile{
 	display:flex;
 	align-items:center;
@@ -1315,7 +1870,7 @@ height:90vh
 	display:flex;
 	align-items:center;
 	width:100%;
-	max-width:380px;
+	max-width:580px;
 
 }
 .dashSearchInput i{
@@ -1340,9 +1895,6 @@ height:90vh
 .dashSearchInput input:focus{
 	outline:none;
 	border-color:var(--accent);
-}
-.dashSearchInputFull{
-	width:100%;
 }
 .dashSearchInputFull input{
 	width:100%;
@@ -2171,6 +2723,37 @@ height:90vh
 	color:#5b6472;
 	margin-top:2px;
 }
+.settingsInlineLinkRow{
+	display:flex;
+	align-items:center;
+	flex-wrap:wrap;
+	gap:8px;
+	margin-top:6px;
+}
+.settingsInlineLink{
+	background:none;
+	border:none;
+	padding:0;
+	color:var(--accent);
+	font-size:12px;
+	font-weight:600;
+	cursor:pointer;
+	text-decoration:underline;
+	text-underline-offset:2px;
+	transition:opacity 0.15s ease;
+}
+.settingsInlineLink:hover{
+	opacity:0.75;
+}
+.settingsInlineLink:disabled{
+	opacity:0.5;
+	cursor:not-allowed;
+	text-decoration:none;
+}
+.settingsInlineStatus{
+	font-size:12px;
+	color:#7c8699;
+}
 .settingsToggle{
 	display:flex;
 	align-items:center;
@@ -2935,6 +3518,7 @@ footer{
 [data-theme="light"] .searchResultSnippet,
 [data-theme="light"] .searchResultCount,
 [data-theme="light"] .settingsPreferenceHint,
+[data-theme="light"] .settingsInlineStatus,
 [data-theme="light"] .modalEmptyNote,
 [data-theme="light"] .modalFootnote,
 [data-theme="light"] .settingsToggle{
