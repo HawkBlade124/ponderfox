@@ -56,6 +56,9 @@ function Thought() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchError, setSearchError] = useState("");
   const [ThoughtDescription, setThoughtDescription] = useState("");
+  const [CoverImageUrl, setCoverImageUrl] = useState("");
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverImageInputRef = useRef(null);
 
   const [addCat, setCat] = useState("");
   const [addTag, setTag] = useState("");
@@ -115,6 +118,7 @@ function Thought() {
         setMessages(res.data.messages || []);
         setThoughtDescription(res.data.Thought?.ThoughtDescr || "");
         setThoughtID(res.data.Thought?.ThoughtID || null);
+        setCoverImageUrl(res.data.Thought?.CoverImageUrl || "");
       }
     } catch (err) {
       const status = err.response?.status;
@@ -214,6 +218,46 @@ function Thought() {
       setError(err.response?.data?.error || "Could not upload file(s).");
     } finally {
       setUploading(false);
+    }
+  };
+
+  // ---------- Cover image (thought header) ----------
+  const triggerCoverImageSelect = () => {
+    coverImageInputRef.current?.click();
+  };
+
+  const handleCoverImageSelected = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file next time
+    if (!file || !ThoughtID) return;
+
+    setError("");
+    setUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append("files", file);
+      const uploadRes = await axios.post(`${apiBase}/upload`, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!uploadRes.data.success) {
+        setError(uploadRes.data.error || "Could not upload that image.");
+        return;
+      }
+
+      const url = uploadRes.data.urls[0];
+      const saveRes = await axios.put(
+        `${apiBase}/thoughts/${ThoughtID}/cover-image`,
+        { CoverImageUrl: url },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (saveRes.data.success) {
+        setCoverImageUrl(url);
+      }
+    } catch (err) {
+      console.error("Cover image upload error:", err.response?.data || err.message);
+      setError(err.response?.data?.error || "Could not update the cover image.");
+    } finally {
+      setUploadingCover(false);
     }
   };
 
@@ -770,14 +814,33 @@ function Thought() {
           onDragLeave={handleDragLeave}
           onDrop={handleImageDrop}
         >
-          <div className="thoughtInfoHead flex items-center gap-4">
-            <Link to="/dashboard" className="backtodashbtn hidden lg:flex items-center justify-center">
-              <i className="fa-solid fa-arrow-left"></i>
-            </Link>
-            <div className="flex-1 text-center">
-              <div id="thoughtName" className="text-2xl font-bold text-white">Thoughts of {ThoughtName}</div>
-              {ThoughtDescription && <p className="text-sm text-slate-400 mt-1">{ThoughtDescription}</p>}
+          <div className={`thoughtInfoHead ${CoverImageUrl ? "thoughtInfoHeadHasImage" : ""}`}>
+            <input
+              type="file"
+              ref={coverImageInputRef}
+              onChange={handleCoverImageSelected}
+              accept="image/png,image/jpeg,image/gif,image/webp"
+              style={{ display: "none" }}
+            />
+            {CoverImageUrl && <img src={CoverImageUrl} alt="" className="thoughtInfoHeadImg" />}
+            <div className="thoughtInfoHeadContent flex items-center gap-4">
+              <Link to="/dashboard" className="backtodashbtn hidden lg:flex items-center justify-center">
+                <i className="fa-solid fa-arrow-left"></i>
+              </Link>
+              <div className="thoughtInfoHeadTitle flex-1 text-center">
+                <div id="thoughtName" className="text-2xl font-bold text-white">Thoughts of {ThoughtName}</div>
+                {ThoughtDescription && <p className="text-sm text-slate-300 mt-1">{ThoughtDescription}</p>}
+              </div>
             </div>
+            <button
+              type="button"
+              className="thoughtCoverChangeBtn"
+              onClick={triggerCoverImageSelect}
+              disabled={uploadingCover}
+            >
+              <i className={uploadingCover ? "fa-solid fa-spinner fa-spin" : "fa-regular fa-image"}></i>
+              {uploadingCover ? "Uploading…" : CoverImageUrl ? "Change Image" : "Add Image"}
+            </button>
           </div>
 
           {!reminderHidden && (

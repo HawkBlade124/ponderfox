@@ -196,6 +196,7 @@ ALTER TABLE thoughts ADD COLUMN IF NOT EXISTS "Pinned" BOOLEAN NOT NULL DEFAULT 
 ALTER TABLE thoughts ADD COLUMN IF NOT EXISTS "LastViewed" TIMESTAMP NOT NULL DEFAULT NOW();
 ALTER TABLE thoughts ADD COLUMN IF NOT EXISTS "LastReminded" TIMESTAMP;
 ALTER TABLE thoughts ADD COLUMN IF NOT EXISTS "VoiceUsed" BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE thoughts ADD COLUMN IF NOT EXISTS "CoverImageUrl" TEXT;
 CREATE INDEX IF NOT EXISTS idx_thoughts_user ON thoughts ("UserID");
 
 CREATE TABLE IF NOT EXISTS messages (
@@ -257,6 +258,13 @@ CREATE TABLE IF NOT EXISTS lists (
 );
 ALTER TABLE lists ALTER COLUMN "ThoughtID" DROP NOT NULL;
 ALTER TABLE lists ADD COLUMN IF NOT EXISTS "Pinned" BOOLEAN NOT NULL DEFAULT FALSE;
+-- A folder (ListName) is really a set of rows, one per thought membership
+-- (plus a lone ThoughtID-less row for an empty folder) — same shape
+-- "Pinned" already lives in, aggregated with bool_or() for the overview.
+-- CoverImageUrl follows the same pattern, kept in sync across every row
+-- for a ListName on write and read back with MAX() (any one is correct
+-- since they're always written together).
+ALTER TABLE lists ADD COLUMN IF NOT EXISTS "CoverImageUrl" TEXT;
 CREATE INDEX IF NOT EXISTS idx_lists_thought ON lists ("ThoughtID");
 
 -- Schedules feature (day-timeline builder) was removed in favor of Revisit reminders.

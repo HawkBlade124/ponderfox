@@ -1,5 +1,5 @@
 import { useAuth } from "../../context/AuthContext.jsx";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import EditModal from "../../components/modals/Edit.jsx";
 import DeleteModal from "../../components/modals/Delete.jsx";
@@ -55,6 +55,11 @@ function Dashboard() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedThought, setSelectedThought] = useState("");
   const [favorite, setFavorite] = useState(false);
+
+  const coverImageInputRef = useRef(null);
+  const [coverImageTarget, setCoverImageTarget] = useState(null);
+  const [uploadingCoverFor, setUploadingCoverFor] = useState(null);
+  const [coverImageError, setCoverImageError] = useState("");
 
   const [listThoughts, setListThoughts] = useState([]);
   const [listsOverview, setListsOverview] = useState([]);
@@ -334,6 +339,89 @@ const pinThought = async (ThoughtId, Pinned) => {
   }
 };
 
+// `target` is { type: "thought", id } or { type: "folder", name } — a shared
+// shape so one hidden file input + one upload flow can serve every card's
+// cover-image button instead of one input per card.
+const isSameCoverTarget = (a, b) => {
+  if (!a || !b || a.type !== b.type) return false;
+  return a.type === "thought" ? a.id === b.id : a.name === b.name;
+};
+
+const saveCoverImage = async (target, CoverImageUrl) => {
+  try {
+    if (target.type === "thought") {
+      const res = await fetch(`${buildApiUrl()}/thoughts/${target.id}/cover-image`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ CoverImageUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCoverImageError(data.error || "Could not update the cover image.");
+        return;
+      }
+      updateThoughts((prev) => prev.map((t) => (t.ThoughtID === target.id ? { ...t, CoverImageUrl } : t)));
+    } else {
+      const res = await fetch(`${buildApiUrl()}/lists/by-name/${encodeURIComponent(target.name)}/cover-image`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ CoverImageUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCoverImageError(data.error || "Could not update the cover image.");
+        return;
+      }
+      setListsOverview((prev) => prev.map((l) => (l.ListName === target.name ? { ...l, CoverImageUrl } : l)));
+    }
+  } catch (err) {
+    console.error("Cover image save error:", err);
+    setCoverImageError("Could not reach the server. Please try again.");
+  }
+};
+
+const triggerCoverImageUpload = (target) => {
+  setCoverImageError("");
+  setCoverImageTarget(target);
+  coverImageInputRef.current?.click();
+};
+
+const removeCoverImage = (target) => {
+  setCoverImageError("");
+  saveCoverImage(target, null);
+};
+
+const handleCoverImageSelected = async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = ""; // allow re-picking the same file next time
+  const target = coverImageTarget;
+  setCoverImageTarget(null);
+  if (!file || !target) return;
+
+  setCoverImageError("");
+  setUploadingCoverFor(target);
+  try {
+    const formData = new FormData();
+    formData.append("files", file);
+    const res = await fetch(`${buildApiUrl()}/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      setCoverImageError(data.error || "Could not upload that image.");
+      return;
+    }
+    await saveCoverImage(target, data.urls[0]);
+  } catch (err) {
+    console.error("Cover image upload error:", err);
+    setCoverImageError("Could not reach the server. Please try again.");
+  } finally {
+    setUploadingCoverFor(null);
+  }
+};
+
 const editSingleThought = (Thought) => {
   console.log(Thought)
   setSelectedThought(Thought);
@@ -503,6 +591,13 @@ if (!user) return null;
      <AddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onConfirm={(ThoughtName, ThoughtDescr, VoiceUsed) => addThought(ThoughtName, ThoughtDescr, VoiceUsed)}/>
     <AddFolderModal isOpen={showAddFolderModal} onClose={() => setShowAddFolderModal(false)} onConfirm={(folderName) => addFolder(folderName)}/>
     <InfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} thought={selectedThought} token={token} onSave={editThought} onDelete={() => { setShowInfoModal(false); deleteThoughtModal(selectedThought); }}/>
+      <input
+        type="file"
+        ref={coverImageInputRef}
+        onChange={handleCoverImageSelected}
+        accept="image/png,image/jpeg,image/gif,image/webp"
+        style={{ display: "none" }}
+      />
       <div id="dashWrap" className="flex w-full">
         <DashMenu />
       <div className="rightScreen w-full p-6 ml">
@@ -526,7 +621,7 @@ if (!user) return null;
       <div id="layoutLeft" className="w-full">
 
       <section className="dashBody dashFilterPanel w-full">
-        <div id="filterSection" className="flex align-center justify-between">
+        <div id="filterSection" className="flex items-center justify-between flex-wrap gap-x-10 gap-y-3">
                     <div className="dashFilterDropdownRow">
             <select className="dashFilterDropdown sortSelect" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="date-desc">Sort: Newest first</option>
@@ -569,10 +664,10 @@ if (!user) return null;
                 <button type="button" className="dashFilterClear" onClick={clearAllFilters}>Clear All</button>
               )}
             </div>
-            <form className="dashFilterSearchRow" onSubmit={(e) => e.preventDefault()}>
+            <form className="dashFilterSearchRow " onSubmit={(e) => e.preventDefault()}>
               <SearchBox value={brainDumpSearch} onChange={(e) => setBrainDumpSearch(e.target.value)} placeholder="Search thoughts and folders" className="dashSearchInputFull" />
-                <div className="flex flex-col mt-5 gap-10 w-full">                 
-              <button type="submit" className="dashFilterSearchButton h-12 flex justify-center ">
+                <div className="flex flex-col gap-10 w-full">                 
+              <button type="submit" className="dashFilterSearchButton h-10 flex justify-center ">
                 <i className="fa-regular fa-magnifying-glass"></i>
                 Search
               </button>
@@ -628,10 +723,35 @@ if (!user) return null;
             <div className="w-full">
               <h3 className="dashGroupLabel"><i className="fa-solid fa-folder"></i> Folders</h3>
               <div className={`grid ${gridSizeClasses[gridSize]} thoughtsGrid-${gridSize} gap-6 w-full`}>
-                {searchedFolders.map((l) => (
+                {searchedFolders.map((l) => {
+                  const coverTarget = { type: "folder", name: l.ListName };
+                  const isUploading = isSameCoverTarget(uploadingCoverFor, coverTarget);
+                  return (
                   <Link key={l.ListName} to={`/thoughts/${encodeURIComponent(l.ListName)}`} className="thoughtItem folderItem thoughtCoverCard no-underline">
                     <div className="thoughtCoverArt">
-                      <i className="thoughtCoverArtIcon fa-solid fa-folder"></i>
+                      {l.CoverImageUrl ? (
+                        <img src={l.CoverImageUrl} alt="" className="thoughtCoverImg" />
+                      ) : (
+                        <i className="thoughtCoverArtIcon fa-solid fa-folder"></i>
+                      )}
+                      <div className="thoughtCoverOverlay">
+                        <span
+                          className="thoughtCoverOverlayIcon"
+                          title={l.CoverImageUrl ? "Change image" : "Add image"}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); triggerCoverImageUpload(coverTarget); }}
+                        >
+                          <i className={isUploading ? "fa-solid fa-spinner fa-spin" : "fa-regular fa-image"}></i>
+                        </span>
+                        {l.CoverImageUrl && (
+                          <span
+                            className="thoughtCoverOverlayIcon"
+                            title="Remove image"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeCoverImage(coverTarget); }}
+                          >
+                            <i className="fa-regular fa-trash-can"></i>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="thoughtCoverBody">
                       <div className="thoughtCoverTags">
@@ -641,7 +761,8 @@ if (!user) return null;
                       <div className="thoughtCoverMeta">{l.ThoughtCount} {l.ThoughtCount === 1 ? "thought" : "thoughts"}</div>
                     </div>
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -649,14 +770,21 @@ if (!user) return null;
             <div className="w-full">
               <h3 className="dashGroupLabel mt-15"><i className="fa-solid fa-brain"></i> Thoughts</h3>
               <div className={`grid ${gridSizeClasses[gridSize]} thoughtsGrid-${gridSize} gap-6 w-full`}>
-                {searchedThoughts.map((f, i) => (
+                {searchedThoughts.map((f, i) => {
+                  const coverTarget = { type: "thought", id: f.ThoughtID };
+                  const isUploading = isSameCoverTarget(uploadingCoverFor, coverTarget);
+                  return (
                   <Link
                     key={i}
                     to={`/thought/${encodeURIComponent(f.ThoughtName)}`}
                     className="thoughtItem thoughtGridItem thoughtCoverCard no-underline"
                   >
                     <div className="thoughtCoverArt">
-                      <i className="thoughtCoverArtIcon fa-solid fa-thought-bubble"></i>
+                      {f.CoverImageUrl ? (
+                        <img src={f.CoverImageUrl} alt="" className="thoughtCoverImg" />
+                      ) : (
+                        <i className="thoughtCoverArtIcon fa-solid fa-thought-bubble"></i>
+                      )}
                       <div className="thoughtCoverOverlay">
                         <span
                           className="thoughtCoverOverlayIcon"
@@ -665,6 +793,22 @@ if (!user) return null;
                         >
                           <i className={f.Pinned ? "fa-solid fa-thumbtack-angle" : "fa-regular fa-thumbtack-angle"}></i>
                         </span>
+                        <span
+                          className="thoughtCoverOverlayIcon"
+                          title={f.CoverImageUrl ? "Change image" : "Add image"}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); triggerCoverImageUpload(coverTarget); }}
+                        >
+                          <i className={isUploading ? "fa-solid fa-spinner fa-spin" : "fa-regular fa-image"}></i>
+                        </span>
+                        {f.CoverImageUrl && (
+                          <span
+                            className="thoughtCoverOverlayIcon"
+                            title="Remove image"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeCoverImage(coverTarget); }}
+                          >
+                            <i className="fa-regular fa-trash-can"></i>
+                          </span>
+                        )}
                         <span
                           className="thoughtCoverOverlayIcon"
                           title="Details"
@@ -687,7 +831,8 @@ if (!user) return null;
                       <div className="thoughtCoverMeta">{formatRelativeTime(f.DateCreated)}</div>
                     </div>
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -851,6 +996,7 @@ if (!user) return null;
       </div>
       </div>
       {error && <p className="text-red-500">{error}</p>}
+      {coverImageError && <p className="text-red-500">{coverImageError}</p>}
       </div>
       </div>
     </div>

@@ -1,17 +1,27 @@
 import { useEffect, useState } from "react";
 
 const SCRIPT_ID = "google-identity-script";
+const BLOCKED_FALLBACK_MS = 4000;
 
-// Loads Google Identity Services once per page and reports when
-// window.google.accounts.id is ready to call. Shared by every place that
-// renders a Google button (Login, and Settings' "Connect Google") so the
-// script tag itself is never injected twice.
+// Loads Google Identity Services once per page and reports its status.
+// Shared by every place that renders a Google button (Login, and Settings'
+// "Connect Google") so the script tag itself is never injected twice.
+//
+// Privacy-focused browsers and ad/tracker-blocking extensions (Brave
+// Shields, uBlock Origin, etc.) commonly block accounts.google.com/gsi/client
+// outright, which shows up as net::ERR_BLOCKED_BY_CLIENT in the console.
+// That usually fires the script's error event, but a silent block that
+// never resolves either way is also possible, so a timeout backstops it —
+// callers get "blocked" instead of hanging on "loading" forever, and can
+// show a real explanation instead of a dead empty space.
 export function useGoogleIdentityScript() {
-  const [ready, setReady] = useState(() => Boolean(window.google?.accounts?.id));
+  const [status, setStatus] = useState(() =>
+    window.google?.accounts?.id ? "ready" : "loading"
+  );
 
   useEffect(() => {
     if (window.google?.accounts?.id) {
-      setReady(true);
+      setStatus("ready");
       return;
     }
 
@@ -25,10 +35,21 @@ export function useGoogleIdentityScript() {
       document.body.appendChild(script);
     }
 
-    const handleLoad = () => setReady(true);
+    const handleLoad = () => setStatus("ready");
+    const handleError = () => setStatus("blocked");
     script.addEventListener("load", handleLoad);
-    return () => script.removeEventListener("load", handleLoad);
+    script.addEventListener("error", handleError);
+
+    const fallbackTimer = setTimeout(() => {
+      setStatus((prev) => (prev === "loading" ? "blocked" : prev));
+    }, BLOCKED_FALLBACK_MS);
+
+    return () => {
+      script.removeEventListener("load", handleLoad);
+      script.removeEventListener("error", handleError);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
-  return ready;
+  return status; // "loading" | "ready" | "blocked"
 }

@@ -113,10 +113,10 @@ function Login() {
   const handleGoogleCredentialRef = useRef(handleGoogleCredential);
   handleGoogleCredentialRef.current = handleGoogleCredential;
 
-  const googleScriptReady = useGoogleIdentityScript();
+  const googleScriptStatus = useGoogleIdentityScript();
 
   useEffect(() => {
-    if (tempToken || !googleScriptReady) return; // the button's container isn't mounted on the 2FA screen
+    if (tempToken || googleScriptStatus !== "ready") return; // the button's container isn't mounted on the 2FA screen
 
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
@@ -131,7 +131,7 @@ function Login() {
         text: "continue_with",
       });
     }
-  }, [tempToken, googleScriptReady]);
+  }, [tempToken, googleScriptStatus]);
 
   const handleTwoFactorSubmit = async (e) => {
     e.preventDefault();
@@ -285,7 +285,13 @@ function Login() {
         <div className="flex-1 h-px bg-slate-700"></div>
       </div>
 
-      <div id="googleSignInButton" className="flex justify-center"></div>
+      {googleScriptStatus === "blocked" ? (
+        <p className="text-center text-xs text-slate-500">
+          Continue with Google is blocked by an ad blocker or privacy extension (like Brave Shields). Allow accounts.google.com to use it, or sign in with your username and password above.
+        </p>
+      ) : (
+        <div id="googleSignInButton" className="flex justify-center"></div>
+      )}
 
       <p className="text-center text-sm text-slate-400">
         Don&apos;t have an account?{" "}

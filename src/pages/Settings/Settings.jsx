@@ -331,10 +331,10 @@ function Settings() {
   const handleGoogleLinkCredentialRef = useRef(handleGoogleLinkCredential);
   handleGoogleLinkCredentialRef.current = handleGoogleLinkCredential;
 
-  const googleScriptReady = useGoogleIdentityScript();
+  const googleScriptStatus = useGoogleIdentityScript();
 
   useEffect(() => {
-    if (!googleScriptReady || activeTab !== "security" || user?.GoogleID) return;
+    if (googleScriptStatus !== "ready" || activeTab !== "security" || user?.GoogleID) return;
 
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
@@ -349,7 +349,7 @@ function Settings() {
         text: "signin_with",
       });
     }
-  }, [googleScriptReady, activeTab, user?.GoogleID]);
+  }, [googleScriptStatus, activeTab, user?.GoogleID]);
 
   const confirmDeleteImage = (image) => {
     setImagesToDelete([image]);
@@ -1052,6 +1052,10 @@ function Settings() {
                     </div>
                     {user.GoogleID ? (
                       <button className="modalButtons modalButtonsSecondary" onClick={() => setShowGoogleUnlink(true)}>Disconnect</button>
+                    ) : googleScriptStatus === "blocked" ? (
+                      <p className="modalEmptyNote text-right">
+                        Blocked by an ad blocker or privacy extension (like Brave Shields). Allow accounts.google.com to connect.
+                      </p>
                     ) : (
                       <div id="googleConnectButton">{googleLinking && <p className="modalEmptyNote">Connecting...</p>}</div>
                     )}
